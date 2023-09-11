@@ -1,0 +1,104 @@
+Dinamik Web Siteleri : bir milyar layoutu mu değiştireceksin?
+Mantıken olmayacağının hissiyatını hissetmek önemli.
+
+CGI (c dilinde), ASP, PHP, JSP... gibi script ve programlama dilleri ile ortaya çıkmıştır.
+
+ilk ASP ile ASP.Net arasında dağlar kadar teknik fark var. Sadece isim benzerliği. Bazı altyapı teknolojileri bir döneme kadar core a kadar kullanılmaya devam edildi.
+
+ilk tanışma;
+.NET Framework (2001 yılında) => ASP.NET Web Forms ile geldi. (2002-2010)
+tarayıcı adres çubuğunda *.aspx vardı.
+2019 a kadar aktif kullanıldı.
+Hiç programlama bilmeyen bile başlangıç seviyesinde uygulama geliştirilebiliyordu.
+Fakat değişiklik, revizyon çok zordu yani wizard yapılarının düzenlenmesi sıkntılı olduğundan genelde sıfırdan yeniden yazılıyordu. Performans problemleri vardı. 
+  ViewState teknolojisinin bant genişliği kullanımı problemleri vs. çoklu çalışmaya müsait değildi yani üç kişi aynı projede çalışamazdı. 
+  Dosya bir tane olduğundan birisi ; silse sıkıntı.
+Windows uygulaması gibi programlanıyordu ama teknolojik olarak farklı.
+Web teknolojileri dağıtık mimari uygulamaları yani client server. Bunun windows mantığıyla çözülmesi kulağı teks göstermekti.
+
+2008 de MVC 1.0 çıktı ama yaygınlaşması 2010 u buldu.
+
+1980 li yıllarda çıkan ortaya atılan bir patern. client-server tipi uygulamalar geliştirebilmek için.
+
+ms has bir yaklaşım değil.
+
+konuşulan konuların 50-60 yıllık bir geçmişi var.
+
+mvc açık kaynak kodulu. ms nereden para kazanıyor? özellikle büyük firmalara danışmanlık, eğitim, sınavlar yani bu konu özelinde sertifika (mvp farklı bir konu), yaygınlaşması için.
+  örneklerden biri; ms uygulamanda sql server kullan , 1 milyon dolar ve yazılımcı desteği... adamın geliştirme maliyeti düşecek ve nakit alacak. ms ilerde lisanstan kazanacak gibi.
+  
+yazdığın makaleye, insanlarla paylaşıma, eğitim videoları incelemesi vs. bir mvp nin seni referans olarak göstermesi gerekiyormuş mvp olabilmek için.
+
+eskiden (2002-2010) sadece web forms ile uygulama geliştirirken 2010 lu yıllardan sonra bu ikiye ayrıldı hemm web forms hem de mvc olarak.
+
+Fakat bu sektörde bir süre sonra çatallaşmaya sebep oldu. hangisinden devanm? ms demişki elindeki kalifiye eleman oop biliyorsa mvc yoksa web forms. 
+
+düz MVC 1.0 - 2.0 - 3.0 - 4.0 ve 4.1 ..... asla 5 olmayacak.
+
+MVC Core 2016 da çıktı. Core da 1.0 - 2.0 - 3.0 - 4.0 yok dikkat. düz mvc ile karışmasın diye kullanmadı. 5 ten başladı.
+
+.net 4 çıktığında 2010 du. 2012 de 4.5 çıktı. 2012 den sonra 4.6 ... asla 5 olmayacak. Çünkü core 5 ile geldi. Şuna core 6 üzerinden gidiyoruz.
+Yani mvc ve web formsun ömrü bitmek üzere. 3 yıl sonra history olarak kalacak. Aktif kalmayacak.
+daha sonra core tabirini de kaldıracak.
+core ile gelen radikal değişiklikler; alt yapı silbaştan değişti.
+fark listesi aşağıda.
+
+5 ve 6 arasında da fark var. Yani internette okuduğun makalenin tarihine buna göre dikkat etmelisin.
+
+çiftli sayılar long term support olarak devam edecek.
+tekli sayılar kısa dönem
+
+genellikle kasım ilk zamanlarında yayınlanıyor.
+
+fakat patern kullanımı yine aynı şekilde.
+
+MVC(Model View Controller) :Design Pattern:Client-Server tipi uygulamalar 
+                            için geliştirilmiştir...
+
+
+                            
+Web forms kalktı ama Razor Pages olarakta kullanılabilir ama çok az kullanımı var.
+Controller kullanmadan sayfa geliştirme komple yapıyı oluşturma yöntemi.
+ama günümüzde firmalar mvc tercih ediyor.
+uzun vadede birden fazla kullanıcı çalıştırmak vs dezavantajlı durumlar var.
+
+                            
+MVC CORE 6   (uzun hali ASP.NET MVC CORE) (ADO.NET standart ve core olarak ayrı bir teknoloji)
+
+MVVM(Model View ViewModel) Desktop Uygulamaları için kullanılır...
+
+MVC
+  Model
+  View
+  Controller
+
+Neden MVC Core?
+*** Multi-Platform Destegi
+*** Daha Performanslı(4x) düz mvc ye göre. Full asenkron desteğinden dolayı 2010 da gelen nodejs etkisi.
+*** Full Asenkron Programlama Destegi...
+*** Eski altyapı butunuyle degismistir(global.asax yok, web.config yok.., sunucu tarafında
+                                       web sitesininin calisma mantığı değişmiştir.. önceden isp üzerinde tread olarak çalışıyordu.)
+*** Her bir web sitesi artık bir exe dosya...
+*** KESTREL
+*** json tabanlı ayar dosyası kullanılır...
+*** Middleware teknolojisi
+*** Tag-Helpers kullanımı...
+*** wwwroot klasoru...
+*** program.cs dosyası gelmiştir...
+
+    Web sitesi ile ilgili butun ayarlar program.cs uzerinden yapılmaktadir...
+
+    MVC Core 6 oncesi... 
+    program.cs
+    startup.cs
+    MVC Core 6 sonrasi...
+    program.cs  
+-------
+
+MVC de
+ Controller icerisindeki metodlara action(aksiyon) denilir...
+ Bir controller içerisindeki varsayılan aksiyon "Index" tir...
+
+.../Controller/Action
+
+
