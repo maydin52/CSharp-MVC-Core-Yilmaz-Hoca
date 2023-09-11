@@ -1,0 +1,29 @@
+
+eski usül düz mvc
+
+- vs aç
+
+- create a new project
+
+- ASP.NET Web Application (.NET Framework) - düz mvc bu
+
+- proje ismi ver. framewrk 4.7.2 seç create
+
+- empty seç ve sağ taraftan web forms ve mvc seçeneklerini tıkla
+
+
+dikkat! global.asax ve web.config (xml tabanlı - core da json dosyası) dosyaları göreceksin; core ile bunlar yok artık.
+
+
+- Add - Web Form - isim ver devam.
+
+- view - toolbox 
+
+- </body> üstüne buton sürükle bırak. onun da üstüne iki tane textbox bırak
+normalde html de <asp:Textbox diye bir tag yok
+runat="server" server da çalışıormuş.
+textboxlardan birinin runat="server" ını sil. kaydet ve çalıştır.
+browser da kaynağı görüntüle dediğinde sildiğin tagin html ye çevrilmediğini göreceksin. textboxta görüntülenmez.
+browser html-css-js den başkasını anlamaz. runat denilince server tarafında tarayıcının anlayacağı hale getirir.
+tarayıcı uzantısı da aspx
+
