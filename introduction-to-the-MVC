@@ -199,7 +199,7 @@ public string Index()
         }
 
 
-
+Dikkat!!! demekki bir view olmadan string olarak ta oluşturabilirim.
 
 
 Controller yazarak başlıyoruz.
@@ -220,7 +220,20 @@ Views - shared - _ViewStart içinden diğer layoutları atayabilirsin.
 
 birden fazla layout için Area ? aria ? kullanımını araştır.
 
+-------------
 
+public IActionResult VeriGoster() { 
+        
+            
+            return View();
+        }
+
+aksiyonunda View() geriye ViewResult tipinde değer döndürüyor.
+O class ta go to definition dediğimizde ActionResult tan türediğini görüyoruz.
+ActionResult da IActionResult dan implemente edilmiş. IActionResult hepsini kapsadığından, O sebepten sorun çıkarmıyor.
+İki tip birbirinden nasıl farklı oluyorun cevabıydı bu.
+
+VeriGoster() üzerinde sağ tıkla - 
 
 
 
