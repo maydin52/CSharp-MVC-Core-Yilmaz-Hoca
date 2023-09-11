@@ -65,40 +65,163 @@ uzun vadede birden fazla kullanıcı çalıştırmak vs dezavantajlı durumlar v
                             
 MVC CORE 6   (uzun hali ASP.NET MVC CORE) (ADO.NET standart ve core olarak ayrı bir teknoloji)
 
+ms, satanın open-source olması şartıyla satın almış.
+
+
+Hocanın bahsettiği roslyn konusu. 160 mb bir dosya varmış.
+https://www.google.com/search?q=roslyn+nedir&rlz=1C5CHFA_enTR1036TR1036&oq=roslyn+nedir&aqs=chrome..69i57j0i390i650l3.1985j0j7&sourceid=chrome&ie=UTF-8
+https://medium.com/@sonmezosman/roslyn-ile-statik-kod-ve-etki-analizi-752b7699b1bd
+https://github.com/dotnet/roslyn#introduction
+
+
+MVC nin kuzeni windows altında çalışan;
 MVVM(Model View ViewModel) Desktop Uygulamaları için kullanılır...
+
+
 
 MVC
   Model
   View
   Controller
 
-Neden MVC Core?
-*** Multi-Platform Destegi
+Patern; bazı problemleri çözmek için önceden keşfedilmiş yöntemler. Yeniden tekerleği keşfetmemek.
+
+Uygulamayı mantıksal ve fiziksel olarak en az üçe bölüyoruz. Birbiriden ayırıyoruz. Bir projenin en az üç bileşeni var.
+Tasarımla business logic i ayırabiliyoruz yani farklı kişiler aynı proje üzerinde çalışabiliyorlar.
+Düzgün kullanılırsa minimum bağımlılıkla bu iş çözülebiliyor.
+
+
+Controller yani karşılayıcı ve yollayıcı - ayrıca view ve modelle konuşan - tüm ilişki ağını yöneten; 
+  Gelen requestleri karşılamak ve gidecek response vermek onun görevi.
+
+google fenerbahçe yazdık ve entera bastık
+get yaptık
+karşıdaki cont gelen isteği view üzerinden yakaladı eğer bir data geliyorsa datayı yakalayacak. 
+  arama yapılacaksa gidecek arama yapacak.arama sonuc kümesini view e gönderecek.
+
+view -> controller a GET ve parametresi
+
+view lar; sunucuda dosya olarak tutuluyor ve anlık olarak paylaşılıypr. Aslında herbiri birer nesne.
+
+model; verilerin saklandığı snıflardır. Katmalı mimarideki modelle aynı. Tablolara karşılık geliyor.
+
+2010 yılından sonra aşağıdaki kavramlar ortaya çıktı;
+Front-End Developer; View üzerinde çalışan.
+Back-End Developer; Model ve Controller üzerinde çalışan.
+Full-Stack Developer; View, Model ve Controller üzerinde çalışan.
+
+Eskiden tasarımcı işi bitirdikten sonra başlıyorduk ama artık şimdi ben datayı gönderirim istediği gibi göstersin.
+Datayı normal sartlarda obje olarak gönderiyoruz. JSON vb her türlü olabilir.
+
+
+
+
+Neden MVC Core? düz mvc den ayıran özellikler
+*** Multi-Platform Destegi (önceden sadece windowsta çalışıyordu) (hem geliştirme hem hosting)
 *** Daha Performanslı(4x) düz mvc ye göre. Full asenkron desteğinden dolayı 2010 da gelen nodejs etkisi.
-*** Full Asenkron Programlama Destegi...
+*** Full Asenkron Programlama Destegi... (düz mvc de standart böyle bir şey yok)
 *** Eski altyapı butunuyle degismistir(global.asax yok, web.config yok.., sunucu tarafında
                                        web sitesininin calisma mantığı değişmiştir.. önceden isp üzerinde tread olarak çalışıyordu.)
-*** Her bir web sitesi artık bir exe dosya...
-*** KESTREL
+*** Her bir web sitesi artık bir exe dosya... ÇOK ÖNEMLİ!! eskiden ISP exe dosyası içerisinde birer thread gibi çalışıyordu. 
+  ISS exe çöktüğünde tüm siteler çöküyor ama şimdi her site bir exe olduğundan sadece o site ekleniyor, diğerleri etkilenmiyor.
+*** KESTREL (ISP üzerine extra bir yüklenen bir uygulama)
 *** json tabanlı ayar dosyası kullanılır...
 *** Middleware teknolojisi
-*** Tag-Helpers kullanımı...
-*** wwwroot klasoru...
-*** program.cs dosyası gelmiştir...
-
+*** Tag-Helpers kullanımı...(düz mvc de; iki çeşitti: ya düz html ya da html helper)
+*** wwwroot klasoru... düz html kullanacaksak buraya atmalıyım. bunun dışına erişim yasak. adres çubuğundan kullanıcı direkt ulaşabilir. 
+  public alan.
+*** program.cs dosyası gelmiştir... (düz mvc ye bu yoktu.)
     Web sitesi ile ilgili butun ayarlar program.cs uzerinden yapılmaktadir...
-
     MVC Core 6 oncesi... 
     program.cs
     startup.cs
-    MVC Core 6 sonrasi...
+    MVC Core 6 sonrasi... (startup.cs yok. önceden buraya yazılanlar artık program.cs e sırasına uygun olarak yazılır.)
     program.cs  
 -------
 
-MVC de
- Controller icerisindeki metodlara action(aksiyon) denilir...
- Bir controller içerisindeki varsayılan aksiyon "Index" tir...
+düz mvc de başlangıç seviyesinde oop ile çözülebilir ama mvc core da ileri düzey oop ve patern kullanımını bilmemiz gerekir. 
+Neden kullandığımızı bilmemiz gerekir.
 
+--------------
+
+loglama sistemi için;
+IO Container yüklenmesi gerekiyor.
+
+https://www.google.com/search?q=IO+container+.net+framwork+nedir&rlz=1C5CHFA_enTR1036TR1036&oq=IO+container+.net+framwork+nedir&aqs=chrome..69i57j33i10i160.7923j0j7&sourceid=chrome&ie=UTF-8
+https://www.gokhan-gokalp.com/ioc-container-nedir/
+
+------------------
+
+2022 yılında .net core 6 ile birlikte özellikle apiler, restful apiler tarafında ms değişikliğe gitti;
+belki ileride mvc için yapabileceğinden şimdiden söyledi.
+Artık controlleri olmayan apiler var.
+Bunlar minimal api olarak geçiyor.
+controllera yazdığımız kodu minimal api lerde program.cs e yazıyoruz.
+microservice le dockerla alakası var.
+bütün dünyada bu tip servisler ve docker kullanımı çok arttığı için. Daha az kaynak daha fazla servise hizmet. Yarın bu mvc de de 
+  controller kalkarsa şaşırmayın diyor.
+  (her uygulamanın kendine özel mikro ikliminin oluşturulması. 
+  adamın biri eskiden sunucuda güncelleme yapıyor. bu sefer benim yazdığım proje çalışmıyor. Güncelledikte demiyorlar.
+  Sonra öğrendikki güncellemiş ben kodu bu güncellemeye göre uyarlıyorum.
+  Sıkıntılı bir durum. o uygulama hangi işletim sistemini veya hangi uygulamayı kullanıyorsa, hangi ihtiyacı varsa bunu bir
+  konteyner içerisine alıyor, ondan sonra da docker üzerinde yayınlıyor. Yani her uygulamanın kendine göre bir mikro iklimi oluyor.
+  microservice denilen şeyde bu aslında.örneğin 10 mb lık bir uygulama geliştiriyorsunu diyelim; 
+  konteynere attığınızda görürsünüz 300 mb lık yer gidiyor. Kullandığı kaynaklarla alakalı. 
+  controller olmayınca da 300 olmuyorda 200 oluyor gibi. ) 
+
+-------------
+
+MVC de
+ Controller icerisindeki metodlara action(aksiyon) denilir... Mülakatlarda dikkat!!!
+ Bir controller içerisindeki varsayılan aksiyon "Index" tir... Kendisi otomatik olarak bunu getirecektir. Yazman gerekmiyor.
+
+Dikkat!!! Konsol ile çalışıyor.
+
+neye erşimek istiyorsanız;
 .../Controller/Action
+bunun da sebebi program.cs içindeki app.Run() üstündeki pattern böyle tanımlandığından
+
+.../Baslangic
+
+public string Index()
+        {
+            return "Deneme 123";
+        }
+
+--------------------
+
+.../Baslangic/Test
+
+        public string Test()
+        {
+            //return "Test 123";
+            return "<h1>Test</h1>";
+        }
+
+
+
+
+
+Controller yazarak başlıyoruz.
+Karşılayıcı olarak; gelen istekleri karşılaması için.
+
+solution explorer da controller üzerinde sağtık - Add - Controller - Empty - Add - Name sonunda xxxxxController olmalı. 
+  Sonunda yazan 1 i sil.
+
+Requstleri karşılayacak, response lara cevap verecek olan şey aslında classtır.
+obje dediğimiz şey ramde oluşan nesnelerdir.
+
+IActionResult interface i düz mvc de ActionResult class
+go to definition dediğimizde full asenkron dediğinden asenkron desteği IActionResult dan geliyor.
+
+Aksiyonun view ini ya klasörde ya da shared de arar.
+
+Views - shared - _ViewStart içinden diğer layoutları atayabilirsin.
+
+birden fazla layout için Area ? aria ? kullanımını araştır.
+
+
+
+
 
 
