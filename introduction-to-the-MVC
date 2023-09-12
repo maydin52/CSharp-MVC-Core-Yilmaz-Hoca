@@ -125,8 +125,10 @@ Neden MVC Core? düz mvc den ayıran özellikler
 *** Her bir web sitesi artık bir exe dosya... ÇOK ÖNEMLİ!! eskiden ISP exe dosyası içerisinde birer thread gibi çalışıyordu. 
   ISS exe çöktüğünde tüm siteler çöküyor ama şimdi her site bir exe olduğundan sadece o site ekleniyor, diğerleri etkilenmiyor.
 *** KESTREL (ISP üzerine extra bir yüklenen bir uygulama)
+https://www.google.com/search?q=iss+kestrel+nedir&sca_esv=564615981&rlz=1C5CHFA_enTR1036TR1036&sxsrf=AB5stBhApYdYsi9llDxTJIH2MrBUwyGzaA%3A1694504262660&ei=RhUAZYvyJ6yKxc8Po7GXqAg&ved=0ahUKEwiLrZWlyKSBAxUsRfEDHaPYBYUQ4dUDCBA&uact=5&oq=iss+kestrel+nedir&gs_lp=Egxnd3Mtd2l6LXNlcnAiEWlzcyBrZXN0cmVsIG5lZGlyMgcQIRigARgKSLgzUMQMWNQycAF4AZABAJgBpgGgAcUJqgEEMC4xMLgBA8gBAPgBAcICChAAGEcY1gQYsAPCAgoQABiKBRiwAxhDwgIOEAAY5AIY1gQYsAPYAQHCAhAQLhiKBRjIAxiwAxhD2AECwgIGEAAYBxgewgILEAAYBxgeGPEEGArCAgcQABgNGIAEwgIGEAAYHhgNwgIIEAAYCBgeGA3CAgYQABgWGB7CAggQABgWGB4YD8ICCBAAGIoFGIYDwgIEECEYFeIDBBgAIEGIBgGQBhO6BgYIARABGAm6BgYIAhABGAg&sclient=gws-wiz-serp
 *** json tabanlı ayar dosyası kullanılır...
 *** Middleware teknolojisi
+  https://www.google.com/search?q=middleware+teknolojisi&rlz=1C5CHFA_enTR1036TR1036&oq=middleware+teknolojisi&aqs=chrome..69i57j33i160l2.5044j0j7&sourceid=chrome&ie=UTF-8
 *** Tag-Helpers kullanımı...(düz mvc de; iki çeşitti: ya düz html ya da html helper)
 *** wwwroot klasoru... düz html kullanacaksak buraya atmalıyım. bunun dışına erişim yasak. adres çubuğundan kullanıcı direkt ulaşabilir. 
   public alan.
@@ -285,6 +287,10 @@ Dikkat!!! kaynağı görüntüle içinde bu kod çıkmaz, sonucu gösterir. Sepe
 @Html.ActionLink("Test","Test")
 @Html.ActionLink("Test","Test",new {},new { @class="btn btn-danger"})
 
+https://www.google.com/search?q=.net+html+helpers&sca_esv=564615981&rlz=1C5CHFA_enTR1036TR1036&sxsrf=AB5stBj3GcjvROsJxkPxpx5GRW7whQMMWg%3A1694503835540&ei=mxMAZYW-IMSVxc8Pp6yrqAY&ved=0ahUKEwjF97_ZxqSBAxXESvEDHSfWCmUQ4dUDCBA&uact=5&oq=.net+html+helpers&gs_lp=Egxnd3Mtd2l6LXNlcnAiES5uZXQgaHRtbCBoZWxwZXJzMgUQABiABDIGEAAYBRgeMggQABgFGAcYHjIGEAAYCBgeMgYQABgIGB4yBhAAGAgYHjIGEAAYCBgeMgYQABgIGB4yBhAAGAgYHjIGEAAYCBgeSPcsUM4fWMEmcAd4AZABAJgBe6ABzQOqAQMwLjS4AQPIAQD4AQHCAgoQABhHGNYEGLADwgIGEAAYBxgewgIIEAAYCBgHGB7iAwQYACBBiAYBkAYI&sclient=gws-wiz-serp
+
+
+
 
 <!--3.Yontem Tag Helpers-->  (ilk Angular kullanmıştır. Angular dan etkilenerek gelmiştir.) (Front-End ciye daha uygundur.)
 <a asp-action="Test" class="btn btn-secondary">Test</a>
@@ -294,6 +300,10 @@ Yukarıdakinde Tag helper kullanmazsak;
 
 
 <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Home</a>
+
+
+https://www.google.com/search?q=.net+tag+helpers&sca_esv=564615981&rlz=1C5CHFA_enTR1036TR1036&sxsrf=AB5stBgBmHZYLoCMOySe2Xyvtp_EZ66aKQ%3A1694503755107&ei=SxMAZZ-LBviMxc8PlvezsAs&ved=0ahUKEwjf3JKzxqSBAxV4RvEDHZb7DLYQ4dUDCBA&uact=5&oq=.net+tag+helpers&gs_lp=Egxnd3Mtd2l6LXNlcnAiEC5uZXQgdGFnIGhlbHBlcnMyBhAAGAcYHjIGEAAYBxgeMgYQABgHGB4yBhAAGAcYHjIFEAAYgAQyBhAAGAcYHjIGEAAYBxgeMggQABgFGAcYHjIIEAAYBRgHGB4yCBAAGAUYBxgeSNQxUIEHWP8vcAF4AZABAJgBggGgAdMCqgEDMS4yuAEDyAEA-AEBwgIKEAAYRxjWBBiwA8ICBhAAGAgYHsICCBAAGIoFGIYDwgIGEAAYBRge4gMEGAAgQYgGAZAGCA&sclient=gws-wiz-serp
+
 
 -------------------------------------
 
