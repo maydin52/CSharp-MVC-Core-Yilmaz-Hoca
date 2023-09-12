@@ -181,6 +181,10 @@ neye erşimek istiyorsanız;
 .../Controller/Action
 bunun da sebebi program.cs içindeki app.Run() üstündeki pattern böyle tanımlandığından
 
+
+
+
+
 .../Baslangic
 
 public string Index()
@@ -240,36 +244,106 @@ VeriGoster() aksiyonu üzerinde sağ tıkla - Add View - Razor View Empty - Add 
 ---- VeriGoster.cshtml
 
 
+--- Razor açıklama satırı
 @*
     Açıklama Satiri (Razor)
 *@
 
+
+Razor teknolojisi;
+düz mvc 2.0 da yani 2010 dan beri kullanıyoruz.
+html sayfasına c# kodu yazılmasını kolaylaştıran bir özellik
+Dikkat!! tek sayfada hem c# kodu hem html hem css hem js kullanabiliyoruz.
+
+
+---html açıklama satırı
 <!--Açıklama satiri-->
 
-<h1>Veri goster</h1>
 
+
+<h1>Veri goster</h1>        (statik olsaydı hepsinin layout unu değiştirmemiz gerekiyordu. Dinamik oluşunun güzel yanı)
+
+
+---- @ razor operatörü
 @for(int i=0;i<4;i++)
 {
     <h2>Merhaba</h2>
 }
+Dikkat!!! kaynağı görüntüle içinde bu kod çıkmaz, sonucu gösterir. Seperation of konsörn?. Front Back işlerinin ayrışması
 
-<!--Etiket(Tag) olusturma yontemleri...-->
+
+
+<!--Etiket(Tag) olusturma yontemleri...-->      
+(HTML ve Tag Helpers için kod tarayıcı tarafına aktarılmadan önce otomatik HTML e çevirilir.)
+(En performanslısı düz html. Öbürünün maliyeti var. Çünkü aracı olmayacak.)
+
 <!--1.Yontem Duz HTML-->
 <a href="" class="btn btn-primary">Google</a>
 
-<a href="/Baslangic/Test">Test</a>
-<!--2.Yontem HTML Helpers-->
 
+<!--2.Yontem HTML Helpers-->    (Front-End cinin new {} i yani anonim tipi bilmesi gerekiyordu.)
+@Html.ActionLink("Test","Test")
 @Html.ActionLink("Test","Test",new {},new { @class="btn btn-danger"})
 
-<!--3.Yontem Tag Helpers-->
+
+<!--3.Yontem Tag Helpers-->  (ilk Angular kullanmıştır. Angular dan etkilenerek gelmiştir.) (Front-End ciye daha uygundur.)
 <a asp-action="Test" class="btn btn-secondary">Test</a>
 
+Yukarıdakinde Tag helper kullanmazsak;
+<a href="/Baslangic/Test">Test</a>
 
 
 <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Home</a>
 
+-------------------------------------
+
+Controller la view arasındaki ilişki sadece data olmalı.
+
+Her konunun Controller i ayrı olmalı.
+
+Sayfalar aksiyonlarla ilişkili. Her aksiyonun bir sayfası var. Aslında bu kadar sayfa var demek.
+
+adres çubuğundan anlıyoruz.
+
+Mantıksal ve fiziksel olarak ayrılabilmesi için birden fazla kişi controlleri ayrı olduğu için ayrı çalışabiliyorlar.
+
+-------------------------------------
+
+Layout kullanmak zorunda değiliz ama uzun vadede kullanılıyor. Bir seçeneği var. 
+
+public IActionResult ListeGoster()
+        {
+
+            return View();
+        }
+üzerinde view oluştururken Empty değilde diğerini seçtikten sonraki ekranda layout seçeneğini kliklemeyip ilerlersen,
+  oluşan view da layout null yazımını göreceksin.
 
 
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ListeGoster</title>
+</head>
+<body>
+    <h2>Listele</h2>
+</body>
+</html>
+
+Dikkat!!! Layout gelmedi.
+
+------------------------------------------
+
+VS daki tag tamamlama özelliğinin tagi
+https://marketplace.visualstudio.com/items?itemName=formulahendry.auto-rename-tag
+
+Paint yerine çizim yapmak için
+https://excalidraw.com
 
 
