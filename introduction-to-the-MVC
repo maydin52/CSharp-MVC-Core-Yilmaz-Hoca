@@ -194,7 +194,7 @@ public string Index()
 
         public string Test()
         {
-            //return "Test 123";
+            //return "Test 123";        (Dikkat!!! taglerde sayfada göründü neden olmadığı daha sonradan konuşulacak.)
             return "<h1>Test</h1>";
         }
 
@@ -220,6 +220,8 @@ Views - shared - _ViewStart içinden diğer layoutları atayabilirsin.
 
 birden fazla layout için Area ? aria ? kullanımını araştır.
 
+.net single pace application araştır.
+
 -------------
 
 public IActionResult VeriGoster() { 
@@ -233,7 +235,40 @@ O class ta go to definition dediğimizde ActionResult tan türediğini görüyor
 ActionResult da IActionResult dan implemente edilmiş. IActionResult hepsini kapsadığından, O sebepten sorun çıkarmıyor.
 İki tip birbirinden nasıl farklı oluyorun cevabıydı bu.
 
-VeriGoster() üzerinde sağ tıkla - 
+VeriGoster() aksiyonu üzerinde sağ tıkla - Add View - Razor View Empty - Add - VeriGoster.cshtml şeklinde; klasör ve sayfa oluştu.
+
+---- VeriGoster.cshtml
+
+
+@*
+    Açıklama Satiri (Razor)
+*@
+
+<!--Açıklama satiri-->
+
+<h1>Veri goster</h1>
+
+@for(int i=0;i<4;i++)
+{
+    <h2>Merhaba</h2>
+}
+
+<!--Etiket(Tag) olusturma yontemleri...-->
+<!--1.Yontem Duz HTML-->
+<a href="" class="btn btn-primary">Google</a>
+
+<a href="/Baslangic/Test">Test</a>
+<!--2.Yontem HTML Helpers-->
+
+@Html.ActionLink("Test","Test",new {},new { @class="btn btn-danger"})
+
+<!--3.Yontem Tag Helpers-->
+<a asp-action="Test" class="btn btn-secondary">Test</a>
+
+
+
+<a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Home</a>
+
 
 
 
