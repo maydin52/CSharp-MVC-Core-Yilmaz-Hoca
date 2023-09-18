@@ -1,17 +1,117 @@
 MVC Core 6
 
-Controller dan View'e Veri aktarma yontemleri...
+Her birinin avantajı ve dezavantajları var.
+
+Veri taşımak için kullandığımız class lara model denir.
+
+
+
+---------------------------------------------------------------------------------------------------------------------
+A-Controller dan View'e Veri aktarma yontemleri...
+
+KULLANIM ŞEKLİ, SIKLIĞI SIRALAMASI; NUMBER-X
+
+Inputlardan girilen verileri sunucuya gönderme. Örneğin kullanıcı adı ve şifre.
+
+----------
 
 1-ViewData
 ***ViewData Dictionary mantıgiyla calisir...
 ***Key-value pairs
 ***Tip donusumu yapmak gerekir...
+ViewData ve ViewBag arasındaki temel fark; ViewData da object tuttuğundan tip dönüşümü yapmak zorundayız ama ViewBag de dynamic tuttuğundan tip dönüşümü yapmak zorunda değiliz.
 
+1.a urun classı oluşturduk.
+public class Urun
+    {
+        public int UrunID { get; set; }
+        public string UrunAdi { get; set; }
 
-2-ViewBag
+        public string KategoriAdi { get; set; }
+        public double Fiyat { get; set; }
+    }
+
+1.b controller oluşturduk.
+public class GonderController : Controller
+    {
+        public IActionResult Index()
+        {
+            ViewData["mesaj"] = "Merhaba MVC";          //DİKKAT!!! imzasında ViewDataDictionary. Dictionary koleksiyon çalışma mantığı: Key Value prensibine göre çalışır. 
+                                                                   Yani key verirsiniz, value sini tutarsınız. Yani bu yapı arkaplanda  Hastable, Dictionary altyapısı kullanıyor.
+                                                        // "Merhaba MVC";  nin tipi obje
+
+            ViewData["Sehirler"] = new string[] { "Istanbul", "Ankara", "Bursa" };
+
+            Urun urun1 = new Urun() { UrunID = 123, UrunAdi = "Klavye", Fiyat = 259 };
+            ViewData["urun"] = urun1;
+
+            return View();
+        }
+
+1.c yukarıdaki Index üzerinde sağ tıklayıp Index aksiyonu oluşturduk.
+<h2>ViewData Kullanımı...</h2>
+@ViewData["Mesaj"]
+<br />
+@foreach(var item in (string[])ViewData["sehirler"])        //DİKKAT!!! ViewData geriye object değer döndürür ama biz string gönderdiğimiz için hata verdi. Sonra cast ettik.
+                                                                                                                              Tip dönüşümü yaptık. 
+{
+    @item
+}
+@ViewData["Urun"]          //namescape çıktı!!!!!   @ViewData["Urun"]. dedikten sonra propertylerine erişemiyoruz. 
+<br />
+@{
+   int ID= ((Urun)ViewData["Urun"]).UrunID;          //Cast ederek propertylerine eriştik.
+}
+@ID
+
+1.d çalıştırıp tarayıcıdan ..../Controller/Action yazarak sayfayı aç ve kontrol et.
+
+------
+
+2-ViewBag NUMBER-3
 ***ViewBag : Veriyi dynamic olarak tutar
 ***Her seferinde tip donusumu yapmaya gerek yoktur, kendisi halleder...
+ViewData dan sonra gelmiştir.
 
+2.a urun classı oluşturduk.
+public class Urun
+    {
+        public int UrunID { get; set; }
+        public string UrunAdi { get; set; }
+
+        public string KategoriAdi { get; set; }
+        public double Fiyat { get; set; }
+    }
+
+2.b controller oluşturduk.
+public class GonderController : Controller
+    {
+        public IActionResult Index()
+        {
+            ViewBag.Message = "Hello MVC";        //.Message dynamic. var da tip bir kere oluştu mu sonra değişemez. dynamic te tip her seferinde değişebilir. Yani arka planda 
+                                                                                      dynamic altyapısını kullanıyor.
+
+            ViewBag.Cities = new string[] { "London", "Paris", "Roma" };
+
+            Urun urun1 = new Urun() { UrunID = 123, UrunAdi = "Klavye", Fiyat = 259 };
+            ViewBag.Product  = urun1;
+
+            return View();
+        }
+
+2.c yukarıdaki Index üzerinde sağ tıklayıp Index aksiyonu oluşturduk.
+<h2>ViewBag Kullanımı</h2>
+@ViewBag.Message
+<br />
+@foreach (var item in ViewBag.Cities)
+{
+    @item
+}
+@ViewBag.Product      //namescape çıktı!!!!!  
+<br />
+@ViewBag.Product.UrunID @ViewBag.Product.UrunAdi @ViewBag.Product.Fiyat
+
+----------
 
 3-TempData
 TempData: Bir veriye birden fazla Controller yada aksiyondan ulasmak icin kullanırız...
@@ -20,14 +120,41 @@ TempData: Bir veriye birden fazla Controller yada aksiyondan ulasmak icin kullan
 *** Performans açısından(Memory kullanımı) dikkatli olmak gerekir...
 
 
-4-Model
+3.a controller oluşturduk.
+public class GonderController : Controller
+    {
+        public IActionResult Index()
+        {
+            TempData["veri"] = "Bu veri onemli veri...";
+            TempData.Keep();
+
+            return View();
+        }
+
+3.b yukarıdaki Index üzerinde sağ tıklayıp Index aksiyonu oluşturduk.
+<h2>TempData</h2>
+@TempData["veri"]
+
+
+
+
+
+
+
+
+---------
+
+4-Model NUMBER-1
 Model: En fazla kullanılan yontemlerden biridir...
 *** Model içerisindeki tum veriler front-end tarafında calisanlar tarafında gorulur..
 *** tanımlarken  @model
 *** kullanırken  @Model
 
 
-5-ViewModel
+
+
+---------
+5-ViewModel NUMBER-2
 ViewModel: birden fazla modeli bir sayfaya gondermek istersek kullanırız...
 
 
@@ -38,16 +165,43 @@ ViewModel: birden fazla modeli bir sayfaya gondermek istersek kullanırız...
 
 --------------------------------------------------------------------------------------------------------------------------
 
-Viewden Controller'a Veri aktarma Yontemleri...
+B-Viewden Controller'a Veri aktarma Yontemleri...
+
 Inputlar aracılığıyla girilen verileri nasıl yakalarız???
 
-1-QueryString Yöntemi: Kullanıcının girdigi veriler adres cubugnda adres verisinden sonra aktarılsın istiyorsak kullanırız...
+1-QueryString Yöntemi: 
+Kullanıcının girdigi veriler adres cubugnda adres verisinden sonra aktarılsın istiyorsak kullanırız...
+
+
+
+
+------------
 
 2-Request.Form Yöntemi:
 
+
+
+
+
+------------
+
 3-IFormCollection Yöntemi:
+
+
+
+
+------------
 
 4-Parametre Yontemi:
 
+
+
+
+
+------------
+
 5-Model Yöntemi:
+
+
+------------
 
