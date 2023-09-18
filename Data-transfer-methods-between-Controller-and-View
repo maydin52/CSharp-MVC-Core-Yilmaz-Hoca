@@ -1,3 +1,5 @@
+Dikkat!!! Güven konusu çok öenmli.
+
 MVC Core 6
 
 Her birinin avantajı ve dezavantajları var.
@@ -125,16 +127,28 @@ public class GonderController : Controller
     {
         public IActionResult Index()
         {
-            TempData["veri"] = "Bu veri onemli veri...";
-            TempData.Keep();
+            TempData["veri"] = "Bu veri onemli veri...";        //imzaya bak. generic versiyonu.
+            TempData.Keep();            // Bkaz alttaki aksiyon açıklaması.
 
+            return View();    //Parantez içinde "" içinde view ismi yazasan isteğin viewe gönderebilirsin.
+        }
+
+        public IActionResult TempDataVerisiGoster()             //TempData() yazdık kızdı. dikkat!!!
+        {
+            TempData.Keep("veri");            // Bunu yazmazsak ilkinde kullanıldıktan sonra ikinci aksiyonda gelmez. kalıcı hale getirmek için. 
+                                                    Fakat performans ramde kalacağı için. Yukarıda da var.
             return View();
         }
 
-3.b yukarıdaki Index üzerinde sağ tıklayıp Index aksiyonu oluşturduk.
+3.b yukarıdaki Index üzerinde sağ tıklayıp Index viewi oluşturduk.
 <h2>TempData</h2>
 @TempData["veri"]
 
+3.c yukarıdaki TempDataVerisiGoster üzerinde sağ tıklayıp TempDataVerisiGoster viewi oluşturduk.
+<h2>TempData verisini goster</h2>
+@TempData["veri"]
+
+3.d çalıştırıp tarayıcıdan ..../Controller/Action yazarak sayfayı aç ve kontrol et.
 
 
 
