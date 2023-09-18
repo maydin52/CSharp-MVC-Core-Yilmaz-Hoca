@@ -1,36 +1,53 @@
 MVC Core 6
-Controller dan View'e Veri aktarma yontemleri...
-1-ViewData
-2-ViewBag
-3-TempData
-4-Model
-5-ViewModel
 
+Controller dan View'e Veri aktarma yontemleri...
+
+1-ViewData
 ***ViewData Dictionary mantıgiyla calisir...
 ***Key-value pairs
 ***Tip donusumu yapmak gerekir...
 
+
+2-ViewBag
 ***ViewBag : Veriyi dynamic olarak tutar
 ***Her seferinde tip donusumu yapmaya gerek yoktur, kendisi halleder...
 
+
+3-TempData
 TempData: Bir veriye birden fazla Controller yada aksiyondan ulasmak icin kullanırız...
 *** Veri ilk kullanıldıktan sonra silinir...
 *** Istenirse Veri Kalıcı hale getirilebilinir...
 *** Performans açısından(Memory kullanımı) dikkatli olmak gerekir...
 
+
+4-Model
 Model: En fazla kullanılan yontemlerden biridir...
 *** Model içerisindeki tum veriler front-end tarafında calisanlar tarafında gorulur..
 *** tanımlarken  @model
 *** kullanırken  @Model
 
+
+5-ViewModel
 ViewModel: birden fazla modeli bir sayfaya gondermek istersek kullanırız...
 
 
-Viewden Controller'a Veri aktarma Yontemleri...
-1-QueryString: Kullanıcının girdigi veriler adres cubugnda adres verisinden sonra aktarılsın istiyorsak kullanırız...
 
-2-Request.Form
-3-IFormCollection
-4-Parametre yontemi
-5-Model
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Viewden Controller'a Veri aktarma Yontemleri...
+Inputlar aracılığıyla girilen verileri nasıl yakalarız???
+
+1-QueryString Yöntemi: Kullanıcının girdigi veriler adres cubugnda adres verisinden sonra aktarılsın istiyorsak kullanırız...
+
+2-Request.Form Yöntemi:
+
+3-IFormCollection Yöntemi:
+
+4-Parametre Yontemi:
+
+5-Model Yöntemi:
 
