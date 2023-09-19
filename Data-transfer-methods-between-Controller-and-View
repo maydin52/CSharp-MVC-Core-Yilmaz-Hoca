@@ -374,7 +374,7 @@ public class YakalaController : Controller
 
 
 1-b Yakala controllerin Index.cshtml
-@model Urun                                                     //@*yorum satırı*@  
+                                                    //@*yorum satırı*@  
 @*QueryString üzerinden veri gonderme*@                         //Kullanıcıdan verileri alabilmek için form tagi kullandık.
 <form method="get" asp-action="QueryString">                    //method yazmasakta varsayılanı get ama çıkmadı method="get" ekledik. istiyor. QueryString adres çubuğunda gösterecek veriyi.
     <input type="text" id="id" name="id" />                     //DİKKAT!!! name bilgisi model ile aynı olmalı.
@@ -385,9 +385,12 @@ public class YakalaController : Controller
 </form>
 
 
-1-c ...../Yakala/Index veya ...../Yakala                    //inputlara değerler girip butona bastıktan sonra adres çubuğuna değerleri yazdı. Content Gelen deger bilgisi gövdeye geldi.
-                                                            //Kullanımı sıkıntı. Adam şifre girdiyse açığa çıktı. Fakat bazı durumlarda bu şekilde veri aktarımı yapılıyor.
-                                                            //Bunu controllerda aksiyonda yakalıyoruz.
+1-c ...../Yakala/Index veya ...../Yakala  sayfasından formu doldur ve butona bas.
+    ...../Yakala/QueryString sayfasınnın gövdesinde seçilen bilgilerin olduğu sonuç geldi.
+
+//inputlara değerler girip butona bastıktan sonra adres çubuğuna değerleri yazdı. Content Gelen deger bilgisi gövdeye geldi.
+//Kullanımı sıkıntı. Adam şifre girdiyse açığa çıktı. Fakat bazı durumlarda bu şekilde veri aktarımı yapılıyor.
+//Bunu controllerda aksiyonda yakalıyoruz.
 
 ------------
 
@@ -415,7 +418,7 @@ public class YakalaController : Controller
 
 
 2-b Yakala controllerin Index.cshtml
-@model Urun
+
 <h2>Request Form</h2>
 <form method="post" asp-action="RequestForm">            //DİKKAT!!! method="post"
     <input type="text" id="id" name="id" />
@@ -425,8 +428,9 @@ public class YakalaController : Controller
     <input type="submit" value="Gonder" />
 </form>
 
-2-c ...../Yakala/RequestForm                 //soldaki adreste gövdede içerik çıktı.
 
+2-c ...../Yakala/Index veya ...../Yakala  sayfasından formu doldur ve butona bas.
+    ...../Yakala/RequestForm sayfasınnın gövdesinde seçilen bilgilerin olduğu sonuç geldi.
 
 
 ------------
@@ -437,14 +441,30 @@ public class YakalaController : Controller
 3-a
 public class YakalaController : Controller
     {
+        public IActionResult Index()
+        {
+            return View();
+        }
 
+
+        [HttpPost]
+        public IActionResult FormCollection(IFormCollection frm)            //yukarıdakiyle farkı; her seferinde reguestform, reguestform yazmak zorunda değilim. 
+                                                                                //Form içinde name inden yakalıyor hepsini
+        {
+            //[] arasına yazılan isim; form da verilen name ile aynı olmalı...
+
+            int id = int.Parse(frm["id"]);
+            string ad = frm["ad"];
+
+            return Content("Gelen deger :" + id + " " + ad);
+        }
 
     }
 
 
 
 3-b Yakala controllerin Index.cshtml
-@model Urun
+
 <h2>IFormCollection</h2>
 <form method="post" asp-action="FormCollection">            //DİKKAT!!! method="post"
     <input type="text" id="id" name="id" />
@@ -454,7 +474,8 @@ public class YakalaController : Controller
     <input type="submit" value="Gonder" />
 </form>
 
-3-c ...../Yakala/Index veya ...../Yakala  
+3-c ...../Yakala/Index veya ...../Yakala  sayfasından formu doldur ve butona bas.
+    ...../Yakala/FormCollection sayfasınnın gövdesinde seçilen bilgilerin olduğu sonuç geldi.
 
 
 ------------
@@ -464,15 +485,24 @@ public class YakalaController : Controller
 4-a
 public class YakalaController : Controller
     {
+        public IActionResult Index()
+        {
+            return View();
+        }
 
-
+        [HttpPost]
+        public IActionResult Parameters(int id, string ad, string kategori, double fiyat)        
+        {
+            //parametre adları ile name'ler aynı olmalı...
+            return Content("Gelen deger :" + id + " " + ad+ " " + kategori + " " + fiyat);
+        }
     }
 
 
 4-b Yakala controllerin Index.cshtml
-@model Urun
+
 <h2>Parameters</h2>
-<form method="post" asp-action="Parameters">                //DİKKAT!!! method="post"
+<form method="post" asp-action="Parameters">                //DİKKAT!!! method="post" tip dönüşümü yapmana gerek yok, reguestform,reguestform yazmaya gerek yok. Name isimleri aynı olmalı.
     <input type="text" id="id" name="id" />
     <input type="text" id="ad" name="ad" />
     <input type="text" id="kategori" name="kategori" />
@@ -480,7 +510,8 @@ public class YakalaController : Controller
     <input type="submit" value="Gonder" />
 </form>
 
-4-c ...../Yakala/Index veya ...../Yakala  
+4-c ...../Yakala/Index veya ...../Yakala  sayfasından formu doldur ve butona bas.
+    ...../Yakala/Parameters sayfasınnın gövdesinde seçilen bilgilerin olduğu sonuç geldi.
 
 
 ------------
@@ -491,23 +522,34 @@ public class YakalaController : Controller
 5-a
 public class YakalaController : Controller
     {
+        public IActionResult Index()
+        {
+            return View();
+        }
 
-
+        [HttpPost]
+        public IActionResult Models(Urun urun)
+        {
+            //parametre adları ile name'ler aynı olmalı...
+            //instance kendisi aldı.
+            return Content("Gelen deger :" + urun.UrunID + " " + urun.UrunAdi);
+        }
     }
 
 
 5-b Yakala controllerin Index.cshtml
-@model Urun
+@model Urun                //en başa ekleniyor.
 <h2>Models</h2>
-<form method="post" asp-action="Models">                //DİKKAT!!! method="post"
-    <input type="text"  asp-for="UrunID" />
+<form method="post" asp-action="Models">                //DİKKAT!!! method="post" yukarıdaki id ve name leri burada sildik. asp-for ekliyoruz. yazmasakta yakalıyor??
+    <input type="text"  asp-for="UrunID" />                //Kodu görüntüle de göreceğin gibi; biz asp-for yazdık ama o kodu çevirerek yazdı. Kolaylık.
     <input type="text"  asp-for="UrunAdi" />
     <input type="text"  asp-for="KategoriAdi" />
     <input type="text"  asp-for="Fiyat" />
     <input type="submit" value="Gonder" />
 </form>
 
-5-c ...../Yakala/Index veya ...../Yakala  
+5-c ...../Yakala/Index veya ...../Yakala  sayfasından formu doldur ve butona bas.
+    ...../Yakala/Models sayfasınnın gövdesinde seçilen bilgilerin olduğu sonuç geldi.
 
 ------------
 
