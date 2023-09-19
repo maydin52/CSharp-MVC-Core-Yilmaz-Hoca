@@ -6,7 +6,8 @@ Her birinin avantajı ve dezavantajları var.
 
 Veri taşımak için kullandığımız class lara model denir.
 
-
+PARANTEZLERİ RENKLENDİRİYOR.
+Tools - options - text editor - display altındaki enable brace pair colorization klikle!
 
 ---------------------------------------------------------------------------------------------------------------------
 A-Controller dan View'e Veri aktarma yontemleri...
@@ -128,7 +129,7 @@ public class GonderController : Controller
         public IActionResult Index()
         {
             TempData["veri"] = "Bu veri onemli veri...";        //imzaya bak. generic versiyonu.
-            TempData.Keep();            // Bkaz alttaki aksiyon açıklaması.
+            TempData.Keep();            // Bkz alttaki aksiyon açıklaması.
 
             return View();    //Parantez içinde "" içinde view ismi yazasan isteğin viewe gönderebilirsin.
         }
@@ -136,7 +137,7 @@ public class GonderController : Controller
         public IActionResult TempDataVerisiGoster()             //TempData() yazdık kızdı. dikkat!!!
         {
             TempData.Keep("veri");            // Bunu yazmazsak ilkinde kullanıldıktan sonra ikinci aksiyonda gelmez. kalıcı hale getirmek için. 
-                                                    Fakat performans ramde kalacağı için. Yukarıda da var.
+                                                    Fakat performans ramde kalacağı için. Yukarıda da var. rami yönetmek açızından riskli.
             return View();
         }
 
@@ -150,12 +151,6 @@ public class GonderController : Controller
 
 3.d çalıştırıp tarayıcıdan ..../Controller/Action yazarak sayfayı aç ve kontrol et.
 
-
-
-
-
-
-
 ---------
 
 4-Model NUMBER-1
@@ -165,6 +160,76 @@ Model: En fazla kullanılan yontemlerden biridir...
 *** kullanırken  @Model
 
 
+4.a urun classı oluşturduk.
+public class Urun
+    {
+        public int UrunID { get; set; }
+        public string UrunAdi { get; set; }
+
+        public string KategoriAdi { get; set; }
+        public double Fiyat { get; set; }
+    }
+
+
+4.b 
+public class GonderController : Controller
+    {
+        public IActionResult ModelGoster()
+        {
+            //Model Tek bir nesne ise;
+            //Urun urun1 = new Urun() { UrunID = 123, UrunAdi = "Klavye", Fiyat = 259 };
+            //return View(urun1);        // view imzalarına bak; 4 tane var. model yazdığına göre direkt modeli yazabiliyoruz. Birden fazlaysa ViewModel
+
+            //Model Koleksiyon ise;
+
+            List<Urun> urunler = new List<Urun> {
+               new Urun() { UrunID = 123, UrunAdi = "Klavye", Fiyat = 259 },
+               new Urun() { UrunID = 125, UrunAdi = "RAM", Fiyat = 2500 },
+               new Urun() { UrunID = 127, UrunAdi = "SSD", Fiyat = 3500 }
+            };
+
+            return View(urunler);
+        }
+    }
+
+
+
+4.c yukarıdaki ModelGoster üzerinde sağ tıklayıp ModelGoster viewi oluşturduk.
+
+@*@model Urun            //önce sayfanın üstünde modelin tanımlanması gerekir. Tanıtırken küçük m, çağırırken büyük M
+
+@Model.UrunID @Model.UrunAdi @Model.KategoriAdi @Model.Fiyat*@            //ViewData da tip dönüşümü, ViewBag de front-endçiye tüm propertyleri her eklediğinde vermek zorundasın. . ile glmiyor.
+                                                                                Ama modeli kullanırsa herşeyi görüyor. Modeli değiştirsende görüyor. Veya sadece istediğimiz propertylerinde
+                                                                                    karşısına çıkmasını sağlayabiliriz.
+                                                                                Yani bağımlılığı minimuma indiriyor.
+
+
+@model IEnumerable<Urun>        // sayfanın en başında tanımlanır. 
+                                                    Neden IEnumerable? Foreach koleksiyonlar üzerinde çalışır. Ienumerable arayüzünü implemente etmiş olan sınıflarda çalışır.
+                                                                        Demekki her koleksiyonda IEnumerable var. Yukarı List yazsaydık adam List göndermek zorundaydı. 
+                                                                        Böylelikle ne gönderirse göndersin kullanılabilir.
+
+
+<table class="table table-striped">        //bootstrap ekledik. table-striped bir satır gri bir satur beyaz
+ @*   <tr>                                //Başlık getirmede 1. Yöntem; fakat bunda model değişince burası değişmez.
+        <th>  UrunID </th>
+        <th>  UrunAdi </th>
+        <th>  Fiyat </th>
+    </tr>*@
+    <tr>                                    //Başlık getirmede 2. Yöntem; bunda modelde değişince burası da değişiyor.
+        <th>  @Html.LabelFor(x=>x.Single().UrunID) </th>
+        <th>  @Html.LabelFor(x=>x.Single().UrunAdi)   </th>
+        <th>  @Html.LabelFor(x=>x.Single().Fiyat) </th>
+    </tr>
+@foreach(var item in Model)        //Dikkat Model. item. yazınca propertyleri geldi.
+{
+    <tr>
+            <td>  @item.UrunID </td>
+            <td>  @item.UrunAdi </td>
+            <td>  @item.Fiyat </td>
+    </tr>
+}
+</table>
 
 
 ---------
@@ -173,10 +238,103 @@ ViewModel: birden fazla modeli bir sayfaya gondermek istersek kullanırız...
 
 
 
+5.a classları oluşturduk.
+public class Personel
+    {
+        public int PersonelID { get; set; }
+        public string Ad { get; set; }
+        public string Soyad { get; set; }
+        public int BolumID { get; set; }
+    }
+
+
+public class Bolum
+    {
+        public int BolumID { get; set; }
+        public string BolumAdi { get; set; }
+    }
+
+
+public class PersonelVM
+    {
+        public int PersonelID { get; set; }
+        public string Ad { get; set; }
+        public string Soyad { get; set; }
+        public string BolumAdi { get; set; }
+    }
+
+
+
+5.b 
+public class GonderController : Controller
+    {
+        public IActionResult ViewModelGoster()
+        {
+            List<Personel> personeller = new List<Personel>() {
+              new Personel{ PersonelID=1, Ad="Cevdet", Soyad="Dursun", BolumID=1 },
+              new Personel{ PersonelID=2, Ad="Selami", Soyad="Atmaca", BolumID=2 },
+              new Personel{ PersonelID=3, Ad="Dursun", Soyad="Durmasin", BolumID=1 }
+            };
+
+            List<Bolum> bolumler = new List<Bolum>() { 
+              new Bolum(){ BolumID=1, BolumAdi="Muhasebe" },
+              new Bolum(){ BolumID=2, BolumAdi="Satış" },
+            };
+            //Problem ne ???
+            //BolumID degil BolumAdi gosterilmeli...
+            //Tüm alanlar giderse tablonun boyutu büyür bu yapılmamalı.
+            //1.Yontem :Navigation Prop. kullan("Eager Loading veya Lazy Loading")...   HOCA DİĞER ÖRNEKTE GÖSTERECEK. 
+                                                                Mesela adam fatura detayını görmek istiyor. Orada Nav prop kurtarmaz. Mecburen viewModel kullanmak zorundasınız. 
+                                                                ViewBag büyük projelerde yönetimi sıkıntılı.  
+            //2.Yontem :ViewModel
+            // önüne veya sonuna VM eklenir; ViewModel
+            // Eğer PersonelVM i Personel de miras alsaydık bölümId de gelirdi. Bunu istemiyoruz. 
+            // Hatta access modifier protected de kullanabilrdik ama istemiyoruz, ViewModeller bu şekilde hep özel oluşturulan yapılardır.
+            //VM adı üstünde. sadece ekranda kullanıcıya verileri gösterebilmek için. 
+
+            //Bunu EF de yaptığımız gibi var result = from p in personeller.... şeklinde de yazabiliriz.
+            var result = personeller.Join(bolumler, x => x.BolumID, y => y.BolumID, 
+                (x, y) => 
+                        new PersonelVM
+                        { PersonelID = x.PersonelID, Ad = x.Ad, Soyad = x.Soyad, BolumAdi = y.BolumAdi }) ; 
+           return View(result);
+        }
+    }
+
+
+
+5.c ViewModelGoster viewi
+@*@model IEnumerable<Personel>
+
+@foreach(var item in Model)
+{
+    @item.PersonelID @item.Ad @item.Soyad @item.BolumID
+}*@
+
+
+@model IEnumerable<PersonelVM>
+
+<table>
+    @foreach(var p in Model)
+    {
+    <tr>
+        <td>@p.PersonelID</td>
+        <td>@p.Ad</td>
+        <td>@p.Soyad</td>
+        <td>@p.BolumAdi</td>
+    </tr>
+    }
+</table>
 
 
 
 
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------
 
 B-Viewden Controller'a Veri aktarma Yontemleri...
