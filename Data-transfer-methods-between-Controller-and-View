@@ -9,6 +9,8 @@ Veri taşımak için kullandığımız class lara model denir.
 PARANTEZLERİ RENKLENDİRİYOR.
 Tools - options - text editor - display altındaki enable brace pair colorization klikle!
 
+Bazı şeyleri bilmek ayrıdır, tercih etmek ayrıdır.
+
 ---------------------------------------------------------------------------------------------------------------------
 A-Controller dan View'e Veri aktarma yontemleri...
 
@@ -299,6 +301,16 @@ public class GonderController : Controller
                         { PersonelID = x.PersonelID, Ad = x.Ad, Soyad = x.Soyad, BolumAdi = y.BolumAdi }) ; 
            return View(result);
         }
+
+
+        //Hoca bu durumu MS dökümanlarında görebilirsiniz diye özellikle anlattı. 
+        //DİKKAT!!! ViewData ile tanımlandı. ViewBag ile çağrıldı. Viewe bkz.
+        public IActionResult OzelDurum()
+        {
+            ViewData["data"] = "DATA";
+            return View();
+        }
+
     }
 
 
@@ -327,10 +339,8 @@ public class GonderController : Controller
 </table>
 
 
-
-
-
-
+5.d OzelDurum viewi
+@ViewBag.data
 
 
 --------------------------------------------------------------------------------------------------------------------------
@@ -340,18 +350,82 @@ public class GonderController : Controller
 B-Viewden Controller'a Veri aktarma Yontemleri...
 
 Inputlar aracılığıyla girilen verileri nasıl yakalarız???
+Kullanıcıdan veriyi alıp comtrollera aktarma konusu.
 
 1-QueryString Yöntemi: 
 Kullanıcının girdigi veriler adres cubugnda adres verisinden sonra aktarılsın istiyorsak kullanırız...
 
 
+1-a
+public class YakalaController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
 
+        public IActionResult QueryString()            //DIKKAT!!! View oluşturmadık.
+        {
+            //return View();                                     //Hata verdi. Çünkü sayfa istiyordu. Sildik Content olarak değiştirdik. bkz aşağı.
+            //Request.QueryString.Value                                 //Request:Talep. Sayfa oluşturmadan direkt gelen değeri Indexte gösterdik.
+            return Content("Gelen deger :" + Request.QueryString.Value);    //Content; geriye string değer döndürür. sayfada parantez içindekileri (yakaladığı da dahil) yazar.
+        }
+    }
+
+
+1-b Yakala controllerin Index.cshtml
+@model Urun                                                     //@*yorum satırı*@  
+@*QueryString üzerinden veri gonderme*@                         //Kullanıcıdan verileri alabilmek için form tagi kullandık.
+<form method="get" asp-action="QueryString">                    //method yazmasakta varsayılanı get ama çıkmadı method="get" ekledik. istiyor. QueryString adres çubuğunda gösterecek veriyi.
+    <input type="text" id="id" name="id" />                     //DİKKAT!!! name bilgisi model ile aynı olmalı.
+    <input type="text" id="ad" name="ad" />
+    <input type="text" id="kategori" name="kategori" />
+    <input type="text" id="fiyat" name="fiyat" />
+    <input type="submit" value="Gonder" />
+</form>
+
+
+1-c ...../Yakala/Index veya ...../Yakala                    //inputlara değerler girip butona bastıktan sonra adres çubuğuna değerleri yazdı. Content Gelen deger bilgisi gövdeye geldi.
+                                                            //Kullanımı sıkıntı. Adam şifre girdiyse açığa çıktı. Fakat bazı durumlarda bu şekilde veri aktarımı yapılıyor.
+                                                            //Bunu controllerda aksiyonda yakalıyoruz.
 
 ------------
 
 2-Request.Form Yöntemi:
 
+2-a
+public class YakalaController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
 
+        [HttpPost]                                        //Aksiyona gelen değeri yakalamasını söylemem gerekiyorsa;
+        public IActionResult RequestForm()
+        {
+            //[] arasına yazılan isim; form da verilen name ile aynı olmalı...
+            int id = int.Parse( Request.Form["id"]);                //Casti genellikle büyük tipten küçük tipe çevirmek için kullanırız. Örn: Personel nesnesi var ama objeye atmış.
+                                                                        // Bu şekilde genelde objeden Personele cast ederiz. Aynı seviyedeki dönüşümler için ya parse, ya da convert gibi.
+            string ad = Request.Form["ad"];
+
+            return Content("Gelen deger :" + id + " " + ad);
+        }
+    }
+
+
+2-b Yakala controllerin Index.cshtml
+@model Urun
+<h2>Request Form</h2>
+<form method="post" asp-action="RequestForm">            //DİKKAT!!! method="post"
+    <input type="text" id="id" name="id" />
+    <input type="text" id="ad" name="ad" />
+    <input type="text" id="kategori" name="kategori" />
+    <input type="text" id="fiyat" name="fiyat" />
+    <input type="submit" value="Gonder" />
+</form>
+
+2-c ...../Yakala/RequestForm                 //soldaki adreste gövdede içerik çıktı.
 
 
 
@@ -360,20 +434,80 @@ Kullanıcının girdigi veriler adres cubugnda adres verisinden sonra aktarıls�
 3-IFormCollection Yöntemi:
 
 
+3-a
+public class YakalaController : Controller
+    {
+
+
+    }
+
+
+
+3-b Yakala controllerin Index.cshtml
+@model Urun
+<h2>IFormCollection</h2>
+<form method="post" asp-action="FormCollection">            //DİKKAT!!! method="post"
+    <input type="text" id="id" name="id" />
+    <input type="text" id="ad" name="ad" />
+    <input type="text" id="kategori" name="kategori" />
+    <input type="text" id="fiyat" name="fiyat" />
+    <input type="submit" value="Gonder" />
+</form>
+
+3-c ...../Yakala/Index veya ...../Yakala  
 
 
 ------------
 
-4-Parametre Yontemi:
+4-Parametre Yontemi: NUMBER-2
+
+4-a
+public class YakalaController : Controller
+    {
 
 
+    }
 
+
+4-b Yakala controllerin Index.cshtml
+@model Urun
+<h2>Parameters</h2>
+<form method="post" asp-action="Parameters">                //DİKKAT!!! method="post"
+    <input type="text" id="id" name="id" />
+    <input type="text" id="ad" name="ad" />
+    <input type="text" id="kategori" name="kategori" />
+    <input type="text" id="fiyat" name="fiyat" />
+    <input type="submit" value="Gonder" />
+</form>
+
+4-c ...../Yakala/Index veya ...../Yakala  
 
 
 ------------
 
-5-Model Yöntemi:
+5-Model Yöntemi: NUMBER-1
 
+
+5-a
+public class YakalaController : Controller
+    {
+
+
+    }
+
+
+5-b Yakala controllerin Index.cshtml
+@model Urun
+<h2>Models</h2>
+<form method="post" asp-action="Models">                //DİKKAT!!! method="post"
+    <input type="text"  asp-for="UrunID" />
+    <input type="text"  asp-for="UrunAdi" />
+    <input type="text"  asp-for="KategoriAdi" />
+    <input type="text"  asp-for="Fiyat" />
+    <input type="submit" value="Gonder" />
+</form>
+
+5-c ...../Yakala/Index veya ...../Yakala  
 
 ------------
 
