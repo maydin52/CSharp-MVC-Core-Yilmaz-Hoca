@@ -61,7 +61,7 @@ public class GonderController : Controller
 @ViewData["Urun"]          //namescape çıktı!!!!!   @ViewData["Urun"]. dedikten sonra propertylerine erişemiyoruz. 
 <br />
 @{
-   int ID= ((Urun)ViewData["Urun"]).UrunID;          //Cast ederek propertylerine eriştik.
+   int ID= ((Urun)ViewData["Urun"]).UrunID;          //Cast ederek propertylerine eriştik. .yazdıktan sonra proplar geldi.
 }
 @ID
 
@@ -110,7 +110,7 @@ public class GonderController : Controller
 }
 @ViewBag.Product      //namescape çıktı!!!!!  
 <br />
-@ViewBag.Product.UrunID @ViewBag.Product.UrunAdi @ViewBag.Product.Fiyat
+@ViewBag.Product.UrunID @ViewBag.Product.UrunAdi @ViewBag.Product.Fiyat                //Dikkat!!! nokta yazdıktan sonra gelmedi. Biz elle yazdık.
 
 ----------
 
