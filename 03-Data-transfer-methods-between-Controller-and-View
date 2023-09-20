@@ -16,8 +16,6 @@ A-Controller dan View'e Veri aktarma yontemleri...
 
 KULLANIM ŞEKLİ, SIKLIĞI SIRALAMASI; NUMBER-X
 
-Inputlardan girilen verileri sunucuya gönderme. Örneğin kullanıcı adı ve şifre.
-
 ----------
 
 1-ViewData
@@ -31,8 +29,6 @@ public class Urun
     {
         public int UrunID { get; set; }
         public string UrunAdi { get; set; }
-
-        public string KategoriAdi { get; set; }
         public double Fiyat { get; set; }
     }
 
@@ -55,7 +51,7 @@ public class GonderController : Controller
 
 1.c yukarıdaki Index üzerinde sağ tıklayıp Index aksiyonu oluşturduk.
 <h2>ViewData Kullanımı...</h2>
-@ViewData["Mesaj"]
+@ViewData["Mesaj"]        //controllerda baş harfi küçük, burada büyük ama geldi. case sensitive yok.
 <br />
 @foreach(var item in (string[])ViewData["sehirler"])        //DİKKAT!!! ViewData geriye object değer döndürür ama biz string gönderdiğimiz için hata verdi. Sonra cast ettik.
                                                                                                                               Tip dönüşümü yaptık. 
