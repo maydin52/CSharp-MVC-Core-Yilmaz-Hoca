@@ -1,0 +1,142 @@
+combobox görmedik
+
+classlar onion modelde dll olacak.
+katmanların herbiri dll e dönecek.
+
+sinaın bahsettiği next next kurulum kodları saklamak?
+
+core desteklemeyen bir yere yüklediğinde çalışmayacaktır.
+
+ISS ayarlarını öğrenmek
+
+MVC ve MVC Core yine ISS üzerinde çalışıyor.
+MVC thread olarak, Core kendine münhasır exe olarak çalışıyor.
+
+ISS üzerine Kestrel kurulmalı. Eklenti olarak kuruluyor.
+
+Firmalar hosting yetkisi vermediklerinden, dışarıdan halettiriliyor.
+Bazen ms de problem çıkıyor, patch çıkarıyorlar.
+
+işin %95 i uygulamayı yazmak.
+
+-----------------------
+
+
+Araclar ile bilgilei tutan MVC Core 6 Projesi
+
+Arac(AracID, Plaka, Model, ModelYili, Renk,Resim)
+Marka(MarkaID, MarkaAdi)
+Kategori(ID,KategoriAdi)
+
+Yapılacaklar
+EF kullanarak Database olusturma
+Arac Giris Ekrani
+Arac Listesi
+Arac Arama
+Guncelle
+Silme 
+(CRUD islemleri)
+
+
+Maksat temel konuları pekiştirmek;
+
+
+---1- ASP.NET Core Web App (MVC) - MVCAppArac - Configure klik kaldır projeyi başlat
+
+
+---2- Models klasörü altında modelleri ve navigation propertyleri oluşturuyoruz. 
+PK ve FK ilişkilerinin adını doğru koymaliyız.
+Yazmasakta belirli kurallara göre yazıldıysa ilişkiyi kuruyor tablolara ekliyor db de ama db ye yazdığını modele yazmıyor. 
+Kodlama tarafında bunlara karşılık gelenleri görmek için yazıyoruz.
+Navigation property veya FluentAPI ile yapabiliyoruz.
+
+Daha önce EF için yapılan çalışmada önüne virtual keyword ünü koymuştuk. 
+Bu kullanım Lazy Loading için kullanılır.
+Sonradan bu kullanıma çekmiştik.
+Core da yasaklıydı, bir ayarla açılıyordu, o uygulamayı da yapmıştık.
+Lazy Loading; performans açısından riskli ve serileştirme yaparken hata alıyorsunuz. MS bunun yerine Eager kullanın diyor.
+
+Navigation property kullanmanın faydaları; 
+1-PK ve FK ilişkisini kuruyoruz. Buradan neyin FK olacağını anlıyor.
+2-Veritabanı programcılığında FK kısıtını kullanıyorduk, yani yanlış FK girişini önlemek için. (Ordenary Records). Örneğin 3 tane olan kategori için 30 yazamaması.
+FK (Orphan Records) yani yetim kayıt oluşmasını engelliyor. Yanlış kayıt girilebilir yine ama olmayan kayıt girilemez. 
+Veritabanı programcılığında; minimum tekrar ve tutarlılık. 
+FK veritabanını tutarlı hale getirmek için kullanılır. Yani biz şunu garanti ediyoruz; Category tablosunda olan değerlerden birini kabul et.
+3-Uzun join cümleleri yazmak yerine navigation propertyler üzerinden Category 'e atlayabiliyoruz. 
+Yani join işlemlerini basitleştiriyor. EF joini kendisi yazıyor yani. Eager loading veya lazy loadinge göre.
+
+public class Brand
+    {
+        public int BrandID { get; set; }
+
+        [Column(TypeName = "varchar")]
+        [StringLength(20)]
+        [Required(ErrorMessage ="Bos gecemezsiniz...")]
+        public string BrandName { get; set; }
+
+        public ICollection<Car> Cars { get; set; }            //BİR MARKANIN BİRDEN FAZLA ARACI OLABİLİR. BİR ARACIN BİR MARKASI OLABİLİR. BİRE ÇOK İLİŞKİ.
+    }
+
+
+public class Car
+    {
+        public int CarID { get; set; }
+        [StringLength(9),Required(ErrorMessage ="Bos gecemezsiniz..."), Column(TypeName ="varchar")]
+
+        public string NumberPlate { get; set; }
+
+        [StringLength(50), Required(ErrorMessage = "Bos gecemezsiniz..."), Column(TypeName = "varchar")]
+        public string Model { get; set; }
+
+        public int ModelYear { get; set; }
+
+        [StringLength(20), Required(ErrorMessage = "Bos gecemezsiniz..."), Column(TypeName = "varchar")]
+        public string Color { get; set; }
+
+        [StringLength(100), Column(TypeName = "varchar")]
+        public string? ImagePath { get; set; }
+
+        //Modelde kullan, Veritabanında olusturma...
+        [NotMapped] 
+        public IFormFile? Image { get; set; }
+
+        public string? Details { get; set; }
+
+        [Column(TypeName = "money")]
+        public decimal ListPrice { get; set; }
+
+        [Column(TypeName = "smalldatetime")]
+        public DateTime AddedDate { get; set; } = DateTime.Now;
+
+        public int CategoryID { get; set; }
+        //Navigation property
+        public Category? Category { get; set; }               //BİR ARACIN BİR KATEGORİSİ OLABİLİR. BİR KATEGORİNİN BİRDEN ÇOK ARACI OLABİLİR. BİRE ÇOK İLİŞKİ.
+ 
+        public int  BrandID { get; set; }                     
+        public Brand? Brand { get; set; }                     //BİR MARKANIN BİRDEN FAZLA ARACI OLABİLİR. BİR ARACIN BİR MARKASI OLABİLİR. BİRE ÇOK İLİŞKİ.
+    }
+
+
+public class Category
+    {
+        public int CategoryID { get; set; }
+
+        [Column(TypeName = "varchar")]
+        [StringLength(20)]
+        [Required(ErrorMessage = "Bos gecemezsiniz...")]
+        public string CategoryName { get; set; }
+
+        //Navigation property
+        public ICollection<Car> Cars { get; set; }          //BİR KATEGORİNİN BİRDEN ÇOK ARACI OLABİLİR. BİR ARACIN BİR KATEGORİSİ OLABİLİR. BİRE ÇOK İLİŞKİ. 
+                                                                      KOLEKSİYON OLMAK ZORUNDA. List te Hastable da denilebilir ama List kullananlar 
+                                                                      daha sonra constructorda initialize etmeye çalışıyor. Kullanabilmek için instance ını almak gerekiyor. 
+                                                                      List kullanırsan kodlamayı artıırıyorsun. ICollection kullanırsan gerek yok.
+                                                            //DAHA SONRA SUV.CARS DİYİNCE BANA CAR TABLOSUNDAKİ BÜTÜN SUVLARI GETİRİYOR.
+    }
+
+
+---3- Context sınıfını oluşturabilmemiz için kütüphaneleri indiriyoruz
+
+
+---4- Context sınıfını oluşturuyoruz.
+
