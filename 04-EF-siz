@@ -10,8 +10,24 @@ MVC Validation
 MVC Entity Framework
 
 
+regular expressions view deki formlar araştır.
+
+loglama mekanizması araştır.
+
+attribute mail içinde varmış. listesini çıkar
+
+chrome da json okunaklı hale getir checkbox u gelmedi bende araştır.
+
+
 
 Dikkat!!! kaydın başarlı olarak kayıt edilip edilmediği, update ve delete eklenecek.
+Hot reload aktif hale getir. alev simgesi
+
+AOP Attribute Oriented Programming araştır.
+
+XML için de durum benzer.
+XMLDocument, DataTable ve DataSet nesnelerinin içinde XMLReader ve XMLWriter metodları var.
+
 
 
 
@@ -45,17 +61,29 @@ Bunun için Urun tipinde bir class oluşturmamız gerekiyor. Veri tutmak amacıy
 EF de buna POCO classes (Plain Old CLR Objects) olarak geçiyor. 
 Models klasörü altında Urun classı oluşturduk.
 Dikkat!!! SQL'de money tipine karşılık gelen tip decimal dir.
+Custom validator oluşturulabiliyor. ValidationAttribute classından türetmeyi kullanarak yapılabilir.
+Range veritabanından da aldırılabilir. Range girilmesi gerekir. Kullanıcı tarafından 0 girilmemesi gerekir.
+Attribute ler; 
+- view de asp-for attribute ü ve sayfanın altında <div asp-validation-summary="All"></div> ile kullanılır. Tüm hataları orada gösterecek.
+- Controllerda if(ModelState.IsValid)
+            {
+                db.UrunEkle(urun);
+                return RedirectToAction("Index");
+            }
+ile birlikte kullanılıyor. Hata sunucudan dönüyor.
+Server token bilgisi oluşturuyor. O token verisini ön yüze gönderiyor. Veri gelirken o token bilgisini istiyor. Tokenlar farklıysa izin vermiyor, sen başka yerden gliyorsun diyor, kabul etmiiyor.
+10 farklı ekranda tanımlasaydım, 10 farklı viewda aynı düzenlemeyi yapmak zorundaydım ama artık bu modeli kullanan her view da kullanıabilir oldu.
 
 public class Urun
     {
         public int UrunID { get; set; }
-        [StringLength(100,MinimumLength =3, ErrorMessage ="3-100 karakter arasında olmali...")]
-        [Required(ErrorMessage ="Boş geçemezsiniz...")]
+        [StringLength(100,MinimumLength =3, ErrorMessage ="3-100 karakter arasında olmali...")]		//Açıklama view e yansıyor. Köşeli parantezin kullanım amacı optional'dı.c#4.0 ile geldi.
+        [Required(ErrorMessage ="Boş geçemezsiniz...")]				//Aslında attribute bir class. Bu yöntemin dezavantajı kod karmaşası. FluentAPI ile bu daha iyi yönetiliyor.
         public string UrunAdi { get; set; }
 
         [Required(ErrorMessage = "Boş geçemezsiniz...")]
-        public int KategoriID { get; set; }
-        [Required(ErrorMessage = "Boş geçemezsiniz..."),Range(10,10000,ErrorMessage ="Fiyat 10-10000 arası olmalii...")]
+        public int KategoriID { get; set; }					//View de imput karşısına number yazarsan kullanıcı text giremez.
+        [Required(ErrorMessage = "Boş geçemezsiniz..."),Range(10,10000,ErrorMessage ="Fiyat 10-10000 arası olmalii...")]	//Tek [] içine virgülle de kulanılabilir.
         public decimal Fiyat { get; set; } 
     }
 
@@ -162,22 +190,28 @@ Controllerdan Viewe veri taşıma yöntemlerinden modeli kullanıyoruz;
             return View();
         }
 
+
+	//Json metoduyla kendisi json yazıyor ve json döndürüyor. Dikkat View demedik.
+	
         public IActionResult JsonVeriler()
         {
 
             return Json(db.TumUrunler());
         }
 
+
+	//Tools - Nuget - Manage for solution - browse - newtonsoft arattır - kur. Dünyada en çok bilinen kütüphanelerden biridir.
+	//yukarı newtonsoft using ekle
+
         public IActionResult JsonDosya()
         {
             
-            string strJSON= JsonConvert.SerializeObject(db.TumUrunler());
-
+            string strJSON= JsonConvert.SerializeObject(db.TumUrunler());	//Serialize : serileştirme, bir sınıfın json a çevrilmesi. Deserialize tam tersi.
             StreamWriter sw = new StreamWriter("wwwRoot/Data/urun.json");
             sw.WriteLine(strJSON);
             sw.Close();
 
-            return NoContent();
+            return NoContent();		//Bir yere göndermez, işlemi yapar bırakır.
         }
     }
 
@@ -187,8 +221,8 @@ Controllerdan Viewe veri taşıma yöntemlerinden modeli kullanıyoruz;
 
     <a asp-controller="Urun" asp-action="Ekle">Yeni Ürün Ekle</a>
     <br />
-<a asp-controller="Urun" asp-action="JsonVeriler">JSON olarak Goster</a>
-<a asp-controller="Urun" asp-action="JsonDosya">JSON olarak dosyaya yaz</a>
+<a asp-controller="Urun" asp-action="JsonVeriler">JSON olarak Goster</a>			//JSON İÇİN
+<a asp-controller="Urun" asp-action="JsonDosya">JSON olarak dosyaya yaz</a>			//JSON İÇİN
 <br /><br />
 
 <table class="table table-striped">
@@ -207,6 +241,10 @@ Controllerdan Viewe veri taşıma yöntemlerinden modeli kullanıyoruz;
 ---11- Ekle.cshtml
 ID otomatik verdiği için almadık.
 View dan Controllera model kullandık.
+Form elemanlarının boş bırakılıp kaydete basıldığında çıkan hatanın önüne geçmek için;
+   1. html5 le gelen required attribute ü,
+   2. aşağıdaki şekilde js ile, ayrıca js notlarına bak, varmış. (sadece bş geçemezsin kontrolü, fonksiyonel değil.)
+   3. model içerisine; önce ikiyi yaptık sonra devre dışı bırakıp üçüncüyü aktif ettik.
 
 @model Urun
 
@@ -244,7 +282,7 @@ View dan Controllera model kullandık.
        </tr>
         <tr>
            <td>Kategori ID</td>
-           <td><input type="text" asp-for="KategoriID"></input></td>
+           <td><input type="text" asp-for="KategoriID"></input></td>		//DİKKAT!!! type=number dersek kullanıcı asla text giremez.
        </tr>
         <tr>
             <td>Fiyat :</td>
@@ -264,7 +302,17 @@ View dan Controllera model kullandık.
 </form>
 
 
+---12- wwwroot içindeki css klasöründeki css dosyasına 
 
+.empty {
+    border:2px solid red;
+}
+
+
+---12- wwwroot içindeki css klasöründeki css dosyasına 
+View içine linklerini eklemiştik. Gösterme ve Ekleme.
+Controller lara aksiyonları ekledik.
+wwwroot altında data klasörü açtık.
 
 
 
