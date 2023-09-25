@@ -1,4 +1,6 @@
+delegeler anlatılacak.
 combobox görmedik
+imaj path yakalamadık ve eklemedik
 
 classlar onion modelde dll olacak.
 katmanların herbiri dll e dönecek.
@@ -12,12 +14,14 @@ ISS ayarlarını öğrenmek
 MVC ve MVC Core yine ISS üzerinde çalışıyor.
 MVC thread olarak, Core kendine münhasır exe olarak çalışıyor.
 
-ISS üzerine Kestrel kurulmalı. Eklenti olarak kuruluyor.
+ISS üzerine Kestrel kurulmalı. Eklenti olarak kuruluyor. DİKKAT!!!
 
 Firmalar hosting yetkisi vermediklerinden, dışarıdan halettiriliyor.
 Bazen ms de problem çıkıyor, patch çıkarıyorlar.
 
 işin %95 i uygulamayı yazmak.
+
+daha sonra backendde kullandığımız sınıflar ayrı front-endde kullandığımız sınıflar ayrı olacak??
 
 -----------------------
 
@@ -64,6 +68,9 @@ Veritabanı programcılığında; minimum tekrar ve tutarlılık.
 FK veritabanını tutarlı hale getirmek için kullanılır. Yani biz şunu garanti ediyoruz; Category tablosunda olan değerlerden birini kabul et.
 3-Uzun join cümleleri yazmak yerine navigation propertyler üzerinden Category 'e atlayabiliyoruz. 
 Yani join işlemlerini basitleştiriyor. EF joini kendisi yazıyor yani. Eager loading veya lazy loadinge göre.
+- Navigation propertyleri nullable yapmamız gerekiyor. Generic konusuyla anlatılmış. Genericle gelmiş. Yoksa bunu zorunlu alan kabul eder ve kategoriyi girmen lazım der. 
+Giremem, çünkü ona karşılık gelen değer ID si üzerinden gelecek.
+
 
 public class Brand
     {
@@ -97,8 +104,14 @@ public class Car
         public string? ImagePath { get; set; }
 
         //Modelde kullan, Veritabanında olusturma...
-        [NotMapped] 
-        public IFormFile? Image { get; set; }
+        [NotMapped]                                                   //Önyüzde kullan, veritabanında kullanma demek. Db de buna karşılık bir tablo yok.
+        //public IFormFile? Image { get; set; } = "empty.jpg";        //PROPERTY INITIALIZER. Bu property kullanıldığında varsayılan değer olarak bunu atıyor.
+        public IFormFile? Image { get; set; }                         //Kullanıcı fotoğraf eklemeyebilir diye nullable yaptık.
+                                                                      //Resmin kendisi de db de tutulabilir ama mantıklı değil. BU şekilde yapmamızın sebebi, modeli önyüze bağlarken
+                                                                      //attachment yapılan dosyalar bana arkadan IFormFile olarak geliyor. Bunun model içinde kullanılmadan da çözümü var. 
+                                                                      //Image ile gelen path i yakalayacağız ve ImagePath'e atacağız.
+                                                                      //Aynı isimden gönderemesinler diye bazen GUID vb şeyler ekleniyor. GUID
+                                                                      // GUID (Global Unit Identifier) : MS teoride dünyada asla iki değer aynı gelmez diyor ama pratikte ihtimal var.
 
         public string? Details { get; set; }
 
@@ -135,8 +148,140 @@ public class Category
     }
 
 
----3- Context sınıfını oluşturabilmemiz için kütüphaneleri indiriyoruz
 
 
----4- Context sınıfını oluşturuyoruz.
+---3- Entity Framework için ihtiyaç olan kütüphanelerin yüklenmesi
+      ModelFirst yaklaşımına göre; Tools - nuget - browse 
+      1- Microsoft.EntityFrameworkCore yükle 6.0.22
+      2- Microsoft.EntityFrameworkCore.SqlServer yükle 6.0.22
+      3- Microsoft.EntityFrameworkCore.Tools yükle 6.0.22      //Migration için;
+      Dependency - packages ten kontrol et.
+
+
+
+
+---4- DAl klasörü oluşturuyoruz. Katmanlı mimarinin ilk katmanı. İçine Context sınıfını oluşturuyoruz.
+
+public class GalleryContext:DbContext
+    {
+        public GalleryContext(DbContextOptions<GalleryContext> options):base(options)        //constructorlarla ilgili this ve base görmüştük.
+                                                                                        //Bir sınıfın kendi constructorları arasında parametre transfer etmek için this,
+                                                                                        //Bir sınıftan bir üst sınıfın constructor ına parametre transfer etmek için base, 
+                                                                                        //Program.cs içine eklediğimiz servis; IOC bunu aktarabilmesi için vermek zorundayız
+                                                                                        //Daha önce yaptığımız daire, silindir, kon örneğindeki gibi. Ramde Silindir oluştuğunda dairede oluşuyordu.
+        {
+            
+        }
+
+        public DbSet<Car> Cars { get; set; }
+        public DbSet<Brand> Brands { get; set; }
+        public DbSet<Category>  Categories { get; set; }
+
+        //override space yazınca çıkıyor.
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            //SQL Connection..
+            //1.Yontem: Buraya yaz    BAZEN MIGRATIONDA İSTEYEBİLİYOR.
+            //2.Yontem:appsettings.json'a yaz... TERCİH EDİLEN. AÇIKLAMA AŞAĞIDA.
+            //3.Yontem: program.cs'e yaz...
+
+            //optionsBuilder.UseSqlServer("Connection string'i yaz...");    //Bu şekilde class içinde yazdım ve dll haline getirdim ve dll paylaştım diyelim.
+                                                                                Sonra format attılar. Sistemci farklı bir isim verdi. yeniden compile edilmesi gerekiyor bu durumda.
+                                                                                appsettings.json da; Compile etmek veya diğer dosyalara dokunmak zorunda olmadan direkt üzerinden değiştir.
+            base.OnConfiguring(optionsBuilder);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //Tablolar server uzerinde olusturulurken ilk yapılması gereken isler icin kullanılır...        //İlk değer atamaları ve ayarları için kullanılır.
+                                                                                                            //Oluşurken yapılması istenen işler
+                                                                                                            //Daha sonra bu yapıyı ayrı Config classları oluşturup onlar üzerinden vereceğiz.
+                                                                                                            //polymorphism; zorunda değiliz, ihtiyaca binaen kullanabiliriz.
+            //
+
+            modelBuilder.Entity<Brand>().HasData(
+                new Brand { BrandID = 1, BrandName = "Mercedes" },
+                new Brand { BrandID = 2, BrandName = "BMW" },
+                new Brand { BrandID = 3, BrandName = "Porsche" }
+                );
+
+            modelBuilder.Entity<Category>().HasData(
+                new Category { CategoryID=1, CategoryName="SUV" },
+                new Category { CategoryID=2, CategoryName="Sedan" },
+                new Category { CategoryID=3, CategoryName="HB" }
+                );
+            base.OnModelCreating(modelBuilder);
+        }
+    }
+
+
+---5- appsettings.json
+Diğer örneklerle aynı mantık.
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {"ConnStr": "Data source=.;initial catalog=YZL3440_GalleryDB;integrated security=true"},
+  "AllowedHosts": "*"
+}
+
+
+---6- Program.cs içinde;
+Diğer örneklerle aynı mantık.
+çizgiler arasındaki eklendi.
+MVC Core 6.0 öncesi iki dosya vardı; hem startup.cs hem de configuration sınıfı vardı.
+- Daha sonra classı değiştirsem veya Entity i context sınıfını değiştirsem burada yapmam gereken sadece orada ilgili yerleri değiştirmek. Kolaylık. Örn: oracle ile değiştirmek gibi.
+Oracle o göre context sınıfını oluşturup buadan değiştiriyorum hepsi bu.
+UseSqlServer( içine de connection string yazarak bağlanılabilir.
+Buradan constructor injection konusu devreye giriyor.
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+---------------------------------------------------------------------------------------------------------------------
+builder.Services.AddDbContext<GalleryContext>(x=>x.UseSqlServer(builder.Configuration.GetConnectionString("ConnStr")));
+---------------------------------------------------------------------------------------------------------------------
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+}
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+
+---7- Migration yapıyoruz. DB oluşturmak için; bir önceki projede Ensure metodu kullanmıştık. Her seferinde bu çalışırsa eski veriler gider çünkü yeni oluşturuyor. yada değişiklikleri yansıtmaz.
+Kullanımı yanlış ama başlangıç seviyesinde kullanımını göstermek için kullandık. Sık sık veritabanını değiştireceksek mesela kullanabiliriz.
+Migration ile önce veritabanını olşturacağız. 
+Sonra her değişiklik yaptığımızda yeni bir migration oluşturacağız. 
+Daha sonra migrationlar arasında versiyon atlaması yapabiliyoruz.
+Şimdilik sadece veritabanı oluşturmak için kullanacağız.
+
+tools - nuget - package manager console - pm> e düş.
+pm üst kısmından birden fazla proje varsa ilgili proje orada seçili olmalı
+Add-Migration Initial enter
+
+
+
+
+
 
