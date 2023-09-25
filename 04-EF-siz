@@ -1,1 +1,66 @@
-asdf
+
+
+MVC de ADO.NET Klasik Yontemi Kullanarak Veri Listeleme ve Kaydetme işlemleri
+
+MVC Validation
+  DataAnnotation
+
+  Fluent API
+
+MVC Entity Framework
+
+
+
+
+
+1- ASP.NET CORE Web App (M-V-C) yeni proje oluştur.
+
+2- Configure for HTTPS klik kaldır. diğerleri aynen kalsın.
+
+3- MSMS oturum açtık - new database - YZL3440_UrunDB adı verdik
+
+4- Aşağıdaki şekilde tablo oluşturduk, içine veri ekledik ve kontrol ettik.
+CREATE TABLE Urunler(UrunID int IDENTITY PRIMARY KEY,
+                     UrunAdi varchar(100),
+					 KategoriID int,
+					 Fiyat money)
+GO
+INSERT INTO Urunler VALUES('102 Tus Klavye', 1, 256)
+INSERT INTO Urunler VALUES('PS2 Mouse', 1, 125)
+INSERT INTO Urunler VALUES('22" LCD Monitor', 2, 2460)
+
+Select * from Urunler 
+
+5- Gelen requestleri karşılayacak ve response verecek Controller oluşturacağız.
+Açılış sayfasında ürünleri göstermesini istiyoruz.
+Controller üzerinde sağ tık - new controller - empty - UrunController
+
+6- Controller içindeki Index keywordu üzerinde sağ tık - view - empty - Index.cshtml
+
+7- Sql tablosu içerisindeki veriyi objeye çevirebilmemiz için bir class içerisinde tutmamız gerekiyor. Data != Object demiştik daha önce. Çünkü biri relational diğeri OOP.
+Bunun için Urun tipinde bir class oluşturmamız gerekiyor. Veri tutmak amacıyla oluşturulan classlara Model denilir. 
+EF de buna POCO classes (Plain Old CLR Objects) olarak geçiyor. 
+Models klasörü altında Urun classı oluşturduk.
+Dikkat!!! SQL'de money tipine karşılık gelen tip decimal dir.
+
+public class Urun
+    {
+        public int UrunID { get; set; }
+        [StringLength(100,MinimumLength =3, ErrorMessage ="3-100 karakter arasında olmali...")]
+        [Required(ErrorMessage ="Boş geçemezsiniz...")]
+        public string UrunAdi { get; set; }
+
+        [Required(ErrorMessage = "Boş geçemezsiniz...")]
+        public int KategoriID { get; set; }
+        [Required(ErrorMessage = "Boş geçemezsiniz..."),Range(10,10000,ErrorMessage ="Fiyat 10-10000 arası olmalii...")]
+        public decimal Fiyat { get; set; } 
+    }
+
+8- DAL katmanı için DAL adında (Data Access Layer) klasör oluşturduk ve altına UrunlerDB classı açtık.
+
+
+
+
+
+
+
