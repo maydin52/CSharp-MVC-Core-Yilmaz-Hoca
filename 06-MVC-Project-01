@@ -26,6 +26,10 @@ daha sonra backendde kullandığımız sınıflar ayrı front-endde kullandığ�
 
 migration.cs leri incele.
 
+araba ekle geliştir
+
+Hissiyat; daha kolayı olmalı...
+
 -----------------------
 
 
@@ -198,7 +202,7 @@ public class GalleryContext:DbContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //Tablolar server uzerinde olusturulurken ilk yapılması gereken isler icin kullanılır...        //İlk değer atamaları (First Initial Values) ve ayarları için kullanılır.
+            //Tablolar server uzerinde olusturulurken ilk yapılması gereken isler icin kullanılır...        //İlk değer atamaları (Add First Initial Values) ve ayarları için kullanılır.
                                                                                                             //Oluşurken yapılması istenen işler
                                                                                                             //Daha sonra bu yapıyı ayrı Config classları oluşturup onlar üzerinden vereceğiz.
                                                                                                             //polymorphism; zorunda değiliz, ihtiyaca binaen kullanabiliriz.
@@ -244,6 +248,10 @@ Oracle o göre context sınıfını oluşturup buadan değiştiriyorum hepsi bu.
 UseSqlServer( içine de connection string yazarak bağlanılabilir.
 Buradan constructor injection konusu devreye giriyor.
 
+Başlatmak istediğin yeri ayarlamak için;
+pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -280,6 +288,9 @@ Migration ile önce veritabanını olşturacağız.
 Sonra her değişiklik yaptığımızda yeni bir migration oluşturacağız. 
 Daha sonra migrationlar arasında versiyon atlaması veya ileri/geri yapabiliyoruz.
 Şimdilik sadece veritabanı oluşturmak için kullanacağız.
+Null vs için önceden hepsinin düşünülüp yapılması gerekiyor. Sürekli ve her değişiklik için migration yapılmaz.
+
+Neden Önemli: Projeyi başka yerde kullanacağım veyaa geriye dönmek istiyorum; update database gitmekistediğinmigrationadi. Milestone gibi. 
 
 tools - nuget - package manager console - pm> e düş.
 pm üst kısmından birden fazla proje varsa ilgili proje orada seçili olmalı
@@ -296,6 +307,53 @@ Add-Migration isimver - Dikkat!!! isimlere dikkat aynı isimleri verme, gerekiyo
 Update-Database
 DB içindeki migration tablosunu incele. Tablolar ve başlangıç değerleri oluşmuş mu, tipler doğru mu kontrol et.
 Update-Database gidilecekmigrationadı
+
+
+---8- Controller oluşturma
+Controller klasörü üzerinde sağ tıkla - Add - Controller - Empty - CarController
+
+public class CarController : Controller
+    {
+        private readonly GalleryContext _galleryContext;            //private yazmasakta zaten private ama literatürde yazılıyor. private readonly yazılmasa da sorun değil, kalanı asıl yapı.
+                                                                    //Const ile readonly arasındaki fark; 
+                                                                        //- readonly olan bir alan sadece constructor ile değiştirilebilir. Diğer türlü değiştirilemez.
+                                                                        //- const asla değiştirilemez. Tanımlanan yerde değiştirilmesi gerekir.
+                                                                        
+                                                                
+        public CarController(GalleryContext galleryContext)        //DİKKAT!!! _galleryContext kelimesini seçip, ctrl+nokta bas. Açılan menüden Generate constructor.... olana tıkla.
+                                                                   //Solid prensiplerinden bir tanesi; Constructor Injection
+        {
+            //GalleryContext galleryContext = new GalleryContext(); BUNDAN SONRA BUNUN GİBİ NEWLEMELER OLMAYACAK. ARTIK BUNU PROGRAM.CS İÇİNDE TANIMLANAN SERVİS İHTİYACI OLANA OLUŞTURUP GÖNDERİYOR. BUNU ARTIK BENİM İÇİN SİSTEM ARKA PLANDA YAPIYOR. BU DA BANA ESNEKLİK SAĞLIYOR.
+                                                                        DEPENDECY INVERSION PRENSİBİ - ARKA PLANDA ÇALIŞAN SİSTEMİN ADI IOC INVERSION OF CONTROL - BU İŞİ YAPMAYA DEPENDENCY INJECTION DENİYOR.
+                                                                        CORE 3.0 İLE DAHİLİ GELDİ. DAHA ÖNCEDEN INJECT DENİLEN ONLARCA YÖNTEM VARDI. ONLAR KULLANILIYORDU.
+            _galleryContext = galleryContext;
+        }
+
+        public IActionResult Index()
+        {       
+            return View(_galleryContext.Cars.ToList());             //Cars tablosu içinde ne varsa getirir.
+        }
+    }
+
+
+---9- View oluşturma KOLAY YÖNTEM!!! 
+Scaffolding
+Yukarıdaki Index aksiyonu üzerinde sağ tık - Add View - Razor View - Add - Template List seç - Model class Car seç - DbContext sınıfını seç GalleryContext seç - Add
+Bootstrap enabled yazıyor.
+
+---10- Controller oluşturma KOLAY YÖNTEM!!! 
+Scaffolding
+Controller klasörü üzerinde sağ tıkla - Add - Controller - MVC Controller with views, using Entity Framework seç - Add - Model class car seç - DbContext GalleryContext seç - ArabaController - Add
+Tümünü yazdı. Hemde asenkron.
+Çalıştır ve ..../Araba
+Create New tıkla her şey hazır..
+Comboboxlarda geldi.
+numerik
+datetime
+
+Views - Araba - Create.cshtml içinde alta <div asp-validation-summary="All"></div> ekledik hataları gördük.
+
+
 
 
 
