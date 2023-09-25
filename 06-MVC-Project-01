@@ -1,6 +1,7 @@
 delegeler anlatılacak.
 combobox görmedik
 imaj path yakalamadık ve eklemedik
+navigation prop ları düzeltmedik hepsinde nullable
 
 classlar onion modelde dll olacak.
 katmanların herbiri dll e dönecek.
@@ -22,6 +23,8 @@ Bazen ms de problem çıkıyor, patch çıkarıyorlar.
 işin %95 i uygulamayı yazmak.
 
 daha sonra backendde kullandığımız sınıflar ayrı front-endde kullandığımız sınıflar ayrı olacak??
+
+migration.cs leri incele.
 
 -----------------------
 
@@ -71,6 +74,8 @@ Yani join işlemlerini basitleştiriyor. EF joini kendisi yazıyor yani. Eager l
 - Navigation propertyleri nullable yapmamız gerekiyor. Generic konusuyla anlatılmış. Genericle gelmiş. Yoksa bunu zorunlu alan kabul eder ve kategoriyi girmen lazım der. 
 Giremem, çünkü ona karşılık gelen değer ID si üzerinden gelecek.
 
+Model classları attributeler eklendikçe karışık hale geldi. Bir sonraki örnekte farklı bir kullanım gösterecek.
+
 
 public class Brand
     {
@@ -88,8 +93,8 @@ public class Brand
 public class Car
     {
         public int CarID { get; set; }
-        [StringLength(9),Required(ErrorMessage ="Bos gecemezsiniz..."), Column(TypeName ="varchar")]
 
+        [StringLength(9),Required(ErrorMessage ="Bos gecemezsiniz..."), Column(TypeName ="varchar")]
         public string NumberPlate { get; set; }
 
         [StringLength(50), Required(ErrorMessage = "Bos gecemezsiniz..."), Column(TypeName = "varchar")]
@@ -193,7 +198,7 @@ public class GalleryContext:DbContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //Tablolar server uzerinde olusturulurken ilk yapılması gereken isler icin kullanılır...        //İlk değer atamaları ve ayarları için kullanılır.
+            //Tablolar server uzerinde olusturulurken ilk yapılması gereken isler icin kullanılır...        //İlk değer atamaları (First Initial Values) ve ayarları için kullanılır.
                                                                                                             //Oluşurken yapılması istenen işler
                                                                                                             //Daha sonra bu yapıyı ayrı Config classları oluşturup onlar üzerinden vereceğiz.
                                                                                                             //polymorphism; zorunda değiliz, ihtiyaca binaen kullanabiliriz.
@@ -273,13 +278,24 @@ app.Run();
 Kullanımı yanlış ama başlangıç seviyesinde kullanımını göstermek için kullandık. Sık sık veritabanını değiştireceksek mesela kullanabiliriz.
 Migration ile önce veritabanını olşturacağız. 
 Sonra her değişiklik yaptığımızda yeni bir migration oluşturacağız. 
-Daha sonra migrationlar arasında versiyon atlaması yapabiliyoruz.
+Daha sonra migrationlar arasında versiyon atlaması veya ileri/geri yapabiliyoruz.
 Şimdilik sadece veritabanı oluşturmak için kullanacağız.
 
 tools - nuget - package manager console - pm> e düş.
 pm üst kısmından birden fazla proje varsa ilgili proje orada seçili olmalı
-Add-Migration Initial enter
+Add-Migration Initial - entere bas - up ve down metodları dolumu kontrole et. Kırmızı olursa build et tekrar dene.
+Solution explorer da Migration klasörü oluştu. Altındakileri incele. 
+Update-Database - entere bas - migration u uygulayacak.
+DB içindeki migration tablosunu incele. Tablolar ve başlangıç değerleri oluşmuş mu kontrol et.
+Drop-Database - entere bas - db ve içindekiler silindi.
+Remove-Migration - entere bas - Migration klasörü silindi. silinmezse sen sil komple
 
+sağ-sol tuşlarıyla yazdıklarını çağırabiliyorsun.
+Tablolar içindeki veri tiplerinde yaşadığımız konuyu modellerde düzelt.
+Add-Migration isimver - Dikkat!!! isimlere dikkat aynı isimleri verme, gerekiyorsa 2,3 gibi koy sonuna.
+Update-Database
+DB içindeki migration tablosunu incele. Tablolar ve başlangıç değerleri oluşmuş mu, tipler doğru mu kontrol et.
+Update-Database gidilecekmigrationadı
 
 
 
