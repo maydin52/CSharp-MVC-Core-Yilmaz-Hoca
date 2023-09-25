@@ -1,0 +1,145 @@
+
+EF nin MVC ile çalıştırılabilmesi için alt yapının kurulması
+
+
+
+MVC de orta seviye, MVC Core da üst seviye OOP kullanılıyor. Sebebi paternlere göre yazılması gerektiğinden.
+
+Ekim 2022 de geldi, using önüne global eklenip en başa alınırsa bu proje içinde view dahil heryerde görecek. 30 sayfaya eklemeye gerek kalmadı.
+
+
+
+
+---1- ASP.NET Core Web App (MVC) - Configure klik kaldır projeyi başlat
+
+
+
+---2- Entity Framework için ihtiyaç olan kütüphanelerin yüklenmesi
+      ModelFirst yaklaşımına göre; Tools - nuget - browse 
+      1- Microsoft.EntityFrameworkCore yükle 6.0.22
+      2- Microsoft.EntityFrameworkCore.SqlServer yükle 6.0.22
+      DİKKAT!!! Bu projede migration yapmayacağımız için bu projede kurmadık.
+      Dependency - packages ten kontrol et.
+
+
+
+---3- Models klasörü altında oluşturduk.
+
+public class Product
+    {
+        public int ProductID { get; set; }      //ya ID olacak, ProductID ile bitecek yani entity ismi ile aynı olacak, ya da farklı bir isimle fakat üstüne [Key] attribute kullanılacak.
+        public string Name { get; set; }
+        public decimal Price { get; set; }    //sql de money e denk gelen tip olduğu için bir daha çevirmemek için
+    }
+
+
+
+---4- DBContext sınıfından türemiş sınıfı oluşturuyoruz. DAL klasörü altında ProductContext classı oluşturduk.
+
+public class ProductContext : DbContext                        //uyarı verirse using eklenecek.
+    {
+        public ProductContext(DbContextOptions<ProductContext> options):base(options)        //base demek atası yani DbContext demek
+        {
+            
+        }
+
+
+        //Db deki tabloların karşılıkları, propertyleri
+        public DbSet<Product> Products { get; set; }
+
+
+        //İlk değer atamaları. Diğer projede daha farklı bir yöntem gösterecek.
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Product>().HasData( 
+                new Product { ProductID=1, Name="Product 1", Price=14 },
+                new Product { ProductID=2, Name="Product 2", Price=45 },
+                new Product { ProductID=3, Name="Product 3", Price=55 }
+                );
+            base.OnModelCreating(modelBuilder);
+        }
+    }
+
+
+
+---5- appsettings.json içerisinde; "ConnectionStrings" ten önceki virgülden sonra connection stringi oluşturduk. 
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {"ConnStr":"Data source=.;initial catalog=YZL3440_ProductDB;integrated security=true"},
+  "AllowedHosts": "*"
+}
+
+
+
+---6- Program.cs e Dependency Injection servisini ekledik
+
+Artık doğrudan sınıfların instance ını almayacağız. Zihniyetimizi değiştirmemiz gerekiyor.
+Dependency Injection'a göre Inversion of Control ( IoC ) Container kullanacağız. 
+Solid prensiplerinde ne olduğu anlatılacak.
+Newleme işlemini core yapıyor.
+Onun için program.cs te bunu servis olarak eklemek gerekiyor. ÇİZGİLER ARASINDAKİ CÜMLE. IOC
+GetConnectionString metodu Jsondan okuma işlemini yapıyor.
+
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+---------------------------------------------------------------------------
+builder.Services.AddDbContext<ProductContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("ConnStr")));
+---------------------------------------------------------------------------
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+}
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+
+
+--7- ProductController oluşturduk.
+Sınıfın içerisinde oluşturduğumuzda bir bağımlılık ortaya çıkıyor. Anlatacak detayını.
+
+
+public class ProductController : Controller
+    {
+        private readonly ProductContext _productContext;    //Bütün dünyada literatürde alt çizgili kullanılıyor.
+
+        public ProductController(ProductContext productContext)        //BU YAPI LİTERATÜRDE CONSTRUCTOR INJECTION
+        {
+            _productContext = productContext;
+        }
+
+        public IActionResult Index()
+        {
+            _productContext.Database.EnsureCreated();    //Veri tabanını oluşturaak ama uzun vadede bunu kullanmayacağız. Anlatacak nedenini.
+            return Content("Veritabanı olustu....");
+        }
+    }
+
+
+--8- Db kontrolü
+Db ve tablo oluştu. Verileri eklendi.
+
+      
