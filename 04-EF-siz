@@ -1,4 +1,4 @@
-
+//ADO.NET Bağlantılı Yöntem MSSQL+JSON
 
 MVC de ADO.NET Klasik Yontemi Kullanarak Veri Listeleme ve Kaydetme işlemleri
 
@@ -11,15 +11,17 @@ MVC Entity Framework
 
 
 
+Dikkat!!! kaydın başarlı olarak kayıt edilip edilmediği, update ve delete eklenecek.
 
 
-1- ASP.NET CORE Web App (M-V-C) yeni proje oluştur.
 
-2- Configure for HTTPS klik kaldır. diğerleri aynen kalsın.
+---1- ASP.NET CORE Web App (M-V-C) yeni proje oluştur.
 
-3- MSMS oturum açtık - new database - YZL3440_UrunDB adı verdik
+---2- Configure for HTTPS klik kaldır. diğerleri aynen kalsın.
 
-4- Aşağıdaki şekilde tablo oluşturduk, içine veri ekledik ve kontrol ettik.
+---3- MSMS oturum açtık - new database - YZL3440_UrunDB adı verdik
+
+---4- Aşağıdaki şekilde tablo oluşturduk, içine veri ekledik ve kontrol ettik.
 CREATE TABLE Urunler(UrunID int IDENTITY PRIMARY KEY,
                      UrunAdi varchar(100),
 					 KategoriID int,
@@ -31,13 +33,14 @@ INSERT INTO Urunler VALUES('22" LCD Monitor', 2, 2460)
 
 Select * from Urunler 
 
-5- Gelen requestleri karşılayacak ve response verecek Controller oluşturacağız.
+---5- Gelen requestleri karşılayacak ve response verecek Controller oluşturacağız.
 Açılış sayfasında ürünleri göstermesini istiyoruz.
+Dikkat!!! Kodların tümü controller altına yazılmaz. Bu tip istenmeyen kodlara SPAGETTİ KOD denir. Bakımı, aktarması çok zor. Kod yazmak satranç oynamak gibi. Daha az emek yoğun çalışılmalı.
 Controller üzerinde sağ tık - new controller - empty - UrunController
 
-6- Controller içindeki Index keywordu üzerinde sağ tık - view - empty - Index.cshtml
+---6- Controller içindeki Index keywordu üzerinde sağ tık - view - empty - Index.cshtml
 
-7- Sql tablosu içerisindeki veriyi objeye çevirebilmemiz için bir class içerisinde tutmamız gerekiyor. Data != Object demiştik daha önce. Çünkü biri relational diğeri OOP.
+---7- Sql tablosu içerisindeki veriyi objeye çevirebilmemiz için bir class içerisinde tutmamız gerekiyor. Data != Object demiştik daha önce. Çünkü biri relational diğeri OOP.
 Bunun için Urun tipinde bir class oluşturmamız gerekiyor. Veri tutmak amacıyla oluşturulan classlara Model denilir. 
 EF de buna POCO classes (Plain Old CLR Objects) olarak geçiyor. 
 Models klasörü altında Urun classı oluşturduk.
@@ -56,7 +59,209 @@ public class Urun
         public decimal Fiyat { get; set; } 
     }
 
-8- DAL katmanı için DAL adında (Data Access Layer) klasör oluşturduk ve altına UrunlerDB classı açtık.
+---8- DAL katmanı için DAL adında (Data Access Layer) klasör oluşturduk ve altına UrunlerDB classı açtık. Connection stringi tanımladık.
+Tools - Connect to database - Servername . - datase seç - advanced de trust server certificate true ve altta connection string kullanılabilir.
+EF de bu yöntemi kullanıyor. Kodu iyi yazıyorsanız EF nin bu yavaşlığından da bu şekilde kurtulabilirsiniz.
+UPDATE ve DELETE yazmadık.
+SqlConnection kullanımında ampule tıklandığında Install package 'Microsoft.Data.Client' - Install with package manager - versiyona dikkat. - Install
+using ini eklet yukarı.
+
+
+public class UrunlerDB
+    {
+        //ADO.NET Bağlantılı Yöntem
+        private string ConnStr = "Data source=.;initial catalog=YZL3440_UrunDB; integrated security=true;Trust Server Certificate=true";
+
+        public List<Urun> TumUrunler()
+        {
+            SqlConnection conn = new SqlConnection(ConnStr);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("SELECT * FROM Urunler", conn);
+            SqlDataReader dr = cmd.ExecuteReader();
+            List<Urun> urunler = new List<Urun>();
+            while (dr.Read())	//Okur. Metod.
+            {
+                Urun urun = new Urun();
+		//DİKKAT!!! convert seçenekleri
+		//DB de alanlar değiştirilmemeli. Bütün sistem alt üst olabilir. Kolon no kullanmak en doğrusu.
+                urun.UrunID = Convert.ToInt32(dr["UrunID"]);
+                urun.UrunAdi = dr[1].ToString();
+                urun.KategoriID = dr.GetInt32(2);	//Bu ve altındaki Get... isimle kullanılmıyor sadece indis verilmesi gerekiyor.
+                urun.Fiyat = dr.GetDecimal(3);
+                urunler.Add(urun);
+            }
+            conn.Close();
+            return urunler;	//Tablodaki ilişkisel veriyi objeye çevirdik. O eşitsizliği eşitlik haline getirdik. EF bunu kendisi yapıyor.
+        }
+
+        public Urun UrunAra(int urunID)
+        {
+            SqlConnection conn = new SqlConnection(ConnStr);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("SELECT * FROM Urunler WHERE UrunID=@ID", conn);
+            cmd.Parameters.AddWithValue("@ID", urunID);
+            SqlDataReader dr = cmd.ExecuteReader();
+            dr.Read();
+            Urun urun = new Urun();
+            urun.UrunID = -1;
+            if (dr.HasRows)	//Kayıt olup olmadığını söyler. Metod değil.
+            {
+                urun.UrunID = Convert.ToInt32(dr["UrunID"]);
+                urun.UrunAdi = dr[1].ToString();
+                urun.KategoriID = dr.GetInt32(2);
+                urun.Fiyat = dr.GetDecimal(3);
+            }
+            conn.Close();
+            return urun;
+        }
+
+        public void UrunEkle(Urun urun)
+        {
+            SqlConnection conn = new SqlConnection(ConnStr);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("INSERT INTO Urunler VALUES(@ad,@katID, @fiyat)", conn);
+            cmd.Parameters.AddWithValue("@ad", urun.UrunAdi);
+            cmd.Parameters.AddWithValue("@katID", urun.KategoriID);
+            cmd.Parameters.AddWithValue("@fiyat", urun.Fiyat);
+            cmd.ExecuteNonQuery();				//Dikkat!!! INSERT, UPDATE ve DELETE de kullanılır.
+            conn.Close();
+        }
+    }
+
+
+---9- UrunController doldurduk.
+
+Controllerdan Viewe veri taşıma yöntemlerinden modeli kullanıyoruz;
+
+    public class UrunController : Controller
+    {
+        //ilerde bu şekilde yazılmayacak...
+        UrunlerDB db = new UrunlerDB();
+
+        public IActionResult Index()
+        {
+            //Urun Listesini Goster...
+            return View(db.TumUrunler());	//modeli kullandık. Ayrı bir sınıfa yazmanın avantajı.
+        }
+
+        public IActionResult Ekle() { 
+        
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult Ekle(Urun urun)
+        {
+            if(ModelState.IsValid)
+            {
+                db.UrunEkle(urun);
+                return RedirectToAction("Index");
+            }
+            
+            return View();
+        }
+
+        public IActionResult JsonVeriler()
+        {
+
+            return Json(db.TumUrunler());
+        }
+
+        public IActionResult JsonDosya()
+        {
+            
+            string strJSON= JsonConvert.SerializeObject(db.TumUrunler());
+
+            StreamWriter sw = new StreamWriter("wwwRoot/Data/urun.json");
+            sw.WriteLine(strJSON);
+            sw.Close();
+
+            return NoContent();
+        }
+    }
+
+---10- Index.cshtml
+
+@model IEnumerable<Urun>
+
+    <a asp-controller="Urun" asp-action="Ekle">Yeni Ürün Ekle</a>
+    <br />
+<a asp-controller="Urun" asp-action="JsonVeriler">JSON olarak Goster</a>
+<a asp-controller="Urun" asp-action="JsonDosya">JSON olarak dosyaya yaz</a>
+<br /><br />
+
+<table class="table table-striped">
+    @foreach(var urun in Model)
+    {
+        <tr>
+            <td>@urun.UrunID</td>
+            <td>@urun.UrunAdi</td>
+            <td>@urun.KategoriID</td>
+            <td>@urun.Fiyat</td>
+        </tr>
+    }
+</table>
+
+
+---11- Ekle.cshtml
+ID otomatik verdiği için almadık.
+View dan Controllera model kullandık.
+
+@model Urun
+
+<script>
+    function kontrolEt()
+    {
+        let inputs = document.querySelectorAll("input[type=text]");
+        
+        let numberOfInputs =inputs.length;
+        let numberOfEmpty =0;
+        for(let inpt of inputs)
+        {
+            if(inpt.value == "")
+            {
+              numberOfEmpty++;
+              inpt.className="empty";
+            }
+            else
+                inpt.className = "";
+        }
+
+        if(numberOfEmpty==0) 
+          return true;
+        else
+          return false;   
+    }
+</script>
+
+<form method="post" asp-action="Ekle">
+   <table>
+       <tr>
+           <td>Ürün Adı:</td>
+           <!--required-->
+           <td><input type="text" asp-for="UrunAdi"></input></td>
+       </tr>
+        <tr>
+           <td>Kategori ID</td>
+           <td><input type="text" asp-for="KategoriID"></input></td>
+       </tr>
+        <tr>
+            <td>Fiyat :</td>
+            <td><input type="text" asp-for="Fiyat" /></td>
+        </tr>
+        <tr>
+            <td colspan="2"> <input type="submit" value="Kaydet"   /> </td>
+            <!--JS kullanarak boş geçilemez...-->
+            @*<td colspan="2"> <input type="submit" value="Kaydet"  onclick="return kontrolEt()" /> </td>*@
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div asp-validation-summary="All"></div>
+            </td>
+        </tr>
+   </table>
+</form>
 
 
 
