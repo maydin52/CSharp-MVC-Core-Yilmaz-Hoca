@@ -1,0 +1,197 @@
+01.10.2023 Pazar 1.Gün
+
+Kitap Projesi
+-------------
+*** MVC Core 6
+*** EF Core
+*** 1-1, 1-M , M-M ilişkiler 
+*** Identity ile uyelik Sistemi - Roller
+*** Fluent API kullanımı
+*** Custom Validations
+*** Area Kullanımı
+
+
+Book(BookID, BookName, Price, ReleaseDate, CoverImage,CategoryID)
+Author (AuthorID,AuthorName, AuthorLastName)
+BookAuthor(BAID, BookID,AuthorID)
+AuthorDetail(AuthorDetailID,BirthDate, Region, Biography)
+Category(CategoryID, CategoryName)
+
+Islem Basamaklari
+*** Identity sistemini olustur...
+*** BookDB Tasarla...
+*** Modlleri olustur...
+*** Context sınıfndak propertyleri belirle...
+*** Navigation Property'leri olustur...
+
+-----------------
+
+Kapsamı;
+- Identity kullanımı
+- Bire çok, bire bir, çoka çok kullanımı
+- uzantısı sadece jpg olan örneğin yükleme
+- custom validation yazımı
+- ForeignKey annotaion kullanım zorunluluğu nerede, ne için?
+
+
+Microsoft Identity seçeneği farklı. Araştır.
+
+Yapay zeka çeşitleri;
+Supervise sistemler (gpt vs. milyonlarca yazılımcı gpt vb sorarak sistemi geliştiriyor sonrasında öğrenince proramcıya gerek kalmayacak) ve unsupervise sistemler
+
+------------------
+
+Uygulama;
+
+1. Create New Project - ASP.NET Core Web App(MVC) - Next - MVC_BookApp - Next - Authotantication Type : Individual Accounts ve HTTPS kliğini kaldır - Create
+
+----------------------------------------
+
+2. Area, Identity gibi klasörleri yeni eklemiş.
+Data klasörü altında Migration ve Context i kendisi oluşturmuş ama dikkat DbContextten gelmiyor IdentityDbContext ten geliyor. IdentityDbContext de DbContextten geliyor. Go to definition bkz. Arada bir sürü generic sınıf var.
+Package altında eklentileri kurmuş.
+Migration klasörü içindeki classta Up ve Down var. Down içindekiler özet. AspNetRoles tablosu vs. 7 tane yeni tablo oluşturuyor üyelik sistemiyle alakalı ve çoğunu çoka çok ilişkiyle tutuyor. 
+Appsettings.json dosyasında connection stringsi de yazmış. Kendimize uyarlayacağız sadece. Connection strings yazılışının birçok yazım şekli var. 
+Burada özel kullanım; (localdb) kavramı; sql servere ihtiyaç duymadan da çalışılabiliyor ama çoklu bağlantılarda yavaş. 2010 gibi geldi.
+localdb vs kapatıldığında uçmuyor. users içinde mdf ve log dosyası.
+localdb ye msms olmadan vs içinden tools - connect to database - change - sql server database file seçilecek - Ok - path 
+2-3 yıl önce yeni gelen özellikle artık memory de sql server gibi kullanma özelliği gelmiş ama aç kapa gitti. memory sql diye geçiyor.
+SQL de bir değişiklik yaptın diyelim migration da bu yoksa sıkıntı. Migration üzerinden gitmek en doğrusu.
+
+----------------------------------------
+
+3. Migration ve identity tablolarının oluşturulması
+nuget console
+update-database
+sql içndeki dabase içinde 7 tablo oluştu.
+
+----------------------------------------
+
+4. Modellerin oluşturulması
+Tablolar ve alanlar belirlendi. İLŞKİNİN ADINI DOĞRU KOYMAK GEREKİYOR. YOKSA GÖMLEĞİN DÜĞMELERİ YANLIŞ İLİKLENMESİ GİBİ. 
+Tablolar arası ilişkiler belirlendi. Kullanıcının detayı görmesi gerekli değilse join maliyeti oluşmamalı.
+DİREKT KODLAYARAK BAŞMALAMK YANLIŞ. VERİTABANI TASARIMI ÖNCE KAĞIT ÜZERİNDE TASARLANIR VE ONAYLANIR SONRA KODLANMAYA BAŞLANIR.
+
+
+    public class Author
+    {
+        public int AuthorID { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        [NotMapped]
+        public string FullName { get => FirstName + " " + LastName; }
+
+        public AuthorDetail? AuthorDetail { get; set; }
+        public ICollection<BookAuthor>? AuthorBooks { get; set; }
+    }
+
+
+
+    public class AuthorDetail                      //BAŞKA BİR PROP FK OLMASINI İSTESEYDİK ONUN ÖNÜNE YAZACAKTIK.
+    {
+        [ForeignKey("Author")]                    //DİKKAT!!! HEM PK HEM FK       BİREBİR İLİŞKİDE BİR TARAF MUTLAKA FK OLMALI. PK OLDUĞUNDAN FK EKLEDİK.      VERİLEN İSMİN ÖNEMİ YOK.
+        public int AuthorDetailID { get; set; }      //SQL DEN KEYS İÇİNDEN KONTROL ETTİK. HEM PK HEM FK OLARAK GÖRÜNÜYOR.
+        public DateTime  BirthDate { get; set; }
+        public string Region { get; set; }
+        public string Biography { get; set; }
+
+
+        public Author? Author { get; set; }
+    }
+
+
+
+    public class Book
+    {
+        public int BookID { get; set; }
+        public string BookName { get; set; }
+        public DateTime ReleaseDate { get; set; }
+        public string CoverImagePath { get; set; }
+        
+        [NotMapped]
+        public IFormFile CoverImage { get; set;}
+        public decimal Price { get; set; }
+
+        public int CategoryID { get; set; }
+
+
+        public Category? Category { get; set; }
+        public ICollection<BookAuthor>? BookAuthors  { get; set; }
+    }
+
+
+
+
+    public class BookAuthor
+    {
+        [Key]                                            //BAID Yİ EF ANLAMAYACAĞI İÇİN PK OLARAK TANIMLADIK
+        public int BAID { get; set; }
+        public int BookID { get; set; }
+        public int AuthorID { get; set; }
+
+        public Book? Book { get; set; }
+        public Author? Author { get; set; }
+    }
+
+
+
+
+    public class Category
+    {
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
+
+        public ICollection<Book>? Books { get; set; }
+    }
+
+------------------------------------------------------------------------
+
+5. Context sınıfındaki propertyleri belirledik.
+Aşağıda DbSet propertyleri ekledik. Üsttekiler otomatik gelmişti.
+
+    public class ApplicationDbContext : IdentityDbContext<AppUser>
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+
+        public DbSet<Book> Books { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Author> Authors { get; set; }
+        public DbSet<BookAuthor> BooksAuthors { get; set; }            //ÇOKA ÇOK İLİŞKİ TABLOSUNUN İSMİNE DİKKAT
+        public DbSet<AuthorDetail> AuthorDetails { get; set; }
+
+        public DbSet<AppUser> Users { get; set; } 
+    }
+
+--------------------------------------------------------------------------
+
+6. DB de AspNetUsers tablosunun özelliklerine baktık ve Id nin tipinin string nvarchar(450) ve PK olduğunu gördük. Oraya GUID oluşturuyor amagenellikle biz onu int çevirmek isteriz. 
+Kolay kullanılacaksa birşey yapılmasına gerek yok ama burada bir customization yapacaksak birşeyleri değiştirmemiz gerekecek.
+Zahidin verdiği örneğe göre adamın querystringden oynayabilmesini engellemek gerekir. Url rewriting konusu var ARAŞTIR.
+Bu tablo aynı zamanda indexleneceği için ve aynı zamanda PK da olacağı için int değerlerde yani tam sayı değerlerde arama hızı çok yüksek, string ifadelerde daha yavaş.
+MS in string verme sebeplerinde biri de bize özelleştirme imkanı sağlıyor. Int verseydi stringe dönüştürmek daha zor olurdu. String herşeyi alabildiğinden.
+
+Çalıştırdığımızda sağ tarafta Register ve Login butonları çıktı.
+
+Bu tabloda adres bilgisi yok mesela. Bu tabloda olmayan bir verinin bu tabloda tutulması isteniyorsa;
+6.a IdentityUser sınıfından miras alarak yeni bir sınıf oluşturuyoruz ve propertylerini ekliyoruz.
+
+public class AppUser:IdentityUser
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+    }
+6.b Context sınıfına DbSet ekliyoruz.
+6.c Migration oluşturuyoruz.
+
+--------------------------------------------------------------------------
+
+7. 
+
+
+
+
