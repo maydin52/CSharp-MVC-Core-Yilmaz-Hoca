@@ -1,0 +1,868 @@
+
+
+
+1. Yeni proje açılması ve gerekli frameworklerin yüklenmesi
+2. Modellerin oluşturulması
+3. EF-DB bağlantısının oluşturulması, bağlantı ve yazma kontrolü
+4. Controllerlerin oluşturulması
+5. Viewların oluşturulması
+6. Layoutun oluşturulması
+7. Ön ve arka kullanıcı sınırlandırmaları
+
+
+
+
+
+1. PROJENİN AÇILMASI
+
+    VS - yeni proje - arama kısmına mvc - simgesinin sağ üstünde c# olan mvc seç - next - isim ver - next - framework 7.0 ve https klikli - create
+
+2. SOLUTION EXPLORER TANITIM
+
+    ENBAŞTAKİ DOSYA
+    başlangıçta seçtiğimiz framework NO
+    <TargetFramework>net7.0</TargetFramework>
+    
+    <Nullable>enable</Nullable>
+
+    using kullanımını otomatize ediyor. Daha sonra
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    PROPERTIES ALTINDAKİ JSON
+    profiles ve https bölümüne dikkat
+    port bilgileri
+    enviroment ta seçili development: siz development te başka db production da farklı db kullanabilirsiniz. 
+    bunu ayarlıyor
+
+
+    APPSETTINGS.JSON
+    eğer productionda farklı bir db kullanacaksan environmete production yazıp buraya yeni bir json eklemek gerekiyor.
+    solution ağacında sağ tık - add - new item - arama kısmına json yaz - ilk çıkan uygulama ayarları dosyasını seç - ismini appsettings.Production.json ver - ekle - connection stringsi ayarla.
+
+    WWWROOT
+    statik dosyaların bulunduğu yer
+    
+
+3. PIPELINES yani Program.cs TANITIM
+
+    Konsol ve wf için hello world için gerekli değil ama web projeleri için pipeline ı kuran dosya
+
+    builder nesnesi oluşturuluyor.
+    servisler ekleniyor.
+    sonra mvc ekliyor.
+    build ediyor.
+
+    environment development dışındaysa ..... şunları yap.
+    buraya isproduction demen gerekir db production ise
+    
+    redirection
+
+    static fileleri kullanıyor
+
+    routing yapıyor
+
+
+    
+
+4. MVC
+
+    Model-View-Controller
+
+
+5. EF ORM
+
+
+
+6. EF PROJEYE EKLEME - PROJEYE BAŞLANGIÇ
+
+    solution explorer da ağacın başında sağ tık - manage nuget packages - browse
+    Microsoft.EntityFrameworkCore.SqlServer
+    Microsoft.EntityFrameworkCore
+    Microsoft.EntityFrameworkCore.Tools
+    dikkat aynı versiyon olmalı
+    yükle
+    yüklenenlere yeşil tik attı
+    solution explorer packages içinden bak
+    ağacın ilkine çift tıkla ve oraya eklenmiş mi bak. oraya bağımlı.
+    
+
+7. EF İLE MODEL KATMANI OLUŞTURULMASI
+
+    Models klasörü altına KitapTuru classı ve prop id ve ad oluşturduk
+    Primary key olarak id [Key] ekledik ama adı Id yazdığımız veya [Key] demeyip (KitapTuruId) için ms otomatik tanıyor.
+    Ad [Required] not null anlamında
+
+
+8. EF CODE FIRST DB BAĞLANTI
+
+    appsettings.json dosyasında ; 
+    en sondaki "AllowedHosts": "*" yanına , koyduk ve altından eklemeye devam ettik.
+
+    "AllowedHosts": "*",
+    
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=MEHMETAYDIN57A1\\SQLEXPRESS;integrated security=SSPI;
+    User Id=sa;Password=123;Database=VTKitapSatis;Trusted_Connection=True;TrustServerCertificate=True
+  }
+
+
+9. EF - DB ARASI KÖPRÜ OLUŞTURMA
+
+    Db de tablo karşılığı olan sınıflara entity deniyor.
+    Utility klasörü oluşturduk.
+    altına UygulamaDbContext adında class oluşturduk.
+
+    içine önce dbcontext miras al
+    sonra aşağıda options otomatik ctor kalıbı yazdır
+
+    program.cs içine bu yeni oluşturduğumuz UygulamaDbContext sınıfını eklioruz
+    builder.Services.AddControllersWithViews(); altına
+    builder.Services.AddDbContext<UygulamaDbContext>(options=>
+options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+ekle. json dosyasından alıyor. json da nasıl yazdıysan burada da öyle olmalı.
+
+    tools - nuget package manager - package manager console - update-database 
+    dikkat update ile database arasındaki - ye
+    done çıkarsa tamam
+
+
+10. KODDAN TABLO OLUŞTURMAK
+
+    UygulamaDbContext clasındaki const içine değil dikkat!!! dışarı class içine tabloları Dbset propları ekle.
+    
+    migration yapmak için nuget package console; add-migration KitapTurleriTablosuEkle
+    otomatik solution explorer de migrations klasörü eklendi fakat db de tablo ve migration kaydı henüz yok.
+    update-database
+
+
+11. CONTROLLER VE VIEW OLUŞTURMA
+
+    Solution explorer da controllers klasörü üzerinde sağ tık - add - controller - empty olanı seç - add - 
+    adını KitapTuruController.cs gir dikkat modeldeki ismi aynı ve sonunda Controller olmalı. - add
+    https://localhost:7027/KitapTuru/Index   yazdığımızda  
+    Controller devreye girdi. Çalışmış. Girmeseydi sayfa bulunamıyor derdi.
+    views altlarında cshtml arıyor. 
+    Herbir controllerin views altında aynı isimde view i olmalı.
+
+     Solution explorer da views klasörü üzerinde sağ tık - KitapTuru adlı klasör ekle - KitapTuru klasörü
+     üzerinde sağ tık - add - view -  boş olanı seç add - adını aynı bırak - add
+     içini silebilirsin. h1 tagında başlık yazdık ve çalıştırınca yazı tarayıcıda linki düzeltince geldi
+
+     https://localhost:7027/KitapTuru/Index
+     KitapTuru : controller
+     Index : action
+
+     Menüye eklemek için;    dikkat :     asp-controller="KitapTuru" asp-action="Index" önemli
+     solution explorer da views - shared - _Layout.cshtml içinden
+     <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="KitapTuru" asp-action="Index">Kitap Türü</a>
+                        </li>
+
+
+12. CONTROLLER VE MODEL ENTEGRASYONU VE DEPENDENCY INJECTION
+
+    db tabloya ad verileri girdik.
+    
+    KitapTuruController class ının içinde;
+    dependecy injection konusu devreye giriyor. oluşturma yapan .net mekanizması
+    _ her tarafta kullanıldığı için konulur.
+    private readonly UygulamaDbContext _uygulamaDbContext;     ---ekledik
+    public KitapTuruController(UygulamaDbContext context)        ---ekledik
+        {
+            _uygulamaDbContext = context;
+        }
+    public IActionResult Index()
+        {
+            List<KitapTuru> objKitapTuruList = _uygulamaDbContext.KitapTurleri.ToList();    ------ bu satırı ekledik
+            return View();
+        }
+    index action çağrıldığı zaman db ye gidip kitap türlerini çekecek ve obj... liseye alacak.
+
+    
+    dependecy injection nedir ; biz normalde 
+    private readonly UygulamaDbContext _uygulamaDbContext; yerine new lerdik.
+    core çıkmadan önceydi newlemek.
+    artık nesne böyle oluşuyor bu şekilde yazmak yeterli. 
+    program.cs içinde zaen ben böyle bir servis alacağım demişim. bana bunu bir servis container i ile sağla demişim.
+    nesneleri new ile olşturmak yerine bu coinerde  builder.Services.AddDbContext<UygulamaDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); 
+    core dan sonra konteynerde birer tane tutuluyor sürekli newlenmiyor. kova yapısı konteyner.
+    içinde nesneler tutuyor.
+    herseferinde new ile tutmak yerine _nesne adı ile sürekli kullanıyor. sürekli new yapmıyoruz.
+    design patterns : Singleton design pattern
+    sürekli new yazmak bütün newlerin birbirine bağımlı olmasından kurtulmak sorun.
+
+13. VIEW ENTEGRASYONU
+
+    KitapTuruController classında 
+    public IActionResult Index()
+        {
+            List<KitapTuru> objKitapTuruList = _uygulamaDbContext.KitapTurleri.ToList();
+            return View(objKitapTuruList);        ------  parantez içine eklendi
+        }
+    
+    
+    razor view engine araştır. engine cshtml yi html ye çeviriyor.
+
+    
+    views altındaki kitap tütü klasörü altındaki index dosyasında html tablo yapılır.
+    @model List<KitapTuru>
+
+<h1>Kitap Türleri</h1>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Kitap Türü</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var kitapTuru in Model)
+        {
+           <tr>
+            <td>@kitapTuru.Id</td>
+            <td>@kitapTuru.Ad</td>
+            </tr> 
+        }  
+    </tbody>
+
+</table>
+
+
+Örneğin id görünmesin istiyorsak başlık ve body den sildiğinde sadece adları gelir.
+
+
+
+14. CSS-BOOTSTRAP-BOOTSWATCH KULLANIMI
+
+    bootswatch.com/pulse
+    
+    bootswatch bootstrap gibi bir css paketi.
+    hocanın verdiği bu dosyayı kullanacağız. aslında bootswatch paketi
+
+    hocanın dosyayı kopyala; solution explorer - wwwroot - lib - bootstrap - dist - css klasörüne 
+    var olanın üzerine yapıştır.
+
+    solution explorer - view - shared - _layout.cshtml içinden;
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> ----- . min sil
+    default bootstrap min css kullandırıyor asp net ama biz değiştirebiliriz stilleri.
+    tek tek uğraşmamak için hocanın template uyguladık.
+
+    
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    navbar ını -dark yaptık. 
+    bg ını -primary yaptık.
+
+    
+    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="KitapTuru" asp-action="Index">Kitap Türü</a>
+                        </li>
+                    </ul>
+    text-darkları sildik. siyahlık gitti.
+
+
+    15. SAYFAYA BUTON EKLEME
+
+başlıkta container yapısıyla boşluk ayarları yaptık. en alta da buton ekledik.
+<div class="container">
+
+    <div class="row pt-3 pb-4">
+        <div>
+            <h1>Kitap Türleri</h1>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Kitap Türü</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var kitapTuru in Model)
+            {
+                <tr>
+                    <td>@kitapTuru.Id</td>
+                    <td>@kitapTuru.Ad</td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+
+    <div class="row pt-3 pb-2">
+        <div>
+            <a asp-controller="" asp-action="" class="btn btn-lg btn-primary" type="button">Yeni Kitap Türü Oluştur</a>
+        </div>
+    </div>
+
+</div>
+
+
+16. BUTONA AKSİYON EKLEME VE YENİ KİTAP TÜRÜ OLUŞTURMA VIEW I OLUŞTURMA
+
+    Buton kitap türü sayfasında olduğundan bu controller ilgileniyor.
+
+    KitapTuruController classında    ---- ekledik
+    public IActionResult Ekle()
+        { 
+            return View();
+        }
+
+    views klasörü altında KitapTuru klasörü üzerinde sağ tık - action ın dikkat!! aynı ismiyle 
+    Ekle adında view oluşturduk.
+
+
+    Ekle viewinde başlık yazdık
+
+
+    index.cshtml içindeki butonun action ları eklendi.
+    <a asp-controller="KitapTuru" asp-action="Ekle" class="btn btn-lg btn-primary" type="button">Yeni Kitap Türü Oluştur</a>
+    Controller : KitapTuru
+    Action : Ekle
+
+
+
+
+17. KİTAP TÜRÜ EKLE BUTONU EKLENMESİ VE VIEW TASARIMI
+
+    Ekle.cshtml içine;
+    @model KitapTuru
+
+
+<form method="post">
+
+    <div class="border p-3 mt-5">
+
+        <div class="row pb-3">
+            <h2 class="text-primary">Yeni Kitap Türü Ekle</h2>
+            <hr />
+        </div>
+        
+        <div class="mb-3">
+            <label>Kitap Türü Adı:</label>      ------- dikkat farklı daha güzel bir alternatif var aşağıda
+            <input type="text" class="form-control" />    -------dikkat düzeltme var aşağıda
+        </div>
+
+        <button type="submit" class="btn btn-lg btn-primary" style="width:250px">Kitap Türü Ekle</button>
+
+        <a asp-controller="KitapTuru" asp-action="Index" class="btn btn-lg btn-primary" style="width:400px">Kitap Türleri'ne Geri Dön</a>
+
+    </div>
+
+</form>
+
+dikkat!!!!! type="text" bunu düzelttik. asp de böyle bir kullanım yok. asp-for="classın içindeki propertynin adı"
+dikkat!!!!! <label>Kitap Türü Adı:</label> bu kullanımı dinamik hale getirdik. her yerde aynı isimle gelir ekranda.
+
+
+ public class KitapTuru
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [DisplayName("Kitap Türü Adı")]   ----- bu eklendi.
+        public string Ad { get; set; }
+    }
+
+
+
+
+
+18. EKLE İŞLEMİNİ DB YE KAYDETME
+
+    Kullanıcı butona tıkladığında post u görüyor ve sonunda controller olan view ın contreller ına gidiyor. 
+    Orada http post arıyor o metoda giriyor.
+
+    
+    KitapTuruController classı içine;  -----yeni eklendi.
+        [HttpPost]
+        public IActionResult Ekle(KitapTuru kitapTuru)
+        {
+            _uygulamaDbContext.KitapTurleri.Add(kitapTuru);
+            _uygulamaDbContext.SaveChanges();
+            return RedirectToAction("Index", "KitapTuru");
+        }
+
+    SaveChanges yapılmazsa veriler db ye eklenmez.
+    redirect ederek liste ekranına döndük.
+
+
+19. KULLANICI GİRDİLERİNİN DOĞRULANMASI - backend frontend validations
+
+    tarayıcıda 25 den fazlasına izin vermiyor.
+    public class KitapTuru
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [MaxLength(25)]          ------    yeni eklenen
+        [DisplayName("Kitap Türü Adı")]
+        public string Ad { get; set; }
+    }
+
+    boş butona basıldığında çökme engellendi.
+    KitapTuruController içide;   ---modelden gelen prop lar doğru gelmiş mi onu kontrol ediyor
+    [HttpPost]
+        public IActionResult Ekle(KitapTuru kitapTuru)
+        {
+            if (ModelState.IsValid)     ------   yeni eklenen 
+            { 
+                _uygulamaDbContext.KitapTurleri.Add(kitapTuru);
+                _uygulamaDbContext.SaveChanges();
+                return RedirectToAction("Index", "KitapTuru");
+            }
+            return View();      ------- yeni eklenen
+        }
+
+     bir hata mesajını kullanıcıya görüntüleme
+     kutunun altında kırmızı açıklama yazdı ama ingilizce yazdı default hata mesajları
+     ekle.cshtml dosyasına;
+
+             <div class="mb-3">
+            <label asp-for="Ad" class="p-0"></label>
+            <input asp-for="Ad" class="form-control" />
+            <span asp-validation-for="Ad" class="text-danger"></span>     ------- yeni eklenen
+
+
+     türkçe hata mesajları vermek için; custom hata mesajı
+     kutunun altında kırmızı açıklama yazdı ama bu sefer bizim istediğimiz gibi yazdı.
+     public class KitapTuru
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required(ErrorMessage ="Kitap Türü Adı Boş Bırakılamaz!")]   -----   revize edildi.
+        [MaxLength(25)]
+        [DisplayName("Kitap Türü Adı")]
+        public string Ad { get; set; }
+    }
+
+
+    front-end tarafında da yapılabileceği bir örnek;
+    proje ilk oluşturulurken views-shared altında _validationscriptpartial.cshtml dosyasında js 
+    dosyalarını eklemiş. Biz bunu kullanacağız.
+    controllerdaki metotta if yazmak yerine modeldeki attribute a bakıyor.
+    _ bu işaretin ismi underscore
+    ekle.cshtml dosyasında;
+    </form>
+
+@section Scripts{       --------  bu ve sonrasını yeni ekledik. js dosyasını include ettik.
+    @{
+        <partial name="_ValidationScriptsPartial"/>
+    }
+}
+
+20. KİTAP TÜRÜ SİLME VE GÜNCELLEME BUTONLARI EKLEME KODLAMA
+
+    index.cshtml sayfasında;
+
+    KitapTuruController sayfasında değişiklikler yapıldı. 
+    Dikkat!!!     iki tip action var; get action ve post action
+    dikkat id konusunda üste yaptığı ekleme püf noktası
+
+    yeni güncelle cshtml oluşturduk
+
+    yeni sil cshtml oluşturduk
+    
+
+21. TEMPDATA İLE İŞLEM SONUÇ BİLGİLENDİRMESİ
+
+    HTTPPOST kısımlarında yaptık.
+    Sonra index.cshtml de ekleme yaptık.
+    Bir kereliğine çıkar. Sayfa refresh olduğunda gider.
+
+
+22. REPOSITORY DESIGN PATTERN 
+
+    Orta yada büyük ölçekli projelerdeişin belli bir kısmını otomatize etmek için oluşturulmuş 
+    .net mimarisinde kullanılmak üzere taarlanmıştır. 
+    Code usebility, ortak kod kullanımı, tekrar tekrar kod yazmamak için
+    Repository interface oluşturup onu implemente eden classlar
+    google dan da araştır.
+
+    DbContext kullandık bu zamana kadar ama bu değil.
+
+    Solid prensipleri
+
+    Model klasörü altında IRepository.cs interface i oluştur. 
+    t tüm classları kastediyor
+    kalıp yazdıklarını araştır.
+
+    Repository classı oluşturduk ve miras aldık. metotları implemente ettik
+
+    IKitapTuruRepository oluşturduk. IRepository den türeyecek.
+
+    KitapTuruRepository oluşturduk. dep inj mekanizması controller içinde newlemeye yarıyor
+    program.cs içine builder.Services.AddScoped<IKitapTuruRepository, KitapTuruRepository>(); ekledik.
+
+    code first approach
+
+    c# kursunda database first izlemek istersen bak
+
+
+23. KİTAP SINIFININ, REPOSITORY SINIFININ, INTERFACE ININ VE DB TABLONUN OLUŞTURULMASI 
+
+    classı oluşturduk.
+    uygulamadbcontext e dbset ekledik.
+    nuget konsoldan add-migration KitaplarTablosuEkle
+    update-database
+    sql kontrol tablo gelmiş mi?
+
+
+    Dikkat!!! migration da problem çıkarsa; up down lar boş gelirse;
+    otomatik gelen migration sonucu up down boş gelirse;
+    db sil
+    vs deki migrations klasörü altındaki dosyaları da sil.
+    yukarıdaki gibi işlemi yenidenn uygula
+
+    IKitapRepository VE KitapRepository lerin kitap turu dosyaları kopyalanıp değiştirilerek olurturuldu.
+
+    
+
+24. KİTAP CONTROLLER VE VIEW KATMANI OLUŞTURMA
+
+    KitapController ı da KitapTuruController dan kopya alıp değiştirdik. içlerinde değişiklik yapıldı.
+
+    View de aynı mantıkla yapıldı. İçlerinde değişiklik yapıldı.
+
+    shared içinde de ekleme yapıldı
+
+    programcs içine service eklendi.
+
+    code reuse, reuseability?
+
+
+25. FOREIGN KEY
+
+    kitap.cshtml içindeki index te kolon ekledik.
+    kitap classına fk ekledik.
+    sql de veri olmadığı için hata verdi tabloyu sildik düzeldi.
+    sql de tablo script al ve tabloyu sil
+    migratin ve uprdate aynı şekilde
+    keys altından kontrol
+    sql den kitap türü id de gir
+
+
+
+26. RESİM URL EKLEME
+
+    kitap class ına url prop ekledik.
+    add-migratin ve update-database
+    
+    
+27. BİR CONTROLLER İÇİNDE FARKLI REPOSITORY NESNELERİNİ KULLANMAK
+
+    kitap ekle sayfasında kitap türünü combobox ekleme yapacağız.
+    kitap sayfasındaki kitap türü sütununu doldurma yapacağız.
+
+    KitapController içinde kitapturucontroller nesnesini ekledik combobox olarak.
+
+
+
+28. VIEWBAG 
+
+    controllerdan view e veri aktarmak için viewbag. tek yönlü.
+    ekle.cshtml içinde ekledik.
+    db de tanımlı kütap türlerini comboxta gösterdik.
+
+
+
+
+29. KİTAP RESİM DOSYASI EKLEME
+
+     ekle.cshtml içinde ekledik. dikkat name verdik
+     Solution explorer - wwwroot altına img klasörü eklendi.
+     ktapcontroller da httppost ekleguncelle altında wwwroot eklendi.
+    public readonly IWebHostEnvironment _webHostEnvironment; eklendi. program.cs koymadık.
+
+    dikkat!!! model kaynaklı hataları bulmak için;
+    var errors = ModelState.Values.SelectMany(x => x.Errors);
+
+    [ValidateNever] koyduk validationa takılıyordu.
+
+    db sildik yeniden güncelledik
+    
+    
+
+30. EKLE VE GUNCELLE EKLEGUNCELLE OLARAK TEKE İNDİRİLDİ
+
+
+
+
+31. KİTAP TÜRÜ SÜTUNUNUN GÖSTERİLMESİ
+
+    repository içindeki ctor içine özel bir yapı yazdık.
+    get imzasına
+    getall imzasına
+
+    IRepository içindeki get ve getall imzalarına
+
+
+    eklesil view
+
+
+32. KİRALAMA SİSTEMİ 
+    kiralama classı oluşturuldu.
+    utility altında dbcontexte eklendi.
+    nuget migratin ve update
+    db tablo kontrol
+
+    kitaprepository kopyala yapıştır düzenle
+    ikitaprepository kopyala yapıştır düzenle
+
+    program.cs te servislere ekleme yapma
+
+    kiralama controller sınıfı için kitapcontroller sınıfı kopaya yapıştır düzenle
+    üst tarafta ilişkili olanlar eklenecek. ve diğerleri düzenlenecek.
+
+    view da cshtml ler klasörü komple kopyala yapıştır düzenle üç view i de
+
+    shared altındaki layout a eklenmesi
+
+
+
+
+33. DEP INJ
+
+    bağımlılıkları en aza indirmek 
+    AddScoped
+    Transient
+    Singleton
+
+
+34. AUTHENTICATION VE AUTHORIZATION KONSEPTLERİ
+
+    session ile yapmaya çalışıyorlar ama ms identity yapısını kullanmak daha profesyonel. diğeri güv sıkıntı
+
+    scaffold identity kütüphaneleri ile yapılmasını istiyor ms. çünkü tüm kontrolleri kendisi yapıyor
+
+    AUTHENTICATION : kullanıcı adı ve şifre ile giriş işlemi
+
+    AUTHORIZATION : site içi yetkilendirme işlemi
+
+    AUTHENTICATION
+    scaffold identity (iskele identity)
+    login, logout, yetkilendirme, kayıt olma vb. eski sistemlerle uyumlu yeni nesil üyelik sistemi
+
+    scaffold identity kullanmayacaksak; UygulamaDbContext devam.
+    
+    scaffold identity kullanacaksak; UygulamaDbContext kaldır IdentityDbContext ekle. paketi ister ampulle
+    ister nugetten ekle.
+
+    proje adı üzerinde sağ tıkla - add - new scaffolded item
+    sol taraftan identity seç  - ekle
+    gelen ekranda override all files seç - dbcontext class seç
+
+    yüklemeden sonra shared altına _loginpartial.cshtml geldi yeni açılacak login logut gibi. text darkları sildik
+
+    _layout içinde ul nin bitişine <partial name="_LoginPartial"/> ile birleştirdik
+    
+    aktif hale getirmek için; razor mantığına dikkat!!!
+    program.cs bildirimi
+    builder.Services.AddDefaultIdentity<Ident...... altına
+    builder.Services.AddRazorPages(); ekle
+    ayrıca
+    app.UseAuthorization(); altına
+    app.MapRazorPages(); ekle
+    db tabloların oluşturulması için;
+    add-migration
+    update-database
+    db kontrol
+    
+    models e ApplicationUser classı oluşturduk.
+    UygulamaDbContext e classın dbset ini ekledik.
+    db tabloların oluşturulması için;
+    add-migration
+    update-database
+    db kontrol
+    [AspNetUsers] alanına bizim istediğimiz alanları ekledi. ekstra tablo oluşturmadı.
+    [Discriminator] alanı kendiliğinden geldi. bu eklerken app user mi identiy user mı olduğunu belirten alan.
+    
+    ApplicationUser ile yetkilendirme;
+    areas- ....- manage-register.cshtml- başında c# olan register.cshtml.cs dosyası içinde;
+    158. satırda CreateUser metodunun dönüş tipini ve try bloğu içindeki CreateInstance generiği içindekini
+    ApplicationUser olarak değiştirdik. (eski hali IdentityUser)
+    artık registera basan kişi application user olacak.
+
+    webden gidip kendimi ekledim ama otomatik mail gitmiyor manuel doğruladık.
+
+
+    AUTHORIZATION Birçok yöntemi var. kodlada yapılabiliyor.
+    biz şimdi db de manuel yapacağız.
+
+    utility klasörü altına UserRoles.cs ekledik
+
+    [dbo].[AspNetRoles] 
+    id 36 karakterlik iki rolün id sini girdik.
+    name Admin veya Ogrenci ile aynı olmalı 
+    normalized name ADMIN veya OGRENCI 
+    ConcurrencyStamp boş kalabilir.
+
+    [dbo].[AspNetUserRoles] sağ tık editle aç. [AspNetUsers] tablosundan Idyi kopyala ve bu 
+    tablodaki UserId ye yapıştır. [AspNetRoles] teki Idyi kopyala ve bu tablodaki RoleId ye yapıştır.
+
+    program.cs içindeki;
+    builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<UygulamaDbContext>();
+    kodunu
+    builder.Services.AddIdentity<IdentityUser,IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<UygulamaDbContext>().AddDefaultTokenProviders();
+    olarak değiştirdik.
+    ilk generic içi ve sondaki token yazısı
+    e-mail token provider bulamadığı için hata ekranı çıkmaması için
+
+    shared altındaki _layout dosyasından;
+    privacy nin li sinden sonraki if bloğunu yaz.
+
+    homecontroller dışındaki controller içlerine namesace den hemen sonra;
+    (class geneliyse böyle, içlerindeki bazı actionlar içerisine)
+    [Authorize(Roles = UserRoles.Role_Admin)]
+    ekledik.
+    yoksa tarayıcıdan linkle uyanıklar erişebilirdi.
+
+
+35. E-MAIL SENDER HATASI ÇÖZÜMÜ
+
+    iki nedeni;
+    program.cs içindeki identity değişikliği ve rol ekleme, 
+    register.cshtml.cs içindeki createuser deiştirmiştik.
+
+     utility klaörü içine EmailSender.cs classı oluşturduk.
+     artık burada bir sıkıntı çıkmayacak.
+     dep inj mekanizamasına sokmak için;
+     var app = builder.Build(); dan önce
+     builder.Services.AddScoped<IEmailSender, EmailSender>(); ekledik.
+     ayrıca yukarıda da token eklemesi bu hata vermemesi için yapıldı.
+     
+    dikkat!!! daha sonra e-mail gönderme işlemleri buraya eklenebilir.
+    
+    bu değişiklikleri yapmadan önce registere tıkladığımızda email confirmasyon sistemi aktif çalışmadığından çökme ekranı çıkıyordu.
+    bu düzeld. register ekranı sanki e-mail registre edilmiş gibi geldi.
+
+
+36. APPLICATIONUSER CUSTOM KULLANICI BİLGİLERİNİN REGISTER RAZOR SAYFASINA EKLENMESİ VE OĞRENCİ ROLÜ ATAMASI
+ 
+    ApplicationUser classı içindeki member ve attribute lerin hepsini kopyala
+    areas- .....- manage-.... register.cshtml.cs dosyasında; registermodel const en altına yapıştır ve 
+    public async Task<IActionResult> OnPostAsync(string returnUrl = null) metodundaki CancellationToken alt satırına
+                user.OgrenciNo = Input.OgrenciNo;
+                user.Adres = Input.Adres;
+                user.Fakulte = Input.Fakulte;
+                user.Bolum = Input.Bolum;       eklendi.
+
+    
+    areas- .....- manage-.... register.cshtml dosyasında bu yeni alanlar eklendi.
+
+    db den [dbo].[AspNetUsers] dan test kullanıcısını uçur.
+    aspnetuserroles dan otomatik test kullanıcısının kaydını silmiş kendisi.
+
+    sistemden öğrenci registeri kaydettik ve gelen ekranda confirm linkine tıkladık.
+    db AspNetUsers tablosunda custom bizim bilgilerin kaydedildiğini gördük.
+    
+
+    [dbo].[AspNetUserRoles] tablosu bu yeni eklenen kayıt için id leri diğer tablolardan alınarak kayıt eklenir
+
+
+
+37. ANASAYFA VE PRIVACY SAYFASININ DÜZENLENMESİ
+
+    ana sayfada wwwroot altında img klasörü üzerinde sağ tık dosyayı yapıştır ve sayfada düzenleme
+    privacy sayfası düzenleme
+    layotta privacy i en sona atma ve footer
+
+
+38. DIŞARIDAN KİMSENİN GÖREMEYECEĞİ ÖĞRENCİ ROLÜNÜN KİTAP LİSTESİNİ GÖREBİLECEĞİ AMA KİRALAMA YAPAMAYACAĞI ŞEKİLDE DÜZENLEME YAPMAK
+
+    layoutta sadece öğrencinin görebileceği liteye kitap listesi ekledik.
+    
+    kitapcontroller en başa yazdığımız attribute u classa dağıttık ve bir yere öğrenciyi ekledik. (utility altındaki userroles classtan geliyor)
+
+    kitap klasörü altındaki index.cshtml içinde if lerle ayarlama
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+
+    
+    
+    
+
+    
+
+
+
+    
+    
+    
+    
+     
+
+
+    
+    
+
+    
+
+
+
+
+    
+    
+
+    
+
+    
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+    
