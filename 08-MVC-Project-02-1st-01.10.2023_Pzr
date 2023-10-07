@@ -237,9 +237,7 @@ builder.Services.AddControllersWithViews();
 
 6.f DB içerisinden tabloyu kontrol ediyoruz.
 
---------------------------------------------------------------------------
 
-7. 
 
 
 
