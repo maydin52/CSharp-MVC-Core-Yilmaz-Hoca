@@ -1,1 +1,115 @@
-nnn
+
+
+
+
+1. Area - Identity - Pages - Account - Register.cshtml içine, AppUser modeline eklenen özellikleri buraya ekleyeceğiz.
+
+1.a Register.cshtml.cs içinde InputModel classı içine aşağıdakileri ekledik.
+
+public class InputModel
+{
+            [Required]
+            [Display(Name = "FirstName")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "LastName")]
+            public string LastName { get; set; }
+
+            [Required]
+            //[MinLength(10, ErrorMessage =""),MaxLength(200,ErrorMessage ="")]
+            [Display(Name = "Address")]
+            public string Address { get; set; }
+
+
+
+1.b Register.cshtml içinde form tagi altına aşağıdakileri ekledik.
+
+
+
+            <h2>Create a new account.</h2>
+            <hr />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+
+            <div class="form-floating">
+                <input asp-for="Input.FirstName" class="form-control"  aria-required="true" />
+                <label asp-for="Input.FirstName"></label>
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating">
+                <input asp-for="Input.LastName" class="form-control"  aria-required="true" />
+                <label asp-for="Input.LastName"></label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating">
+                <input asp-for="Input.Address" class="form-control" aria-required="true" />
+                <label asp-for="Input.Address"></label>
+                <span asp-validation-for="Input.Address" class="text-danger"></span>
+            </div>
+
+
+1.c Register.cshtml.cs içinde user. ile başlayan propertyler eklendi.
+
+
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        {
+            returnUrl ??= Url.Content("~/");
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            if (ModelState.IsValid)
+            {
+                var user = CreateUser();
+
+                user.FirstName = Input.FirstName;
+                user.LastName=Input.LastName;
+                user.Address = Input.Address;
+
+
+
+
+1.d Register.cshtml.cs içinde yorum satırına alındı
+
+                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    //var callbackUrl = Url.Page(
+                    //    "/Account/ConfirmEmail",
+                    //    pageHandler: null,
+                    //    values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+                    //    protocol: Request.Scheme);
+
+                    //await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                    //    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+
+
+2. Context sınıfında ilişki ve ilk değer atamalarını yaptık.
+
+protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            //Tum entitylerin ozellikleri buradan verilebilinir...
+
+
+            builder.Entity<Category>().Property(x => x.CategoryName)
+                                      .IsRequired()
+                                      .HasMaxLength(30)
+                                      .HasColumnType("varchar");
+            
+            //ilk deger atama....
+            builder.Entity<Category>().HasData(
+                new Category { CategoryID=1, CategoryName="Roman" },
+                new Category { CategoryID=2, CategoryName="Hikaye" },
+                new Category { CategoryID=3, CategoryName="Deneme" }
+                );
+
+
+            builder.Entity<Book>().Property(x => x.BookName).IsRequired().HasMaxLength(150).HasColumnType("varchar");
+            builder.Entity<Book>().Property(x => x.CoverImagePath).IsRequired().HasMaxLength(30).HasColumnType("varchar");
+            builder.Entity<Book>().Property(x => x.ReleaseDate).IsRequired(false).HasColumnType("smalldatetime");
+            builder.Entity<Book>().Property(x => x.Price).IsRequired().HasColumnType("money");
+            
+        }
+
