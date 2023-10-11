@@ -1,0 +1,198 @@
+
+
+RAM
+  Stack (Deger Tipli olanlar)
+  Heap  (Referans Tipli olanlar) 
+  Static
+
+
+Source Code => Compiler => IL(MSIL) =>Compiler=> executable Code
+
+  Source Code
+    *** Gramer 
+    *** Kutuphane
+    *** ALGORITMA
+
+//Compiler:Açıklama satırlarını derlemez...
+
+//C# Case-Sensitive
+//Buyuk harf kucuk harf farkeder...
+
+//Programlama Dillerinin Gelişim Aşamaları
+//1-Sıralı programlama dilleri BASIC,GWBasic
+//2-Fonksiyonel programlama dilleri (C,Pascal)
+//Fonksiyonel Programlama dilleriyle birlikte kutuphane kavramı gelmistir...
+//3-OOP(Object Oriented Programming)
+
+//Baslat
+//Visual studio 22 => klasor tıkla...
+//Developer Command Prompt => Calistir...
+
+// Açılan ekrana ildasm yaz...
+
+//Uygulamanın dll dosyasini surukle bırak...
+
+
+
+
+
+
+
+
+Garbage Collector çalışma mantığı;
+
+garbage collector den biz sadece talepte bulunuyoruz, o sistemin geneline bakıp ne zaman gerekiyorsa ne zaman müsaitse o zaman devreye giriyor ve ramde heap ve stack te ilişkisi ve referansı 
+    olmayan bütün nesneleri siler. Ya da hangisini yok etmek istiyorsanız yani  dispose etmek istediğiniz neyse onu otomatik olarak siler. Kullanıcı çalışmasına müdahale edemiyor. 
+    O da sistemnin geneline bakıyor, o oanda sistemde daha önemli bir iş varsa öteliyor. 
+    programı kapattığın zaman zaten ramdekiler gidiyor. 
+    CLR karar veriyor. Yani .net framework ikiye ayrılır; 
+        Biri CLR (Common Language Runtime) yani bütün mamory nin yönetimi. Garbage Collector a emir veren mekanizma
+        diğeri BCL (Base Class Library)
+    https://aku.edu.tr/AKU/DosyaYonetimi/HALKBILIM/dotNetinABCsi_Agustos2008.pdf
+    19. sayfa
+
+
+//Veri paylaşımı
+//CSV(Comma Seperated Values)
+//XML,
+//JSON
+
+----------------------------------------------
+VARIABLES
+
+
+
+
+----------------------------------------------
+ARRAYS
+- RAM de aynı isimli alanda, aynı tip birden fazla deger tutmak için kullanılan veri yapılarıdır. Verilere indis'ler uzerinden ulaşılır...//Dizilerde ilk elemanın indisi 0 dir...
+//IndexOutOfRange Exception....
+Düzenli ve düzensiz dizi olarak ikiye ayrılır.
+
+
+----------------------------------------------
+COLLECTIONS
+- İkiye ayrılr;
+//1.Düz Koleksiyonlar (ArrayList*, Stack, Queue, Hastable)
+//2.Jenerik Koleksiyonlar(List<>***,Stack<>,Queue, Dictionary<>)
+// ekleme her zaman koleksiyonun sonuna yapılır
+
+
+----------------------------------------------
+IF ELSE - TERNARY IF - SWITCH CASE
+bool tekMi = (sayi % 2 == 1) ? true : false;
+
+----------------------------------------------
+EXCEPTIONS
+- Yazım hataları
+- Mantıksal Hatalar
+- İstisnalar
+///try-catch kullanmadan riski onleyebiliyorsak, oyle yapmalıyız...
+
+///try-catch kullanmadan riski onleyebiliyorsak, oyle yapmalıyız...
+///şart cumleleri ile engellenebiliyorsa, onunla engelle
+
+//Istisnaların yakalanması
+// try :  riskin oldugu satirlari try blogu icerisine almak lazım...
+// catch : olusan istisnaları yakalamak icin kullanılır...
+// finally: istisna olsa da olmasa da mutlaka calisir...
+// throw
+//try,catch, finally : istisna yakalamak için kullanılır...
+//throw : istisna olusturmak için kullanılır...
+
+----------------------------------------------
+LOOPS
+İki çeşit;
+- Ne kadar calisacaðý belli olan olan donguler
+1) Baslangic
+   2) Nerede bitecek
+   3) Yaklasma +,-
+
+2) Ne kadar calisacaðý belli olmayan olan donguler
+
+
+//foreach: en farklı olan dongu
+//Koleksiyonlar uzerinde calisir...
+//Readonly dir...
+
+//break:donguden çıkmak için kullanılır...
+//gordugu anda donguyu bitirir...
+
+içiçe döngüler; //Nested loops
+
+
+----------------------------------------------
+NOTATIONS
+Ýsimlendirme Kurallarý ve Notasyonlar...
+*** Aralarda boþýluk olamaz...
+*** Numerik deger ile baþlayamaz...
+.
+.
+.
+*************
+  Ýsimlendirme yaparken verilen isim; yapýlan iþ ile ilgili olmalýdýr...
+*************
+              
+
+1-Macar Notasyonu
+  isim verilirken ilk 3 harf yapýlacak iþin tipiyle ilgili olmalý gerisi yapilacak iþ ile ilgili olmalý...
+  dblMaas, txtAd, rdoCinsiyet, btnKaydet
+  ***Deðiþken tanýmlamalarýnda ve Windows kontrollerine isim verilirken çok kullanýlýr...
+
+2-Pascal Notasyonu
+  *** Metod, Sýnýf yada Genel isimlþendirmelerde çok kullanýlýr...
+  Kelimelerin ilk harfi buyuk olarak yazýlýr..
+
+  WriteLine(), ReadLine, MaasHesapla()
+
+3-Camel Notasyonu
+  *** daha çok deðiþken tanýmlarken kullanýrýz...
+  *** Javascript de ise hemen hemen her isimlendirme de kullanýlýr...
+
+  Ýlk kelimenin ilk harfi kucuk, diger kelimelerin ilk harfi buyuk olacakj þekilde yazýlýr...
+
+  toplamTutar, enBuyukSayi, enPahaliFiyat
+
+4-Kebab Notasyonu
+  Özellikle kullaným alaný MVC Core TAG helper kullanýmýnda
+
+  asp-route-id, asp-controller
+
+5-snake notasyonu
+  Daha çok Phyton programlama dilinde kullanýlýr...
+
+  kelimelerin tamamý kucuk harf, bosluk yerine alt cizgi kullanýlýr....
+
+  en_kucuk_sayi, 
+
+----------------------------------------------
+OPERATORS
+  Programlama dillerinde, bazý sembol veya keywordler atanmýþ olan iþlemlerdir...
+  
+  Operand: bir operatorun saðýnda yada solunda olan ifadeler...
+  a==b  4==4
+  //1 operandlý op. i++
+  //2 operandlý op. 3==2 
+  //3 operandlý op. ? :
+
+  Aritmetik op. + , - , / , * , i++ , i--, --i, ++i
+  Atama Op. =, += , -=, *=, /=
+  Mantýksal Op. !(NOT) , &&(VE) , ||(VEYA)
+  Karþýlaþtýrma Op. ==, <= ,>=, !=, >, <
+  *** Karþýlaþtýrma op. geriye bool tipinde deger dondurur...
+  Nullable operatörü int? sID = null; //int kID = null;
+
+//KURAL:Atama operatorunun her iki tarafı(operand) tip olarak aynı olmalıdir...
+//Tip Donusumu...
+
+
+//String Concanation
+Console.WriteLine(ad + " " + soyad   + " " + yas);
+//Content Place Holder
+Console.WriteLine("{0} {1} {2}",ad, soyad,yas);
+//String Interpolation
+Console.WriteLine($"{ad} {soyad} {yas}");
+
+----------------------------------------------
+
+
