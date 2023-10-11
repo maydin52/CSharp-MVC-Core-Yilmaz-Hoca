@@ -1,5 +1,7 @@
 
 
+WORKING LOGIC
+
 RAM
   Stack (Deger Tipli olanlar)
   Heap  (Referans Tipli olanlar) 
@@ -59,6 +61,95 @@ garbage collector den biz sadece talepte bulunuyoruz, o sistemin geneline bakıp
 
 ----------------------------------------------
 VARIABLES
+
+Deðiþkenler
+*** C# Programlama Dilinde ön tanýmlý 15 tane tip vardir...
+
+Deðiþkenler
+1-Deger Tipli Deðiþkenler Value Types
+   byte    1
+   sbyte   1(+,-)
+   short   2(+,-)
+   ushort  2
+   int     4(+,-) ***
+   uint    4
+   long    8(+,-)
+   ulong   8
+   -----------
+   float   32 bit
+   double  64 bit ***
+   decimal 128 bit
+   -----------
+   bool    1 bit 
+   char    2 byte 'A'
+2-Referans Tipli Deðiþkenler Reference Type
+   string : Karakter katarý(dizi)....
+   object : OOP
+
+1 bit =[0,1]
+1 byte =8 bit
+
+       00000000 =>(Min) =0
+       11111111 =>(Max) =255
+       
+//Değişken kullanma
+int sayi;
+bool kontrol;
+char karakter = 'A';
+double fiyat = 55.90;
+string isim = "Cevdet";
+int s1, s2;
+int s3=1, s4=3;
+sayi = 12;
+Console.WriteLine(sayi);
+
+
+var d1 = 12;
+var d2 = "Cevdet";
+
+var d6 = 44.55;
+var d3 = 44.55M;
+var d4 = 44.55F;
+
+var ad = Console.ReadLine();
+
+
+
+C# Veritipleri
+C# dilindeki temel veri türleri için tamsayı, kesirli sayı, decimal, char, string ve boolean veri tipleri şeklinde kategoriler kullanılabilir. 
+Aşağıda C# veri tipleri (C# data types) gözükmektedir.
+
+byte : Uzunluğu 1 byte’tır, 0 ile 255 arasında değer alır.
+
+sbyte : Uzunluğu 1 byte’tır, -128 ile 127 arasında değer alır.
+
+short : Uzunluğu 2 byte’tır, -32768 ile 32767 arasında değer alır.
+
+ushort : Uzunlupu 2 byte’tır, 0 ile 65535 arasında değer alır.
+
+int : Uzunluğu 4 byte’tır, -2.147.483.648 ile 2.147.483.648 arasında değer alır.
+
+uint : Uzunluğu 4 byte’tır, 0 ile 4.294.967.295 arasında değer alır.
+
+long : Uzunluğu 8 byte’tır, -1020 ile 1020 arasında değer alır.
+
+ulong : Uzunluğu 8 byte’tır, 0 ile 2 x 1020 arasında değer alır.
+
+float : Uzunluğu 4 byte’tır, 1.5 x 10-45 ile 3.4 x 1038 arasında değer alır.
+
+double : Uzunluğu 8 byte’tır, 5.0 x 10-324 ile 1.7 x 10308 arasında değer alır.
+
+decimal : Uzunluğu 12 byte’tır, ±1.0 x 10-28 ile ±7.9 x 1028 arasında değer alır.
+
+char : Uzunluğu 2 byte’tır, Bütün ınicode karakterleri kapsar.
+
+string : Tek bir karakter, sözcük veya cümle gibi değerlerin saklanmasında kullanılır.
+
+boolean : True – false değer tutan tiptir.
+
+
+
+
 
 
 
@@ -186,6 +277,39 @@ OPERATORS
 //Tip Donusumu...
 
 
+static void Main(string[] args)
+    {
+      #region
+
+      string s1 = "0.45";
+
+      double cevrilenS1 = Convert.ToDouble(s1);
+
+      decimal s2 = 0.55m;
+
+      double cevrilenS2 = Convert.ToDouble(s2);
+
+      string s3 = "True";
+
+      bool cevrilenS3 = Convert.ToBoolean(s3);
+
+      int s4 = 35;
+
+      string cevrilenS4 = s4.ToString();
+
+      string s5 = "35";
+
+      int cevrilenS5 = Convert.ToInt32(s5);
+
+      int s6 = 35;
+
+      string cevrilenS6 = Convert.ToString(s6);
+
+      #endregion
+
+    }
+
+
 //String Concanation
 Console.WriteLine(ad + " " + soyad   + " " + yas);
 //Content Place Holder
@@ -194,5 +318,756 @@ Console.WriteLine("{0} {1} {2}",ad, soyad,yas);
 Console.WriteLine($"{ad} {soyad} {yas}");
 
 ----------------------------------------------
+LINQ
+
+//LINQ(Language Integrated Query)
+
+//C# 3.0 .Net 3.5
+//3 yöntemle gelmiştir. 
+//LINQ to Object
+//LINQ to SQL
+//LINQ to XML
+
+//Data != Object
+//Data : verinin saklandığı yer, tablo mantığı. Object : Veriyi kullandığım ortam OOP. Objeyi tabloya çevirmemiz gerekiyor.
+//Biz güncel durumda hangi dillerde yazılım yazbiliriz? c# Python java vs
+//Bunların ortak özellikleri ne? OOP olması
+//Bu üretilen veri nerede saklanacak? RDBS sql server, oracle vs.
+//Bu saklanan yerlerin ortak özellikleri ne? İlişkisel olması.
+//Problem şu ki bunların ikisi arasında eşitsizlik var.
+//Bu sorunun ortaya çıkardığı bütün problemler ne zaman OOP veritabanlarına geçilirse o zaman çözülür. Dünyada bazı örnekleri var. Yaygın değil.
+
+//Verileri onje haline getirme işleminde yardımcı oluyor.
+//Hemde bu obje haline getirilmiş veriler üzerinde sql sorguları gibi sorgular yazmamızı sağlıyor.
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//LINQ için gelen yenilikler...
+
+//1-var
+//2-auto property
+//3-object initializer
+//4-collection initializer
+//5-Anonymous Type
+//6-Extension methods
+//7-Expression Tree
+//8-Lambda Expression
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//1-var
+
+//var: Gecici olarak tanımlanan, degiskene ilk deger geldiginde asıl tip olusur...
+
+//*** Tip bir kez olustugunda sonradan değiştirilemez...
+
+//*** Gercekte var diye bir tip yok... Buraya bir değer gelecek ama şuanda bunu bilmiyorum.
+
+var d1 = "Merhaba";
+var d2 = 12;
+var d3 = 'A';
+var d4 = 55.90;
+var d5 = 43L;
+var d6 = 12.99F;
+var d7 = 33.50M;
+var d8 = new Object();
+
+//d1 = 12;
+
+//C# 4.0 => dynamic
+dynamic d10 = "Merhaba";
+d10 = 123;
+d10 = 'a';
+d10 = true;
+
+//object d11 = 12;
+//int sayi = d11;
+
+// objeden inn tip dönüşümü yapılması gerekiyor.
+
+dynamic d12 = 12;
+int sayi2 = d12;
+
+// dynamic te tip dönüşümü yapmanıza gerek kalmıyor. Dönüşüm otomatik yapılıyor. yukarıdakiyle arasındaki fark bu.
+
+// o zaman biz int yerine dynamic yazalım geçelim olmaz. stack daha hızlı çalışır. performanslı değil. MVC viewbag nesnesi tipi dynamic orada karşımıza çıkacak. 
+// Sorguyu yazma anında ne döneceğini bilmiyoruz. Sorgu sonucu belli olacağından var.
+
+// C# tip bakımından strongled language type olduğundan dili esnetmek için var ve dynamic getirilmiştir.
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//2-Auto Property
+
+internal class Personel
+    {
+        public int PerID { get; set; }
+        public string Ad { get; set; }
+        public string Soyad { get; set; }
+    }
+
+
+Avantajı : herbirisine ayrı ayrı değişken tanımlayıp get ve set metotlarını yazmaktan kurtulduk.
+Sistem backing field leri kendisi oluşturyor.
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//3-Object Init.
+
+// Constructor yazmamış olsakta aşağıdaki şekilde kullanabiliyoruz.
+
+internal class Personel
+    {
+        public int PerID { get; set; }
+        public string Ad { get; set; }
+        public string Soyad { get; set; }
+    }
+
+Personel personel = new Personel { PerID=1, Ad="Cevdet",  Soyad="Dursun" };
+
+//------------------------------------------------------------------------------------------------------------------------
+
+// -Property Init.
+//Sıralamada yoktu ama sonradan hoca derste söyledi.
+
+public static List<Kategori> Kategoriler { get; set; } = new List<Kategori> { 
+           new Kategori{ KategoriID=1, KategoriAdi="Kırtasiye" },
+           new Kategori{ KategoriID=2, KategoriAdi="Hediyelik" },
+           new Kategori{ KategoriID=3, KategoriAdi="Spor" }
+        };
+
+// Dikkat : en sonda ; konuluyor. Normalde prop sonrasında yoktu.
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//4-Collection Init.
+
+List<Personel> personeller = new List<Personel>() {
+ new Personel { PerID=1, Ad="", Soyad=""},
+ new Personel { PerID=2, Ad="", Soyad=""},
+ new Personel { PerID=3, Ad="", Soyad=""},
+ new Personel { PerID=4, Ad="", Soyad=""}
+};
+
+// Dikkat : ilk satırın sonundaki parantezler optional dır. Yazılmasa da olur.
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//5-Anonymous Object(Type)
+
+// NSA bir sınıf olusturmak icin onceden class tanımlaması yapmak gerekir...
+// Anonim Tipler de ise boyle bir tanımlamaya gerek yoktur, dogrudan nesnenin ozellikleri {} içerisinde tanımlanır...
+
+var musteri = new { ID = 1, Ad = "Dursun", Soyad = "Durak" };
+dynamic urun = new { ID = 11, Ad = "sdd" };
+
+Console.WriteLine(urun.ID);
+
+Personellerin olduğu bir sınıftan personel tipi döner.
+Bölümlerin olduğu bir sınıftan bölüm tipi döner.
+Personellerin bölümleri için ???
+
+view model oluşturacağız ilerde ya da sorguda Anonymous tip oluşturacağız.
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//6-Extension Methods
+// Onceden tanımlanmıs herhangi bir yapıya(class,struct,interface..) daha sonra ilave metodlar eklemek için kullanılır(source code tarafında değil...)
+// LINQ nun kalbidir.
+// 
+
+internal static class Genisletme
+    {
+        //Extension metod olusturma kuralları...
+        //1-static sınıf olusturulmalı...
+        //2-yazılacak metod da static olmalı...
+        //3-metodun ilk parametresinde this  keyword!u ile hangi yapıya metod eklenecekse o belirtilir... Eğer metodun başka parametresi varsa bu ifaden sonra yazılmalıdır...
+
+        this birinci kullanım; class ın içinde,
+        this ikinci kullanımı; const arasında veri transferi yapmak için,(aynı sınıfsa this, üst sınıfsa base i kullanıyoruz)
+        this üçüncü kullanım yukarıdaki şekilde,
+
+        //Ozel Durum: metodun ilk parametresi metod parametre listesinde gozukmez...
+
+        //Bir sınıf static se member ları da statik olmalıdır. Ram de static bölgesinde tutulurlar.
+        // sayi. yazıldığında açılan listede mor küp sembolü sol altında aşağıya bakan ok var ve metod imzasında (extension) yazar.
+
+        // ismin hiçbir önemi yok. Nereye bağladığım önemli.
+
+        public static int KareAl(this int sayi)
+        {
+            return sayi * sayi;
+        }
+
+        public static int KupAl(this int sayi)
+        {
+            return sayi * sayi*sayi;
+        }
+
+        public static int IkiyeBol(this int sayi)
+        {
+            return sayi /2;
+        }
+
+        public static int IstenilenSayiyaBol(this int sayi,int bolum)
+        {
+            return sayi / bolum;
+           
+        }
+    }
+
+//---------------
+
+int sayi = 12;
+
+sayi. dedikten sonra gelen listenin içine sonradan metot eklemek istiyoruz. Normal şartlar altında source kodunu değiştirmemiz gerekir.
+Bunu herşeye bağlayabiliriz. (interface, class, struct vs..)
+
+Console.WriteLine(sayi.KareAl());
+
+Console.WriteLine(sayi.IstenilenSayiyaBol(3));
+
+// namespace eklemeyi unutmuyoruz.
+
+// Microsoft Enumerable diye bir class yazmış. Go to definition gittiğimizde; this ile Ienumerable içine ekle diyor.
+// Ienumerable için daha önce; Foreach ; Ienumerable interface ini uygulamış olan metotlarda çalışır demiştik.
+
+string[] isimler = { "Ali", "Veli", "Selami" };
+
+// Örneğin;
+// Bir sınıf yazdı ve sistemin içindeki bütün koleksiyonlara linq desteğini verdi. Tek satır orijinal kodu değiştirmeden bütün sisteme uyguladı.
+// Bütün koleksiyonları Ienumarable interface i üzerinden extesion metodla bağlamış. definitondaki this e dikkat.
+// isimler. yapınca oklu mor küplere dikkat :)
+// Bütün koleksiyonların Ienumerable verilmesi.
+// Yoksa teker teker bütün array, list vs bütün sınıflara yazmak zorundaydı, tek interface e bağladı ve hepsine verdi.
+
+List<string> list = new List<string>();
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//7-Expression Tree(Ifade agaci...)
+
+LINQ sorguları iki şekilde yazılabilir;
+1- SQL gibi fakat yerleri değişik bu yazılış şeklinde.
+2- Extension method olarak.
+
+Bizim için en önemli olanı extension method kullanımı.
+İşte bu şekilde extension methodları peşpeşe bağlayarak çalıştırma işlemine Expression Tree deniyor.
+Linq sorguları bu şekilde yazılır.
+Console.WriteLine( sayi.IstenilenSayiyaBol(6).KareAl().KupAl().IkiyeBol());
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//8-Lambda Expression...
+
+MVC nin içerisinde eventler bölümünde anlatılacak.
+Müfredatta ötelenmiş.
+Delegeler konusunun da anlatılması gerekiyormuş.
+2-3 saatlik bir anlatımı varmış.
+
+List<int> sayilar = new List<int>() { 34, 5, 1, 656, 777 };
+
+foreach (int s in sayilar)
+{ 
+     if(s % 2 == 1)
+        Console.WriteLine(s);
+}
+ 
+ foreach(int s in sayilar.FindAll(x => x %2 == 1))
+    Console.WriteLine(s);
+
+// Find bir tane getirir, dikkat.
+
+// => ero operatörü (ismini tekrar sor doğru mu yazdım?)
+
+// fonksiyona giden parametreyi temsil ediyor.
+
+ // () => {}
+ // (x,y) => {}
+ // x=>x (metoda x gider x çıkar) Birinci x parametre, ikinci x return - Lambda Expression - onlarca kullanım şekli var.
+
+// Önemli konu. Çok kullanacağız. Herşeyi bu şekilde yazabiliyoruz.
+
+
+
+
+
+//LINQ to Object
+ //LINQ Sorguları iki şekilde yazılır..
+            //1- SQL gibi
+            //var result = from u in UrunMng.Urunler
+            //             select u;
+            //dataGridView1.DataSource = result.ToList();
+
+            //2-Expression Tree
+            //var result = UrunMng.Urunler.Select(x => x);     //x e ait herşeyi getir. Urun geldi Urun çıktı.
+            //dataGridView1.DataSource = result.ToList();
+
+            // Dikkat : //var result = UrunMng.Urunler.Select(x => new {x.UrunID}); olursa sadece UrunID kolonunun tümü döner. (sınıf olmadığı için new kullandık.)
+
+            //Ozel Durum
+            //LINQ sorguları Deffered Model'e gore calisir... Gecikmeli Model.
+            //Sorgu tanımlandığı yerde değil calistigi yerde derlenir...
+
+
+
+//int id = 102;
+
+            // var result = (from u in UrunMng.Urunler
+            //               where u.UrunID == id
+            //               select u).ToList();
+            //id = 109;
+            //dataGridView1.DataSource = result.ToList();    // Buradaki to list inmediate mode diye geçer. to list, to array vs.
+
+            // Dikkat!!! Sonuç 109 un satırı geldi. result.ToList() i gördüğü yerde çalışır.
+            // Mülakatta elek sorusu olarak çıkabilir.
+
+
+
+            //id'is 102 olan urun
+            //1. Yöntem
+            //var result = from u in UrunMng.Urunler
+            //             where u.UrunID == 102
+            //             select u;
+            //dataGridView1.DataSource = result.ToList();
+
+
+            //2. Yöntem
+            //var result = UrunMng.Urunler.Where(x => x.UrunID == 102);
+            //dataGridView1.DataSource = result.ToList();
+
+
+            //Ozel Durum
+            //LINQ sorguları Deffered Model'e gore calisir... Gecikmeli Model.
+            //Sorgu tanımlandığı yerde değil calistigi yerde derlenir...
+
+
+            //int id = 102;
+
+            // var result = (from u in UrunMng.Urunler
+            //               where u.UrunID == id
+            //               select u).ToList();
+            //id = 109;
+            //dataGridView1.DataSource = result.ToList();    // Buradaki to list inmediate mode diye geçer. to list, to array vs.
+
+            // Dikkat!!! Sonuç 109 un satırı geldi. result.ToList() i gördüğü yerde çalışır.
+            // Mülakatta elek sorusu olarak çıkabilir.
+
+
+
+
+            // Sonucun 102 olmasını istiyorsak;
+
+            //int id = 102;
+
+            // var result = (from u in UrunMng.Urunler
+            //               where u.UrunID == id
+            //               select u).ToList();
+            //id = 109;
+            //dataGridView1.DataSource = result;
+
+
+            //Fiyata gore artan sırala...
+            //1. Yöntem
+            //var result = from u in UrunMng.Urunler
+            //             orderby u.Fiyat
+            //             select u;
+            //dataGridView1.DataSource = result.ToList();
+
+
+            //2. Yöntem ???? A
+            var result = UrunMng.Urunler.OrderByAscending(x => x.Fiyat);
+            dataGridView1.DataSource = result.ToList();
+
+
+
+            //Fiyata gore azalan sırala...
+            //1. Yöntem
+            //var result = from u in UrunMng.Urunler
+            //             orderby u.Fiyat descending
+            //             select u;
+            //dataGridView1.DataSource = result.ToList();
+
+
+            //2. Yöntem
+            var result = UrunMng.Urunler.OrderByDescending(x => x.Fiyat);
+            dataGridView1.DataSource = result.ToList();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
+            //Kategori Urun JOIN...
+
+            //1.Yöntem
+            //var result = from u in UrunMng.Urunler
+            //             join k in UrunMng.Kategoriler
+            //             on u.KategoriID equals k.KategoriID
+            //             select u;
+            //dataGridView1.DataSource = result.ToList();
+
+            //Bu şekilde sadece u tablosunun kolonları geldi. 
+            //k dediğimizde sadece k tablosunun kolonları geldi. 
+            //Personel ve bölüm örneği. Anonim tip oluşturmak zorundayız.
+
+            
+
+            //var result = from u in UrunMng.Urunler
+            //             join k in UrunMng.Kategoriler
+            //             on u.KategoriID equals k.KategoriID
+            //             select new { u.UrunID, u.UrunAdi, k.KategoriAdi };
+            //dataGridView1.DataSource = result.ToList();
+
+            //Entity frameworkte bu bağlama konusu navigation prop ile yapılıyor.
+
+            //2.Yöntem
+            //var result = UrunMng.Urunler.Join(UrunMng.Kategoriler, u => u.KategoriID, k => k.KategoriID, (u, k) => new { u.UrunID, u.UrunAdi, u.Fiyat, k.KategoriAdi });
+            //dataGridView1.DataSource = result.ToList();
+
+            //PK FK mantığı
+
+
+dataGridView1.DataSource = UrunMng.Urunler.Where(x => x.KategoriID == katID).ToList();
+
+----------------------------------------------
+ADO.NET
+
+ORM Tools 
+
+EF başlangıç      2010
+Yaklaşımları;
+Database First (Hazır DB) => EF => Model Sınıfları ve Context Sınıfı olusturulur...
+Model First    (Hazır DB Yok)   => Modelleri ve Context sınıfını olustur => EF => DB yi olusturuyor...
+
+EF 4.0 core değil dikkat!!!   2013-2014            2025 desteğin kesileceği tarih
+Code first yaklaşımına geçildi.
+(Yazılım Firmalarını MS zorlaması sonucunda gelmiştir...)
+connection string eski yaygın bilinen formatına dönüştürülmüştür.
+Code First(uzun vadeli projeleri daha yonetilebilir hale getiriyor...) 
+Yüzlerce kod oluşturmuyor. Sorumluluk yazılımcıda. MS extra sınıf yazmıyor. Biz genellikle türetme, interface ve polymophism için override kullanıyoruz. Uzun vadeli projelerde daha yönetilebilir.
+Kendi içerisinde;
+       Database First
+       Model First
+
+Tablolar Entitydir.
+
+1960 - ilişkisel veritabanı kavramının ortaya çıktığı tarih
+
+
+//----------------
+
+  Model First kullanarak Database olusturma...
+
+  1-Oncelikle Nuget uzerinden gerekli kutuphaneleri indir...
+  2-Modelleri olustur... (Models klasörü içine)
+  POCO Classes(Plain Old CLR Object) .net i oluşturan sistemler. CLR çalıştıran - VSL kütüphane. CLR neyin ne zaman çalışıp sonlanacağına CLR karar verir.
+  Model: Veri tutamak amacıyla oılustrulan aynı zamanda veritabanında bir tablonun şemasını oluşturan sınıflara denir...
+  3-Context sınıfını olustur ve DbContext sınıfından turet. (Data klasörü içine) Context database e karşılık geliyor.
+  4-DbSet<T> Her tabloya karşılık gelen prop. ları yaz...
+
+//----------------
+  
+  **** Mutlaka Her Modelde; N.S.A.; bir PK olması gerekir...
+   1- Bir property Id şeklide ise... EF anlar. Tablo adı Ogrenciler. Buna göre PK adının ID olması lazım. 
+Sadece Id kullanmak sorgu yazarken sıkıntı yaşanmasına neden olabiliyor.Cleancode a aykırı.
+   2- [EntityName]ID şeklinde ise... EF anlar. Tablo adı Ogrenciler. Buna göre PK adının OgrencilerID olması lazım.
+   3- Attribute kullanarak...
+   4- Fluent API kullanarak... C#5 yada 6 ? yaklaşık 2-3 senelik bir konu // seni öne geçirecek bir konu. Her sene eleğin ölçüsü daralıyor.
+
+//----------------
+  
+  Navigation Properties (Primary Key - Foreign Key)
+
+  İlişkiler propertyler üzerinden verilir.
+  
+  1-1    ModelA-ModelB !!
+  1-M    ModelA- ICollection<ModelB>
+  M-M    ICollection<ModelA> - ICollection<ModelB> //Hoca bunu da çok tercih etmediğini söyledi. Dikkat!! ara tablo üzerinden bağlantı
+
+
+M-M ilişkilerle ilgili özel durum vardı : ara tablo. EF ara tabloyu kendisi DBye koydu ama Modele koymadı. ArabaMusteri. NŞA iki PK olmaz Bu tabloda Composite Key (birleşik anahtar) var. 
+SQL keys altından kontrol et, 1 PK 2 FK var.
+Modele koymadığı için _context dediğimizde çıkmadı. extra kod yazmamak için modelini de biz oluşturacağız.
+
+
+
+//Tabloların sutun tipleri, uzunlukları, kısıtlar nasıl olusturulur...
+  // ilişkiler, keyler...
+  1-Attribute kullanımı...
+  2-Dogrudan OnModelCreating() metodu içerisinde...
+  3-ITypeEntityConfiguration arayuzunu uygulamış olan Config sınıfı içerisinde (***)
+
+
+  //Veritabanında ilk deger ataması nasıl yapılır...
+  1- OnModelCreating() metodunda 
+      modelBuilder.Entity<T>().HasData() metodu ile...
+  2-ITypeEntityConfiguration arayuzunu uygulamış olan Config sınıfı içerisinde
+      buider.HasData() metodu ile ....
+
+
+UnitOfWork pattern: Tek bir SaveChanges() metyodu ile birden fazla veriyi guncelleme, ekleme, silme islemlerini yapmak icin kullanılır...
+
+
+Sistem Analizi diye bir konu var.
+
+
+Attribute konusunda da bir sıkıntı var; Modelde her propertye bir çok Attribute yazdıkça cleancode bozuluyor. 
+Bunu MS Fluent API olarak çözdü.
+Kod yazma maliyeti biraz artıyor ama bakımı (maintenance) kolay.
+Genellikle bir cfg sınıfı açılır ve model cnf bilgilerini oradan çeker.
+
+
+PK kullanmadığımız senaryolarda ki %2 yaklaşık, hasnokey kullanılır.
+Her tabloda PK olmayabilir, olmak zorunda da değil. Özellikle çok yoğun verinin geldiği durumlarda performansı arttırmak için bazı tablolarda PK bilerek kullanılmayabilir.
+Çünkü MSSQL size isteseniz de istemeseniz de PK oluşturduğumuzda arkada clustered index oluşturur.
+Indexlemenin de sistem kaynağı ve donanım yani alan olarak maliyeti var. 
+Indexlenmemiş sql sorguları geç gelir.
+
+
+
+public class ArabaContext:DbContext
+    {
+        public DbSet<Araba> Arabalar { get; set; }
+        public DbSet<Marka> Markalar { get; set; }
+        public DbSet<Musteri> Musteriler { get; set; }
+        public DbSet<ArabaMusteri> Araba_Musteri { get; set; }
+        public  DbSet<Plaka> Plakalar { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer("Data source=.;Initial catalog=YZL3440_GaleriDB;integrated security=true");
+
+       // Dikkat!!! Lazy Loading kullanabilmek için yani UseLazyLoadingProxies gelmesi için nugetten Microsoft.EntityFrameworkCore.Proxies indirip diğer eklentilerin aynı veriyonuyla kur.
+       //Bir sınıfı JSON olarak oluşturmasını istiyorsunuz diyelim serileştirme yapacaksınız. Sonsuz döngüye düşüyor çünkü nav prop gidiyor. 
+       //Servislerle ilgili çalışırken serileştirme yaparsanız hata verir.
+       //Nav prop ta kendi içinde kendini tekrar takrar çağırıyor.
+       //Kolay yöntem sorulduğu için anlattı. Tavsiye edilmiyor. 
+       //MS core da ayrı kütüphaneye koydu ve enable yapılması şartını koydu ama düz EF de zaten varsayılan böyle. Nav prop larda virtual ile kullanılıyor.
+       //Performans noktasında eager loading tavsiye edilir.
+
+            optionsBuilder.UseLazyLoadingProxies();
+            base.OnConfiguring(optionsBuilder);
+        }
+
+
+
+ protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //Fluent API... 
+
+            //DİKKAT MusteriAdi için 1. YÖNTEM : ayrı class içinde değil ArabaContext içine 
+
+            modelBuilder.Entity<Musteri>().Property(x => x.MusteriAdi)
+                                          .HasMaxLength(50)
+                                          .HasColumnType("varchar")
+                                          .IsRequired();
+
+
+              // Başlangıç için veri girişi 1. Yöntem //params konusu dikkat o tipte istenilen kadar giriş konusu
+       
+            modelBuilder.Entity<Musteri>().HasData(
+                 new Musteri {  MusteriID=1, MusteriAdi="Cevdet Dursun"},
+                 new Musteri {  MusteriID=2, MusteriAdi="Selami Atmaca"},
+                 new Musteri {  MusteriID=3, MusteriAdi="Dursun Durmasin"}
+                );
+
+
+            //Fluent API... 
+
+            //DİKKAT MarkaAdi için 2. YÖNTEM : ayrı class içinde **** TERCİH EDİLEN
+
+            //modelBuilder.ApplyConfiguration() çıkan tooltipteki overloadın yorumu : Generic Marka olacak 
+       ve sonrasında öyle bir sınıf yaz ki IEntityTypeConfiguration interface ini implemente etmiş olsun (generic içine yazdığın modele dikkat)
+       Configuration klasörü oluştur ve altına devam et.
+
+            //Herşeyi OnModelCreating içine koyarsam bu sefer burası yani ArabaContext:DbContext içi şişecekti.
+
+            modelBuilder.ApplyConfiguration<Marka>(new MarkaCFG());
+
+            base.OnModelCreating(modelBuilder);
+        }
+    }
+
+
+
+
+ //Form Yüklenirken arabalar tablosundaki verileri grid'e yukle...
+            // dataGridView1.DataSource = _context.Arabalar.ToList();
+            // Bu şekilde datagridwiew de eksik ve hatalı veriler geldi yani istediğimiz gibi gelmedi.
+            //Join yapmam ve bazı alanları görmek istemiyorum ve gelmesini istediğim alanlar var.
+
+            //1. Yöntem;
+            //var result = from a in _context.Arabalar
+            //             join p in _context.Plakalar
+            //             on a.ArabaID equals p.PlakaID
+            //             select new { a.Renk, a.MarkaID, p.PlakaID };
+            //dataGridView1.DataSource = result.ToList();
+
+            //2. Yöntem;*****
+            //Eager Loading JOIN islemi... EF de Eager Loading özelliği. Normalde düz EF de hala varsayılan yükleme ayarı Lazy Loading ve varsayılan disable. Açılması gerekiyor. Tarifi yukarıda.
+            //EF Core da 3 tane var. Eager Loading, 
+            //Lazy Loading (Core ilk çıkınca kaldırılmıştır sonra Core 2.1 ile geri gelmiştir. aktif olarak kullanamıyoruz, ayarları var ve varsayılan olarak kapalı) 
+            //ve Explisp Loading
+            //Join yazmadan Include yazarak arkaplanda işi daha kolaylaştırıyoruz. Arkada kendisi Join cümlesini hallediyor.
+            //SQL deki query builder gibi burada lazy loading var.
+            //var result = _context.Arabalar.Include(x => x.Marka).Include(x => x.Plaka).Select(x => new {x.Plaka.PlakaNo, x.Marka.MarkaAdi, x.Renk, x.Fiyat, x.Model, x.ModelYili  });
+            //dataGridView1.DataSource = result.ToList();
+
+            //3. Yöntem;
+            //Lazy Loading yöntemine göre sorgu: ayarından sonra aşağıdakini yazdık ama erişim hatası verdi. Tüm classları pubic e çevirdik ve tüm nav prop virtual ekledik.
+            //Buradaki virtualın polymorphism ile alakası yok. EF çalışma mantığıyla ilgili. Yükleme mekanizmasını değiştiriyoruz.
+            //Dikkat var ın tipi IQueryable a tipinde yani anonymus olarak.
+            //İleriki konularda anlatılacak olan view modelde bu amaçla kullanılır. anonymus type kullanmak istemiyorsam view modeller oluşturuyoruz bu şekilde. 
+            //Bu verileri view modele atıyoruz. Joinlenmiş verilere kendi viewlerimizi yazıyoruz
+            //SELECT * FROM ....
+            //var result = _context.Arabalar.Select(x => new { x.Plaka.PlakaNo, x.Marka.MarkaAdi, x.Renk, x.Fiyat, x.Model, x.ModelYili });
+            //dataGridView1.DataSource = result.ToList();
+
+
+
+
+ //Filtrelemeler; where extension method ve Ienumerable instance na bağlı bkz metod imzası
+            
+            //rengi kırmızı olanlar gelsin
+            //var result = _context.Arabalar.Select(x => new { x.Plaka.PlakaNo, x.Marka.MarkaAdi, x.Renk, x.Fiyat, x.Model, x.ModelYili }).Where(x=>x.Renk =="Kirmizi");
+            //dataGridView1.DataSource = result.ToList();
+
+            //ıcınde k olanlar ve harfe göre sıralama ve top sıralama ... where ile ilgili delegelerde daha farklı özellikler göreceğiz.
+            var result = _context.Arabalar.Select(x => new { x.Plaka.PlakaNo, x.Marka.MarkaAdi, x.Renk, x.Fiyat, x.Model, x.ModelYili }).Where(x => x.Renk.StartsWith("K")).OrderBy(x=>x.Fiyat).Take(1);
+            //dataGridView1.DataSource = result.ToList();
+
+            //ÇOK ÖNEMLİ!!!  SQL CÜMLELERİNİ VEYA SORGU HATASI OLUP OLMADIĞINI BURADAN DA YAKALAYABLİRSİN! SQL SORGUSUNDAN ANLAMAZ VS.           
+            //Windows ta SQL Server Profiler tool unu aç. New - Use to Template ten T-SQL seç. Artık serveri dinlemeye başladı. VS de kodu çalıştırınca select cümlesi oraya düşecek.
+            //MVC DE BUNU OTOMATİK OLARAK KONSOLA DÖKÜYOR.
+
+            //var result = _context.Arabalar.Select(x => new { x.Plaka.PlakaNo, x.Marka.MarkaAdi, x.Renk, x.Fiyat, x.Model, x.ModelYili }).Where(x => x.Renk == "Kirmizi");
+
+            dataGridView1.DataSource = result.ToList();
+        }
+
+
+
+        // Dikkat!!! Farklı bir metod yazım şekli.
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+              // Anomim (yani isim yok, parametre yok, oladabilir, delege konularında anlatılacak.) metod (prop, const, deconst vs. bu şekilde yazılır. 
+       İlk girdiği yer Lambda exp. sonra dilin içinde kanser gibi yayıldı.
+              
+              var fn = () => MessageBox.Show("Merhaba Dunya");
+
+            fn();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------- FLUENT API
+
+//Configuration Klasörü içerisinde;
+
+// Açıklama yukarıda... 2. Yöntem
+
+public class MarkaCFG : IEntityTypeConfiguration<Marka>
+    {
+        
+       // aşağıdaki metod implemente gelen metod. İçini revize ettik.
+
+       public void Configure(EntityTypeBuilder<Marka> builder)
+
+       //Delege ve event kullanımlarında detaylandırılacak.
+       //Delege metod taşır. 
+       //(x => x) örneğin marka girerse marka çıkar gibi. ilk giren x in sonradan parçalarına ulaşabilmek için.
+       //Func yazınca yanında delegate yazdı ve mor çanta sembolü var. Metodun rengi de mor. Yani metod taşıyor.
+       //Action da Func gibi delegate
+
+       // -> thin arrow operatörü (c ve c++ ta pointer konularında geçiyor) , => fat arrow operatörü, ? elvis operatörü
+       // lambda ile metot da yazılabiliyor.
+
+        {
+            builder.Property(x => x.MarkaAdi)
+                                   .IsRequired(true) // içi boş bırakılırsa varsayılan true. 
+                                                        Ayrıca imzada [] işaretleri içindeki parametre optinal ya da default parameters anlamına geliyordu. 
+                                                        Named parameters ile aynı zamanda öğrenmiştik.
+                                   .HasColumnType("varchar")
+                                   .HasMaxLength(30);
+
+
+              // Başlangıç için veri girişi 2. Yöntem
+            builder.HasData(
+                new Marka() { MarkaID=1, MarkaAdi="Ferrari" },
+                new Marka() { MarkaID=2, MarkaAdi="BMW" },
+                new Marka() { MarkaID=3, MarkaAdi="Mercedes" },
+                new Marka() { MarkaID=4, MarkaAdi="Audi" },
+                new Marka() { MarkaID=5, MarkaAdi="Renault" }
+                );
+           
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+//***Connection String Nedir?
+//Bir veritabanı sistemine bağlanabilmek için gerekli verilerin tutulduğu metin bilgisidir... Her veritabanında farklılıklar olabiliyor.
+
+*** Bağlantılı yöntem için;
+
+            //SqlConnection conn = new SqlConnection("Data source=MEHMET
+            //conn.Open(); //Baglantiyi aç...
+
+            //Yapılacak is...
+            SqlCommand sqlCommand = new SqlCommand("SELECT * FROM Categories", conn);
+
+            //Tum tabloyu oku...
+            SqlDataReader dr = sqlCommand.ExecuteReader();
+
+            List<Category> categories = new List<Category>();
+
+            //son kayda kadar tum satırları oku...
+            while (dr.Read())
+            {
+
+                //Tabloda tutulan her satırı Category nesnesine cevir...
+                //GetString gibi id için GetInt kullanırsan converte gerek kalmaz.
+
+                Category category = new Category()
+                {
+                    CategoryID = Convert.ToInt32(dr[0]),
+                    CategoryName = dr.GetString(1),
+                    Description = dr.GetString(2)
+                };
+                //listeye ekle...
+                categories.Add(category);
+
+            }
+            conn.Close(); //Baglantiyi kapat...
+
+            //verileri listbox icerisinde goster.ççç
+            listBox1.DataSource = categories;
 
 
