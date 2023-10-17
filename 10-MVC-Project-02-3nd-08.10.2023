@@ -81,14 +81,13 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
         }
 
 
-        [HttpPost]
-        public IActionResult Create(AuthorVM authorVM)
-        {
-            byte state = 0;
-                 
-            if (ModelState.IsValid)
-            {              
-               //İki SaveChanges() ile; FAKAT BURADA ŞÖYLE BİR SIKINTI VAR; 
+        //UNIT OF WORK OLMADAN İKİ DEFA SAVE İLE. DİKKAT MAHSURU VAR.
+        //[HttpPost]
+        //public IActionResult Create(AuthorVM authorVM)
+        //{    
+            //if (ModelState.IsValid)
+            //{              
+               //İki SaveChanges() ile; FAKAT BURADA ŞÖYLE BİR SIKINTI VAR; MESELA O ANDA BENİM YAZARID 7 OLDU AMA O YAZARDETAYID Yİ BENDEN ÖNCE BAŞKASI ALMIŞ OLABİLİR.
                //_context.Authors.Add(authorVM.Author);
                //_context.SaveChanges();        //EF ekleme, düzenleme ve silme olarak kendisi SQL cümlelerini oluşturuyor arkaplanda. O yüzden tek SaveChanges() hallediyor.
 
@@ -97,30 +96,38 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
                   //authorVM.AuthorDetail.AuthorDetailID = authorVM.Author.AuthorID;
                   //_context.AuthorDetails.Add(authorVM.AuthorDetail);
                   //_context.SaveChanges(); 
+                  //return RedirectToAction("Index");
                //}
+            //}
+            //return View();
+        //}
 
 
+        //Unit Of Work Pattern UoW  - DAHA SADE - 
+        BURADAKİ DEVRİM; KONSOLA BAKTIK.
+        INSERT INTO AUTHORS (FIRSTNAME, LASTNAME) VALUES (@P0, @P1);
+        SELECT AUTHORID FROM AUTHORS WHERE @@ ROWCOUNT = 1 AND AUTHORID = SCOPE_IDENTITY();         //SCOPE IDENTITY NEDİR?
 
 
+        //Tek SaveChanges() metodu ile PK ve FK kullanımı...
+        [HttpPost]
+        public IActionResult Create(AuthorVM authorVM)
+        {
+            byte state = 0;
+                 
+            if (ModelState.IsValid)
+            {              
                 _context.Authors.Add(authorVM.Author);
 
-                // _context.SaveChanges();
-
                 state = 1;
+
                 if (authorVM.AuthorDetail.BirthDate !=null || authorVM.AuthorDetail.Region != null || authorVM.AuthorDetail.Biography != null)
                 {
-                    // authorVM.AuthorDetail.AuthorDetailID = authorVM.Author.AuthorID;
                     authorVM.AuthorDetail.Author = authorVM.Author;
-
                     _context.AuthorDetails.Add(authorVM.AuthorDetail);
-                   // _context.SaveChanges();
 
-                   state = 2;
-                   
+                   state = 2;               
                 }
-
-                //Unit Of Work Pattern UoW
-                //Tek SaveChanges() metodu ile PK ve FK kullanımı...
                 _context.SaveChanges();
             }
 
@@ -129,6 +136,8 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
             else
               return View();
         }
+
+
 
         public IActionResult Test()
         {
