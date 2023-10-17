@@ -101,7 +101,7 @@ Daha sonra; Register.cshtml.cs içinde user. ile başlayan propertyler eklendi.
 
 Oturum yapıp yapamayacağımızın testini yaptık. Yeni kullanıcı oluşturduk ve griş yaptık.
 
-
+-----
 
 2. SQL içinden tablolardaki tipleri kontrol ettik ve değiştirilmesi gerekenleri gördük.
 
@@ -134,9 +134,209 @@ protected override void OnModelCreating(ModelBuilder builder)
             
         }
 
+- Migration oluşturduk.
+
+------
+
+3. Admin için Area oluşturacağız. Çünkü admin sayfası son kullanıcınınkinden farklı olmalı. CRUD veya kontrol paneli gibi.
+Identity için kendisi zaten oluşturmuştu. Biz Admin için olşuturacağız.
+Projeyi fiziksel ve mantıksal olarak ayırıyor. Area ların kendi mvc leri var.
+
+3.a Solution ağacının en üstünde sağ tık - Add - New Scaffolded Item - Sol taraftan Common seç - ortadan MVC Area seç - Add - isim ver AdminPanel - Add
+Çıkan kodu kopyala. Kodu kaybedersen ağaçta altta txt dosyası içinde.
+
+3.b Program.cs içinde app.MapControllerRoute( gerisine yapıştır.
+Bu olmadan sayfaya ulaşılamazdı, denedik.
+
+
+Bu area altından aşağıdaki controlleri oluşturduk.
+
+    [Area("AdminPanel")]
+    public class PanelController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+
+Bu controllerin view ini oluşturduk.
+
+<h1>Admin Panel Sayfasi....</h1>
+
+<ul>
+    <li><a asp-area="AdminPanel" asp-controller="Categories" asp-action="Index">Kategoriler</a></li>
+    <li>Kitaplar</li>
+    <li>Yazarlar</li>
+</ul>
+
+DİKKAT!!! LAYOUT GELMEDİ. AREA ALTINDAKİ IDENTITY ALTINDAKİ _ViewImports.cshtml ve _ViewStart.cshtml DOSYALARINI KOPYALAYIP ADMINPANEL İÇİNDEKİ VIEWS KLASÖRÜNE EKLE. ALT KLASÖRLERİNDE OLMAYACAK.
+
+-----
+
+4. Yukarıdaki  Index.cshtml üzerinde sağ tık scaffold controller oluşturduk. Model Category ve CategoriesController isminde.
+Kendisi koydu ilk attribute ü.
+
+    [Area("AdminPanel")]
+    public class CategoriesController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public CategoriesController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: AdminPanel/Categories
+        public async Task<IActionResult> Index()
+        {
+              return _context.Categories != null ? 
+                          View(await _context.Categories.ToListAsync()) :
+                          Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
+        }
+
+        // GET: AdminPanel/Categories/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null || _context.Categories == null)
+            {
+                return NotFound();
+            }
+
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(m => m.CategoryID == id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            return View(category);
+        }
+
+        // GET: AdminPanel/Categories/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: AdminPanel/Categories/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("CategoryID,CategoryName")] Category category)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(category);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(category);
+        }
+
+        // GET: AdminPanel/Categories/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null || _context.Categories == null)
+            {
+                return NotFound();
+            }
+
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            return View(category);
+        }
+
+        // POST: AdminPanel/Categories/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("CategoryID,CategoryName")] Category category)
+        {
+            if (id != category.CategoryID)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(category);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CategoryExists(category.CategoryID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(category);
+        }
+
+        // GET: AdminPanel/Categories/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null || _context.Categories == null)
+            {
+                return NotFound();
+            }
+
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(m => m.CategoryID == id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            return View(category);
+        }
+
+        // POST: AdminPanel/Categories/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            if (_context.Categories == null)
+            {
+                return Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
+            }
+            var category = await _context.Categories.FindAsync(id);
+            if (category != null)
+            {
+                _context.Categories.Remove(category);
+            }
+            
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool CategoryExists(int id)
+        {
+          return (_context.Categories?.Any(e => e.CategoryID == id)).GetValueOrDefault();
+        }
+    }
+
+-----
 
 
 
 
-Delegeler;
+
+
+
+
+
 
