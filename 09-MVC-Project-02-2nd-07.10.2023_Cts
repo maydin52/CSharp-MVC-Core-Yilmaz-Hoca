@@ -2,9 +2,14 @@
 
 
 
-1. Area - Identity - Pages - Account - Register.cshtml içine, AppUser modeline eklenen özellikleri buraya ekleyeceğiz.
+1. Area - Identity - Pages - Account - Register.cshtml içine, AppUser modeline eklenen özellikleri buraya ekleyeceğiz. Razor Pages yaklaşımı. MVC paterni veya patern yok. Düz MVC de de var.
+Register.cshtml içindeki Input modelleri aşağıdaki şekilde bağlıyoruz; Standardın dışına çıktığımız için bu konuya girdik.
+Yazılım geliştirme süreçleri çok maliyetli.
+%80 kopya döndüğü için çok farketmiyoruz belki ama.
+
 
 1.a Register.cshtml.cs içinde InputModel classı içine aşağıdakileri ekledik.
+DİKKAT!!! ErrorMessage içini boş brakırsan hata alırsın.
 
 public class InputModel
 {
@@ -51,8 +56,20 @@ public class InputModel
             </div>
 
 
-1.c Register.cshtml.cs içinde user. ile başlayan propertyler eklendi.
+1.c Register.cshtml.cs içinde user. ile başlayan propertyler eklenmeden önce aşağıdaki kontrol yapıldı.
+DİKKAT!!!
 
+Program.cs içindeki aşağıda yazılı olan yazı içindeki RequireConfirmedAccount = false; olduğundan emin olduk.
+//AppUser=> IdentityUser Yerine Kullanılacak...
+builder.Services.AddDefaultIdentity<AppUser>(options => { 
+    
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequiredLength = 7;
+})
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+Daha sonra; Register.cshtml.cs içinde user. ile başlayan propertyler eklendi.
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
@@ -60,7 +77,7 @@ public class InputModel
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
+                var user = CreateUser(); altına
 
                 user.FirstName = Input.FirstName;
                 user.LastName=Input.LastName;
@@ -69,7 +86,7 @@ public class InputModel
 
 
 
-1.d Register.cshtml.cs içinde yorum satırına alındı
+1.d Register.cshtml.cs içinde yorum satırına alındı. Mail gönderme ile ilgili kod.
 
                     //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -82,9 +99,13 @@ public class InputModel
                     //await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                     //    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
+Oturum yapıp yapamayacağımızın testini yaptık. Yeni kullanıcı oluşturduk ve griş yaptık.
 
 
-2. Context sınıfında ilişki ve ilk değer atamalarını yaptık.
+
+2. SQL içinden tablolardaki tipleri kontrol ettik ve değiştirilmesi gerekenleri gördük.
+
+Context sınıfında ilişki ve ilk değer atamalarını yaptık.
 
 protected override void OnModelCreating(ModelBuilder builder)
         {
