@@ -152,6 +152,7 @@ Bu olmadan sayfaya ulaşılamazdı, denedik.
 Bu area altından aşağıdaki controlleri oluşturduk.
 
     [Area("AdminPanel")]    //DİKKAT!!! BUNU YAZMAYI UNUTMA. DÜZ MVC DE BU YOK. DÜZ MVC DE KODUN BAŞINDA SESSION VAR MI YOK MU DİYE KONTROL EDİLİYOR. ORADAN GÖNDERİLİYOR. 
+                            //DİKKAT!!! CLASSIN TEPESİNE YAZILACAK.
     public class PanelController : Controller
     {
         public IActionResult Index()
