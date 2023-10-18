@@ -1,8 +1,5 @@
 ÇOKA ÇOK İLİŞKİ 
 
-DİKKAT!!! CREATE SEÇİMİNDE BU SAYFADA SEÇİMİN SİLİNMESİ YOK. BİRSONRAKİ SAYFADA.
-
-
 
 1. VM Oluşturulması
 
@@ -49,40 +46,34 @@ public class BookVM
 
 
         // DİKKAT !!! HANGİ VERİLERİN GELİP GELMEDİĞİNE BU ŞEKİLDE KONTROL ETTİ.
-        [HttpPost]
-        public IActionResult Create(IFormCollection frm)
-        {
-            string str = "";
+        //[HttpPost]
+        //public IActionResult Create(IFormCollection frm)
+        //{
+            //string str = "";
 
-            foreach (var s in frm)
-                str += s.Key + "=>" + s.Value + " ";
+            //foreach (var s in frm)
+                //str += s.Key + "=>" + s.Value + " ";
 
-            return Content("authorName" + str)            //DİKKAT!!! SCRİPT TAGİ İÇİNDE GEÇİYOR authorName
-        }
-
-
-
-
-
-
+            //return Content("authorName" + str)            //DİKKAT!!! SCRİPT TAGİ İÇİNDE GEÇİYOR authorName
+        //}
 
 
         [HttpPost]
         public IActionResult Create(Book book, string getIds)
         {
             string[] authorIDs = getIds.Split(' ');
-            Console.WriteLine(authorIDs.Length);
+            //Console.WriteLine(authorIDs.Length);
             List<BookAuthor> authors = new List<BookAuthor>();
-            for (int i= 0;i < authorIDs.Length - 1;i++)
+            for (int i= 0;i < authorIDs.Length - 1;i++)            //ENSONDAKİ BOŞLUKTAN KURTULMAK İÇİN
             {
-                authors.Add(new BookAuthor { AuthorID = int.Parse(authorIDs[i]), Book = book }); 
+                authors.Add(new BookAuthor { AuthorID = int.Parse(authorIDs[i]), Book = book });  //AUTHORID LER HIDDEN DAN GELİYOR. DİKKAT! Book = book BOOK TABLOSUNA BİRŞEY YAZMADIM. UOW
             }
 
-            book.BookAuthors = authors;
+            book.BookAuthors = authors;    // YUKARIDAKİ LİST İ NAV PROP ATTIK.
 
             _context.Books.Add(book);
-            _context.BooksAuthors.AddRange(authors);
-            _context.SaveChanges();
+            _context.BooksAuthors.AddRange(authors);    // BİRDEN FAZLA OLDUĞUNDAN
+            _context.SaveChanges();        //UOW
 
             return RedirectToAction("Index");
         }
@@ -114,25 +105,41 @@ public class BookVM
 
 @using MVC_BookApp.Models.ViewModels;
 @model BookVM
+
+
+// BURADA DAHA BASİT BİR ÇÖZÜM Kİ ŞÖYLE; HER BİR SEÇİLEN İÇİN SUNUCUYA GİDİP SORDURABİLİRDİK. AMA BU ŞEKİLDE SUNUCUYA TEK SEFERDE GİTTİK. HER SEÇİLENİN KİM OLDUĞUNU SORMAK İÇİN GİTMEDİK.
 <script>
     function selectAuthor(data)
     {
+        //Secilen ad....
         let text = data.options[data.selectedIndex].text;
-        let frm = document.getElementById("frmBook");
+        //let frm = document.getElementById("frmBook");
         let authors = document.getElementById("authorsDiv");
         let hidden = document.getElementById("Ids");
 
         let input = document.createElement("input");
-        let label =document.createElement("label");
-        input.type="text";
+        //let label =document.createElement("label");
+        input.type="text";                                            //SEÇİLDİKÇE EKLENEN TEXTBOX
         input.value= text;
-        //input.readOnly=true;
+        input.readOnly=true;
         input.name = data.value;
-
+        
+        input.addEventListener("click",(e)=>{ 
+            let id=e.target.name;
+            let authors = document.getElementById("authorsDiv");
+            let hidden = document.getElementById("Ids");
+          
+            hidden.value = hidden.value.replace(id+" ", "");    //BOŞLUKTAN DOLAYI ÇIKMIYORDU.
+            authors.removeChild(e.target);
+        });
+     
 
         hidden.value += data.value + " ";
-        
-        frm.appendChild(input);
+      
+        authors.appendChild(input);                
+        // FORMUN İÇİNE EKLE DEMEK. NESNEYİ OLUŞTURMAK EKRANDA GÖRÜNMESİ İÇİN YETERLİ DEĞİL. 
+        // O KOLEKSİYONA EKLENMESİ GEREK. WİNDOWS FORMDAKİ THİSLE EKLEME GİBİ.
+        // DİĞER TÜRLÜ RAMDE VARDIR AMA EKRAN GÖRÜNTÜSÜ YOKTUR.
   
     }
 
