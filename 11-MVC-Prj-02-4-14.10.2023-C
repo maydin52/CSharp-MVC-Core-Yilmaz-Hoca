@@ -22,7 +22,7 @@ public class BookVM
 2. Areas - AdminPanel - Controllers - BookController
 
     [Area("AdminPanel")]
-    [Authorize]
+    [Authorize]            //    ARTIK OTURUM AÇILDIĞINDA BURAYA GİRİŞ YAPILABİLİR. DİKKAT AREAS - ADMINPANEL ALTINDAKİ TÜM CONTROLLERLARA EKLE.
     public class BookController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -46,6 +46,26 @@ public class BookVM
             //bookVM.AuthorID = new List<int>();
             return View(bookVM);
         }
+
+
+        // DİKKAT !!! HANGİ VERİLERİN GELİP GELMEDİĞİNE BU ŞEKİLDE KONTROL ETTİ.
+        [HttpPost]
+        public IActionResult Create(IFormCollection frm)
+        {
+            string str = "";
+
+            foreach (var s in frm)
+                str += s.Key + "=>" + s.Value + " ";
+
+            return Content("authorName" + str)            //DİKKAT!!! SCRİPT TAGİ İÇİNDE GEÇİYOR authorName
+        }
+
+
+
+
+
+
+
 
         [HttpPost]
         public IActionResult Create(Book book, string getIds)
