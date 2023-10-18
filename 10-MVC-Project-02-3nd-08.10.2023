@@ -28,6 +28,89 @@ Hoca 1 lira bırakıp gitmenin dışında o sayfaya tıklanıp tıklanmadığın
 MS Identity konusunda profesyonel çözüm çıkarmış. Sıfırdan yazılabilir ama riskleri var. 
 
 -------------------------------------------
+MODELLER REVİZE SONRASI SON DURUM;
+
+VİEWMODELS KLASÖRÜ İÇİNDE;
+public class AuthorVM
+    {
+        public Author Author { get; set; }
+        public AuthorDetail? AuthorDetail { get; set; }
+    }
+
+public class AppUser:IdentityUser
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+    }
+
+public class Author
+    {
+        public int AuthorID { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        [NotMapped]
+        public string FullName { get => FirstName + " " + LastName; }
+
+        public AuthorDetail? AuthorDetail { get; set; }
+        public ICollection<BookAuthor>? AuthorBooks { get; set; }
+    }
+
+public class AuthorDetail
+    {
+        [ForeignKey("Author")]
+        public int AuthorDetailID { get; set; }
+
+        [DisplayFormat(DataFormatString ="{0:d}")]
+        public DateTime?  BirthDate { get; set; }
+        public string? Region { get; set; }
+        public string? Biography { get; set; }
+
+
+        public Author? Author { get; set; }
+    }
+
+public class Book
+    {
+        public int BookID { get; set; }
+        public string BookName { get; set; }
+        public DateTime? ReleaseDate { get; set; }
+        public string CoverImagePath { get; set; }
+        
+        [NotMapped]
+        public IFormFile CoverImage { get; set;}
+        public decimal Price { get; set; }
+
+        public int CategoryID { get; set; }
+
+
+        public Category? Category { get; set; }
+        public ICollection<BookAuthor>? BookAuthors  { get; set; }
+    }
+
+public class BookAuthor
+    {
+        [Key]
+        public int BAID { get; set; }
+        public int BookID { get; set; }
+        public int AuthorID { get; set; }
+
+        public Book? Book { get; set; }
+        public Author? Author { get; set; }
+    }
+
+public class Category
+    {
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
+
+        public ICollection<Book>? Books { get; set; }
+    }
+
+
+-------------------------------------------
+
 
 1. Area - AdminPanel - Panel 
 
@@ -106,7 +189,9 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
         //Unit Of Work Pattern UoW  - DAHA SADE - 
         BURADAKİ DEVRİM; KONSOLA BAKTIK.
         INSERT INTO AUTHORS (FIRSTNAME, LASTNAME) VALUES (@P0, @P1);
-        SELECT AUTHORID FROM AUTHORS WHERE @@ ROWCOUNT = 1 AND AUTHORID = SCOPE_IDENTITY();   
+        SELECT AUTHORID FROM AUTHORS WHERE @@ ROWCOUNT = 1 AND AUTHORID = SCOPE_IDENTITY();       //DİKKAT!!! SCOPE_IDENTITY()
+        INSERT INTO AUTHORDETAILS (AUTHORDETAILID, BIOGRAPHY, BIRTHDATE, REGION) VALUES (@P2, @P3, @P4, @P5);
+        
 
         //SCOPE IDENTITY NEDİR?     https://ahmetrende.com/2010/11/23/sql-serverda-son-kaydin-id-degerini-almak-scope_identity/
         Genellikle uygulamalarımızda veritabanı ile bağlantı kurarız. Veriler çeker ya da yeni kayıtlar gireriz.
@@ -161,12 +246,12 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
 
                 if (authorVM.AuthorDetail.BirthDate !=null || authorVM.AuthorDetail.Region != null || authorVM.AuthorDetail.Biography != null)
                 {
-                    authorVM.AuthorDetail.Author = authorVM.Author;
+                    authorVM.AuthorDetail.Author = authorVM.Author;        //NAVIGATION PROPERTY KULLANIM YERLERİNDEN BİRİ.
                     _context.AuthorDetails.Add(authorVM.AuthorDetail);
 
                    state = 2;               
                 }
-                _context.SaveChanges();
+                _context.SaveChanges();    
             }
 
             if(state >1)
@@ -177,7 +262,7 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
 
 
 
-        public IActionResult Test()
+        public IActionResult Test()            // DELEGE FATALITY İÇİN KULLANILAN METOD
         {
             //int count = FindCategories().Count(); 
             //
@@ -199,6 +284,9 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
             return Content("Sonuc=" + count.ToString()  + " " + sonuc);
         }
 
+
+
+        DELEGE FATALITY
 
         //KategoriID si  tek olan  kategorileri getir?
         //Yazarın adında a harfi olanları getir?
@@ -276,9 +364,9 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
         @*<td>@author.AuthorDetail.BirthDate.Value.ToShortDateString()</td>*@
 
         <td>
-            @if(author.AuthorDetail !=null)
+            @if(author.AuthorDetail !=null)                    //DİKKAT!!! LEFT JOIN YAPILDI AMA BİZ NULL KONTROLÜ KOYMADIĞIMIZDAN GÖREMEMİŞTİK. 
             {
-            @author.AuthorDetail.BirthDate.Value.ToString("dd/MM/yyyy")
+            @author.AuthorDetail.BirthDate.Value.ToString("dd/MM/yyyy")        // küçük mm yazılması MM ile aynı değil
             }
         </td>
        
