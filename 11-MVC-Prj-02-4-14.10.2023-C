@@ -1,7 +1,10 @@
-ÇOKA ÇOK İLİŞKİ
+ÇOKA ÇOK İLİŞKİ 
+
+DİKKAT!!! CREATE SEÇİMİNDE BU SAYFADA SEÇİMİN SİLİNMESİ YOK. BİRSONRAKİ SAYFADA.
 
 
-1.
+
+1. VM Oluşturulması
 
 public class BookVM
     {
@@ -54,6 +57,7 @@ public class BookVM
             {
                 authors.Add(new BookAuthor { AuthorID = int.Parse(authorIDs[i]), Book = book }); 
             }
+
             book.BookAuthors = authors;
 
             _context.Books.Add(book);
