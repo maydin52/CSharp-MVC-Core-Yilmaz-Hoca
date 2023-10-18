@@ -119,9 +119,86 @@ Application - bir sonraki çember içinde    // O VERİYİ NASIL KODLAYACAKSINIZ
 Presentation veya UI(User interface) - bir sonraki çember içinde - bu çember alanı da ayrı parçalara ayrılabiliyor. Bir kısmı MVC bir kısmı Windows gibi. // AL - VER GÜLÜM.
                                                                     //KULLANICIDAN VERİYİ ALACAK VE GÖNDERECEK SADECE. HERHANGİ BİR MANTIK YOK. MANTIK BİR ÖNCEKİNDE.
 
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+DLL OLUŞTURMA
+
+1. Yeni Class Library açıyoruz. (Arama seçeneklerinden c# All platforms ve Library seç - ilk seçenek)
+
+2. İlk çalışma için Matematik ismini verdik.
+Dikkat!!! DLL dosyası direkt çalışmaz. Çünkü main yoktur. Exe dosyaya ihtiyaç var. O yüzden katmanları yazarken dikkatli gitmek gerek.
+
+3. Matematik dosyası içinde class açtık.
+
+public class Cebir
+    {
+        public int KareAl(int sayi)
+        {
+            return sayi * sayi;
+        }
+        public int Topla(int sayi1, int sayi2) 
+        { 
+            return sayi1 + sayi2;
+        }
+
+        public int KupAl(int sayi)
+        {
+            return sayi * sayi * sayi;
+        }
+    }
+
+4. Yazdıktan sonra rebuild ediyoruz.
+
+5. Open Folder in File Explorer - bin - debug - net6.0 içinde Matematik.dll dosyasının oluştuğunu göreceksin.
+
+-------------
+
+DLL DOSYAYI KONSOL UYGULAMASINDA KULLANMA
+//Cebir DLL dosyasında daha sonra değişiklik yaptığında yansıyor.
+//Hem de exe dosyanın olduğu yere de getiriyor.
+
+1. Yeni Consol App açıyoruz.
+
+2. proje üzerinde sağ tık - Add - Project Reference - Matematik seçeneğini klikle (içinde açık değilse browse ile dosya yolundan seç) - OK
+
+3. Program.cs de aşağıdaki gibi çalıştırıyoruz.
+
+using Matematik;
+
+Cebir cebir = new Cebir();
+Console.WriteLine(cebir.KareAl(4));
+Console.WriteLine(cebir.Topla(4,5));
+Console.WriteLine(cebir.KupAl(4));
+
+---------------
+
+DLL DOSYAYI WINDOWS UYGULAMASINDA KULLANMA
+//Form1 açıkken sol üstte Form1 başlığı solundaki monitör logosu mavi ise .NET, siyah ise Core da açık demektir.
+
+1. Yeni Windows Form App açıyoruz.
+
+2. proje üzerinde sağ tık - Add - Project Reference - Matematik seçeneğini klikle (içinde açık değilse browse ile dosya yolundan seç) - OK
+
+3. Form classı içerisinde aşağıdaki gibi çalıştırıyoruz.
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Cebir cebir = new Cebir();
+
+            MessageBox.Show(cebir.KupAl(5).ToString());
+        }
+
+---------------
+İLK PROJE DOSYASINI OLUŞTURMA
+
+1. Visual Studio başlangıç ekranından Blak Solution seçiyoruz.
+Solution Name : Hardware
+Create
+
+2. proje üzerinde sağ tık - add new item - txt dosyası oluşturulur. 
 
 Projede Yapılacaklar;
-*** Konu:
+*** Konu:Bilgisayar Parcalari
 *** UI:MVC Core 6
 *** Entity FrameworkCore
 *** IEntityTypeConfiguration kullanımı...(FluentAPI)
@@ -134,5 +211,22 @@ Projede Yapılacaklar;
 *** Sepet ve Stok kullanımı...
 *** 4-veya 5 tablo olacak
 *** Identity kullanımında Idler int olmali...
+*** Veritabindan silme islemi olmayacak...(Aktif/Pasif)
+
+Analiz: Hardware Project
+ Product(ProductID, BrandID,CategoryID, Name, Price,Stock,ProductImage, Detail )
+ Category(CategoryID, Name)
+ Brand(BrandID, Name) 
+ Model(ModelID, BrandID,CategoryID, ModelName) 
+ ShoppingCart(ID, ProductID, Amount,UserID)
+ Invoice(ID,UserID,Date, )
+ InvoiceDetail(ID, InvoiceID, ProductID, Amount,Price )
+
+ + IdentityTables
+
+
+3. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Domain (Hardware.Core diyen de var) - Next - Create
+Entities (veya Models de olur) adında yeni klasör açtık.
+Class1 i sildik.
 
 
