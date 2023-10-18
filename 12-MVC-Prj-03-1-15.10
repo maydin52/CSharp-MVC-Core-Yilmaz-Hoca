@@ -1,1 +1,138 @@
-ccccc
+
+MVVM(Model View ViewModel)  //DESKTOP TİPİ UYGULAMALAR İÇİN KULLANILIR. WEB İÇİN UYGUN DEĞİL.
+
+Webforms tan MS desteğini 2019 da kaldırdı. Yerine Razor Pages geldi. 2001-2002 yılında başlamıştı. Şuan piyasada çok var da yavaş yavaş core a geçecekler. Düz MVC. 
+*.aspx dosyaları => web forms uygulamalarıdır...
+Backend front end olarak geçmiyor. Tek sayfada yazılıyor. Webform örneği yapmıştık.
+NVC olmadığı için herşey tek sayfada. Bind<%
+Düz MVC wizardı iyiydi. Minimum kodla yazılıyordu.
+Uzun vadede maintenance zor ve yaşam çalışıyordu. 
+
+Bir Web Uygulaması iki şekilde geliştirilebilir..
+MVC(Model View Controller)
+Razor Pages (DİKKAT MVC PATERNİ YOK AMA YÖNETMESİ MVC DEN DAHA ZOR.)
+
+---------------------
+
+Katmana neden ihtiyaç var?
+Bir uygulama isteniyor fakat sonra patron geldi biz bu projeyi başka bir firmaya daha satacağız, fakat bu adamlar oracle da çalışıyor dedi.
+Ne yapacağız? Katman yok. Uygulamanın heryerine yayılış vaziyette.
+
+Ya da bu projeyi sattık, adamlar ağ kullanmadan kullanmak isteyirlar, windows projesi olarak hemde. 
+Ne yapacağız? Katman yok. HTML CSS JS controllerlar, aksiyonlar ne olacak?
+Veya önceden düz MVC yazmış, core a geçecek. Katmanlı yaptıysa DAL değişecek sadece.
+
+Katman sayısı arttıkça bürokrasi artıyor.
+Bürokrasi arttıkça sistem yavaşlıyor.
+
+Adamın ihtiyacını doğru tespit etmek çok öenmli.
+İhtiyacı olmayana fazlasını vermemek gerek.
+Başlangıçta gidişatı iyi kestirmek, tedbiri ona göre almak gerekiyor. 
+Katmanlıda işçilik maliyet artıyor ama uzun vadede kazanım oluyor. Yarın adam biz oracle a geçiyoruz dediğinde projeyi elden geçirmemek için.
+Adamla baştan herşeyi konuşmak ve avukat aracılığyla ve hukuksal kriterlere dikkat ederek sözleşme yapmak lazım.
+
+Katmanlı Mimari (n-Layer, n-Tier)  //Genellikle aynı gibi kullanılıyor ama katmanlar aynı bilgisayardaysa Layer, herbiri farklı bilgisayardaysa Tier olarak geçer.
+Tarihçesi network tarihçesiyle aynı. 1960 lara dayanıyor.
+Servislerde bir katmandır.
+
+Genelde kullanılan katmanlar;
+DAL (Data Access Layer)      //sadece veriyi alıp bana göndermek ya da benden veri alıp db ye eklemek yani al - ver.
+BLL (Business Logic Layer)     //yapılan işlerle ilgili raporlar, hesaplamalar, iş mantıkları
+PL  (Presentation Layer)    //Ortam bağımsızlığı konusu.
+
+Hocanın çizdiği şema şöyle;
+
+DAL <-> BLL <-> PL <---> DB
+
+  DAL-BLL-PL BAĞLI
+     M O D E L   veya   E N T I T Y
+
+
+Katmanlar birbirlerini geçip ilerleyemez. Birbirleri üzerinden iletişim kurarlar. OSI layerda da öyle.
+Onion daha esnek, böyle değil. Kümülatif olarak toplaya toplaya içine ala ala gider. Soğanın içindeki katmanlar gibi. Cücük Core yani Domain.
+Bu normal katmanlı mimarideki sorunları da çözüyor.
+Küçük projelerde katmanlıya gerek olmayabilir. Bazen bazı katmanlardan direkt geçmek isteyebiliyoruz.
+
+Örneğin; web de OSI LAYER 
+
+Katmanli Mimari; Bir projeyi daha iyi yönetebilmek için mantıksal ve fiziksel olarak 
+         birbirinden ayırmak veya parçalara ayırmak için kullanılır...
+
+Mesela yeni bir model tanımlanacak, adam nereye bakacağını biliyor.
+Mesela adam dedi yeni bir rapor ekleyeceğim. Yazacağım yer belli. Ön yüze yazmıyorum.
+
+*** N.S.A. Her katman birbirinden bagimsiz olmalı... Katmanlar arası bağımlılık olmamalı.
+
+Bir standarda göre yazılması gerekiyor.
+
+Katmanlar DLL dosyalarıyla ayrılırlar. Fakat birbirleriyle bağlantıları var. Ama bir taraftanda birbirinden bağımsız. SQL çıkarıp Oracle taktığında çalışmasına devam etmeli.
+Eğer etmiyorsa bu katmanlı mimari değildir.
+
+Repository katmanı DAL ve BLL arasında olur. Onion da Infrastructure da.
+Repository depo demek. 
+Bazen sql de bazen oracle da ya da mysql dede tutabiliyor. Örneğin arge de farklı, satışta farklı db gibi. Önceden başlamıştır çalışıyordur dokunmamışlardır gibi.
+Neden önemli? Bazen öyle bazen böyleyse Kimin neyi çalıştıracağına Repository üzerinden karar veriliyor. Yani bazen SQL DAL bazen Oracle DAL çalışıyor gibi.
+
+API de PL ile BLL arasında bir yerde.
+API MVC altyapısını kullanır ama View yoktur. Yani kullanıcıya View gitmez, data gider. Buradaki View string ama JSON veya XML veya CSV data olarak gidiyor ama istek geldiğinde 
+yine DAL dan geçmesi gerekir. İstek PL üzerinden gelmeyecekse, dış dünyadan bir yerden geliyorsa BLL ve DAL dan veriyi getirip JSON döndüm yani PL kullanılmadı. Adam ö yüzde
+istediği gibi kullansın. Bu mantık genelde B to B uygulamalarında ya da SPA Single Page Application da kullanılır. SPA de ön yüzde sadece bir sayfa vardır. Tek sayfadan oluştur.
+Adam önyüzde ekranını sadece HTML CSS JS REACT ANGULAR VUEJS vs kullanarak oluşturuyor ve servis üzerinden veriyi çekiyor. 
+Özellikle trendyol vs sitelerde dükkan açıyorsunuz. Kendiniz ürün ekliyorsunuz. Adamın veritabanına insert yapabilmek için connection string bilmem ve bana erişim olması lazım. 
+Ama milyon adama bu veritabanı açılmaz. İşte servis mantığı burada devreye giriyor. Yine trendyol veritabanına ekliyor ama doğrudan değil, servis aracılığıyla.
+Servis içindeki CRUD metodları da birbirinden farklı olabilir servis mantığı olmazsa. Adama ben sadece ekle metodunu açıyorum ve trendyola bu metod üzerinden gidiyor.
+Eskiden metadata açılıyormuş. Servisin içindeki metodları görmesi gerekiyordu. Adam nereden bilecek. Birisi ekle der, birisi ürün ekle der, bilemez.
+WCF servislerde meta datalar ne olduğunu, parametrelerini söyler. İmplement formatındadır, ekranda gösterir. 
+Şimdi Restfulservislerde ona gerek kalmadı. Sadece servisin adresini bilmek yeterli. Çünkü 4 eylem var; put, post, delete, get. 
+Siz sadece yapacağınız eylemi bunlar üzerinden gönderiyorsunuz, arkadaki metodun ismini bilmek zorunda değilsiniz.
+Ekleme yapacaksan post, update yapacaksam put olarak göndermem yeterli. Kendisi arka planda bunu çözüyor. 
+jwt.io günümüz servislerinin büyük ısmı güvenlik için bunu kullanıyor. Detayı önceki deslerde var.
+
+------------------------
+
+Örneğin katmanları yazmak için iş bölümü yapacağız;
+1. Önceden modelin ve ilişkilerin kararlaştırılmış olması gerekiyor.
+2. Mesela DAL yazılmadan BLL veya servisi yazacak adam birşey yapamaz. Belirli bir seviyeye kadar gelmesi gerekiyor. 
+3. O seviyeye kadar ortak gidilir daha sonra görev planlamaları ayrılır.
+
+
+İşi uzatıyor ama uzun vade yatırımı katmanlı mimari
+
+------------------------
+
+Doğrudan bir katmana ulaşamadığımız için; 
+Normal katmanlıda her dll kendisinden bir öncesine ve bir sonrasına referans veriyor. Oysa Onion da kümülatif.
+Kodlama maliyetlerini düşürüyor ve bazı problemleri daha azaltıyor.
+Eskiden daha karmaşık yazdığımız uygulamaları daha az yazıyoruz. 
+
+Bazen PL direkt DAL dan okumak istiyor. Böyle olunca boşu boşuna BLL de işyükü oluşuyor. 
+İkisinde de katman sayısı arttıkça performans düşer ama biz bunu göze alıyoruz çünkü konu uzun vadede avantaj.
+Aslında düz katmanlı yönteme en iyi uyan yöntem bağlantılı yöntemdir yani EF olmadan. O zaman cillop gibi.
+DAL yazarken Ef bu katmana eklemek zorundayım. DAha sonra PL katmanında da DbContext sınıfını tanıması için EF yi Pl e ekleme zorunda kalıyoruz. 
+Yani iki ayrı katmana EF ekledim. Oniondan önce katmanlı mimaride EF kullanılıyorsa katmanlı mimarin,n ruhuna aykırı işler yapılıyor. 
+Yani her katman bağımsız olacaktı ama burada her iki katman da EF ye bağımlı. Oysa Onion da bu tip problemler çözülmüş. Core a Ef eklenirse kümülatif gittiğinden problem çözülmüş.
+
+Onion Modelde ise ; tum katmanlar birbirine eklenenerek buyur... 2008 DE GELMİŞTİR. DİĞERİNE ZİYADE BU DAHA YÖNETİLEBİLİR.
+Core(Domain) - yuvarlağın en merkezinde     // ENTITY
+Infrastructure - bir sonraki çember içinde      // VERİYE ERİŞİM
+Application - bir sonraki çember içinde    // O VERİYİ NASIL KODLAYACAKSINIZ BURADA KODLAMA YAPISI KARAR YAPILARI VS.
+Presentation veya UI(User interface) - bir sonraki çember içinde - bu çember alanı da ayrı parçalara ayrılabiliyor. Bir kısmı MVC bir kısmı Windows gibi. // AL - VER GÜLÜM.
+                                                                    //KULLANICIDAN VERİYİ ALACAK VE GÖNDERECEK SADECE. HERHANGİ BİR MANTIK YOK. MANTIK BİR ÖNCEKİNDE.
+
+
+Projede Yapılacaklar;
+*** Konu:
+*** UI:MVC Core 6
+*** Entity FrameworkCore
+*** IEntityTypeConfiguration kullanımı...(FluentAPI)
+*** Onion Katmanlı Modeli kullanılacak
+*** Dll olusturma (Katmanlar icin)
+*** Generic Repository kullanılacak...
+*** Interface kullanılacak
+*** Identity ile Uyelik sistemi(Admin,Rol)
+*** AutoMapper kullanımı
+*** Sepet ve Stok kullanımı...
+*** 4-veya 5 tablo olacak
+*** Identity kullanımında Idler int olmali...
+
+
