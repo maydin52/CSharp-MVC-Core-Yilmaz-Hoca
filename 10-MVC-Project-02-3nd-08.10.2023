@@ -106,7 +106,45 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
         //Unit Of Work Pattern UoW  - DAHA SADE - 
         BURADAKİ DEVRİM; KONSOLA BAKTIK.
         INSERT INTO AUTHORS (FIRSTNAME, LASTNAME) VALUES (@P0, @P1);
-        SELECT AUTHORID FROM AUTHORS WHERE @@ ROWCOUNT = 1 AND AUTHORID = SCOPE_IDENTITY();         //SCOPE IDENTITY NEDİR?
+        SELECT AUTHORID FROM AUTHORS WHERE @@ ROWCOUNT = 1 AND AUTHORID = SCOPE_IDENTITY();   
+
+        //SCOPE IDENTITY NEDİR?     https://ahmetrende.com/2010/11/23/sql-serverda-son-kaydin-id-degerini-almak-scope_identity/
+        Genellikle uygulamalarımızda veritabanı ile bağlantı kurarız. Veriler çeker ya da yeni kayıtlar gireriz.
+        Bazen bir tabloya eklediğimiz kaydın ID değerine o an ihtiyaç duyabiliriz.
+        
+        Bunu türlü yollarla yapabiliriz tabikide. Mesela kayıt işleminden sonra bir select sorgusu yazıp ID Kolonuna göre ters sıralayıp en üstteki satırın ID bilgisini çekebiliriz.
+        Ne kadar da zahmetli 🙂
+        Bu hem uzun ve yorucu hem de 2 farklı transaction çalıştıran bir işlem.
+        
+        Bunun yerine SCOPE_IDENTITY() kullanımına bakalım.
+        
+        
+        Yandaki gibi “Urunler” tablomuz olsun. “UrunID” identity bir kolon. “UrunAdi” ise nvarchar tipinde bir kolon.
+        
+        Şimdi “USB Bellek” adında farklı bir kayıt ekleyelim. Sorgumuz eklenen kaydın ID değerini geri döndürecek. Bizim tablomuza göre “4” değerini vermeli.
+        
+        1
+        2
+        insert into Urunler Values ('USB Bellek')
+        SELECT SCOPE_IDENTITY()
+        
+        Sorgumuzu çalıştırdığımızda şöyle bir çıktı alıyor olmamız gerek;
+        
+        Tabi ben sadece management üzerinde çalıştırdım bu sorguyu. Uygulama sırasında direk bu değeri çekebilirsiniz.
+        Ya da sorgunuzda birden fazla tabloya bu ID ile kayıt girmeniz gerekiyorsa, sorgu içerisinde bir değişkene bu değer atanabilir. Şöyleki;
+        1
+        2
+        3
+        insert into Urunler Values ('USB Bellek2')
+        declare @id int
+        set @id =  SCOPE_IDENTITY()
+        Artık “@id” değişkenini istediğiniz tabloya kayıt olarak girebilirsiniz.
+        Son olarak;
+        LinQ ya da entity framework gibi data modellerinde kullanmak için yazacağınız store procedure sonuna yani insert sorgusundan sonra “select” yerine “return” yazın.
+        Böylece data modelindeki metot direk olarak int değerinde ki id değerini döndürecektir. 
+        1
+        return SCOPE_IDENTITY()
+
 
 
         //Tek SaveChanges() metodu ile PK ve FK kullanımı...
