@@ -229,6 +229,23 @@ Analiz: Hardware Project
  + IdentityTables
 
 
+21/10/2023
+ *** Entities, Enums
+ *** Nav.Props. 
+ *** Infrasutructure Layer
+ *** Domain Katmanını referans olarak ver...
+ *** EFCore yukle...
+ *** DAL(Context => IdentityDbContext)  //Sıfırdan yazılan bir Identity sisteminde hata çıkma ihtimali çok yüksek.
+ *** DbSet tanımlamalari...
+ **** override OnModelCreating() , OnModelConfiguring()
+ *** FluentAPI => IEntityTypeConfiguration
+ *** Initial values...
+ *** Migration
+ *** Update-Database
+ TODO
+ ***Repository .....
+
+
 
 
 3. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Domain (Hardware.Core diyen de var) - Next - Create
@@ -269,8 +286,16 @@ public interface IBaseEntity
 5.b Concrete klasörü içerisine aşağıdaki interface ekledik;
 - Neden Concrete? Çünkü Ramde karşılıkları olacak. Gerçekte olması gereken sınıfları yerleştiriyoruz.
 
+UML toollarını aaraştır.
+Online olanları da var. 
+https://www.google.com/search?q=online+database+design+tool&rlz=1C5CHFA_enTR1036TR1036&oq=online+database+design+tool&aqs=chrome..69i57j0i512j0i22i30l8.6209j0j7&sourceid=chrome&ie=UTF-8
+https://dbdiagram.io/home
+bkz. foto
+
+
 
     //IdentityRole go to definition ile varsayılan alanları incele.
+    //İlişkiyi kendisi kurduğu için EF halledecek.
 
     public class AppRole:IdentityRole<int>
     {
@@ -448,6 +473,224 @@ public enum Status
         Modified=2,
         Passive=3
     }
+
+
+7. Hardware.Domain altında Repositories klasörü açtık.
+Burada concrete sınıfı olmayacak. Sadece interface olacak. Bağlantı noktasını kurmak için kullanacağız. 
+
+
+
+
+8. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Infrastructure (Hardware.Core diyen de var) - Next - Create
+Infrastructure : altyapı
+Burada DAL yazacağız. 
+
+
+
+9. Nugetten eklentileri yüklüyoruz.
+- Microsoft.EntityFrameworkCore seçip, Infrastructure projesini seçip, versiyon seçip 6.0.23 yüklüyoruz.
+- Microsoft.EntityFrameworkCore.SqlServer, Infrastructure projesini seçip, versiyon seçip 6.0.23 yüklüyoruz.
+- Microsoft.EntityFrameworkCore.Tools, Infrastructure projesini seçip, versiyon seçip 6.0.23 yüklüyoruz. DİKKAT!!! Yükleme ekranında options altında komut listesi
+- Infrastructure da ihtiyacımız olduğu için buraya yükledik. Herşeyi Core a atmıyoruz.
+
+
+
+10. Katmanların birbirini görmesi için Hardware.Infrastructure üzerinde sağ tık - Add - Project Reference - Hardware.Domain tikleyip kaydediyoruz.
+Üst katmandan alt katmana ilişki tanımlanıyor. Yön önemli. Mesela 2 katmandan 5. katman görünmez ama 5. katmandan 2. katman görünür.
+Diğer katman mantığında hepsi kendisinden bir öncekine ve bir sonrakine bağlıydı yani birinci ve üçüncü katman ikinci katman üzerinden birbiriyle iletişim kuruyordu.
+
+
+
+11. Hardware.Infrastructure altında EntityConfigurations klasörü açtık.
+
+    public class AppRoleCFG : IEntityTypeConfiguration<AppRole>
+    {
+        public void Configure(EntityTypeBuilder<AppRole> builder)
+        {
+            builder.HasData(
+                new AppRole { Id = 1, Name = "Admin", NormalizedName = "ADMIN", ConcurrencyStamp = Guid.NewGuid().ToString() },
+                new AppRole { Id = 2, Name = "User", NormalizedName = "USER", ConcurrencyStamp = Guid.NewGuid().ToString() });
+
+
+        }
+    }
+
+
+    public class AppUserCFG : IEntityTypeConfiguration<AppUser>
+    {
+        public void Configure(EntityTypeBuilder<AppUser> builder)
+        {
+
+            AppUser user = new AppUser
+            {
+                Id = 1,
+                FirstName = "root",
+                LastName = "user",
+                UserName = "rootUser",
+                Email = "rootuser@deneme.com",
+                SecurityStamp = Guid.NewGuid().ToString(),
+                Address="Everywhere"
+            };
+
+            PasswordHasher<AppUser> password = new PasswordHasher<AppUser>();
+            user.PasswordHash= password.HashPassword(user, "rootUser_123");
+            builder.HasData(user);
+            
+           
+        }
+    }
+
+
+    public class BrandCFG : IEntityTypeConfiguration<Brand>
+    {
+        public void Configure(EntityTypeBuilder<Brand> builder)
+        {
+            builder.Property(x => x.Name)
+                .HasColumnType("varchar")
+                .HasMaxLength(30)
+                .IsRequired(true);
+
+            builder.HasData(
+                new Brand { BrandID=1, Name="Intel", CreateDate=DateTime.Now, Status = Domain.Enums.Status.Active },
+                new Brand { BrandID=2, Name="Amd", CreateDate=DateTime.Now, Status = Domain.Enums.Status.Active },
+                new Brand { BrandID=3, Name="Hp", CreateDate=DateTime.Now, Status = Domain.Enums.Status.Active }
+                );
+
+            
+        }
+    }
+
+
+
+    public class CategoryCFG : IEntityTypeConfiguration<Category>
+    {
+        public void Configure(EntityTypeBuilder<Category> builder)
+        {
+            
+            builder.HasData(
+                new Category { CategoryID=1, Name="CPU", CreateDate=DateTime.Now, Status=Domain.Enums.Status.Active },
+                new Category { CategoryID=2, Name="Printer", CreateDate=DateTime.Now, Status=Domain.Enums.Status.Active },
+                new Category { CategoryID=3, Name="GPU", CreateDate=DateTime.Now, Status=Domain.Enums.Status.Active },
+                new Category { CategoryID=4, Name="Laptop", CreateDate=DateTime.Now, Status=Domain.Enums.Status.Active }
+                );
+        }
+    }
+
+
+
+    public class InvoiceCFG : IEntityTypeConfiguration<Invoice>
+    {
+        public void Configure(EntityTypeBuilder<Invoice> builder)
+        {
+            
+        }
+    }
+
+
+
+    public class InvoiceDetailCFG : IEntityTypeConfiguration<InvoiceDetail>
+    {
+        public void Configure(EntityTypeBuilder<InvoiceDetail> builder)
+        {
+            
+        }
+    }
+
+
+
+    public class ModelCFG : IEntityTypeConfiguration<Model>
+    {
+        public void Configure(EntityTypeBuilder<Model> builder)
+        {
+            
+        }
+    }
+
+
+    public class ProductCFG : IEntityTypeConfiguration<Product>
+    {
+        public void Configure(EntityTypeBuilder<Product> builder)
+        {
+            
+        }
+    }
+
+
+
+    public class ShoppingCartCFG : IEntityTypeConfiguration<ShoppingCart>
+    {
+        public void Configure(EntityTypeBuilder<ShoppingCart> builder)
+        {
+            
+        }
+    }
+
+
+
+
+12. Hardware.Infrastructure altında HardwareDBContext oluşturduk.
+
+public class HardwareDBContext:IdentityDbContext<AppUser,AppRole,int>    
+    {
+        public HardwareDBContext()        //Katmanlı mimaride bu boş constructorun tanımlanması gerekiyor. Yoksa migration yaptığımızda bunu dolduramadığı için hata alırız.
+        {
+            
+        }
+        public HardwareDBContext(DbContextOptions<HardwareDBContext> options):base(options)    //
+        {
+            
+        }
+
+        public DbSet<Product> Products  { get; set; }
+        public DbSet<Brand> Brands  { get; set; }
+        public DbSet<Category> Categories  { get; set; }
+        public DbSet<Invoice> Invoices  { get; set; }
+        public DbSet<InvoiceDetail> InvoiceDetails  { get; set; }
+        public DbSet<Model> Models  { get; set; }
+        public DbSet<ShoppingCart> ShoppingCarts  { get; set; }
+        public DbSet<AppUser> AppUsers  { get; set; }
+        public DbSet<AppRole> AppRoles  { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseSqlServer("Data Source=.;initial catalog=HardwareDB;integrated security=true");
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.ApplyConfiguration<Product>(new ProductCFG());
+            builder.ApplyConfiguration<Brand>(new BrandCFG());
+            builder.ApplyConfiguration<Category>(new CategoryCFG());
+            builder.ApplyConfiguration<Model>(new ModelCFG());
+            builder.ApplyConfiguration<Invoice>(new InvoiceCFG());
+            builder.ApplyConfiguration<InvoiceDetail>(new InvoiceDetailCFG());
+            builder.ApplyConfiguration<ShoppingCart>(new ShoppingCartCFG());
+            builder.ApplyConfiguration<AppUser>(new AppUserCFG());
+            builder.ApplyConfiguration<AppRole>(new AppRoleCFG());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+13. Hardware.Domain altında Repositories klasörü açtık.
+
+
+
+
+
+
 
 
 
