@@ -478,6 +478,78 @@ public enum Status
 7. Hardware.Domain altında Repositories klasörü açtık.
 Burada concrete sınıfı olmayacak. Sadece interface olacak. Bağlantı noktasını kurmak için kullanacağız. 
 
+public interface IBaseRepository<T> where T : IBaseEntity
+    {
+        //void Add(T entity); //Asenkron olmadan yazmak istesydik...
+        Task AddAsync(T entity);
+        Task<int> UpdateAsync(T entity);
+        Task DeleteAsync(T entity);
+        Task<T> FindByIDAsync(int id);
+        Task<IQueryable<T>> GetAllAsync();
+
+    }
+
+
+    public interface IAppRoleRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+
+    public interface IAppUserRepository<T> :IBaseRepository<T> where T:IBaseEntity 
+    {
+
+    }
+
+
+
+    public  interface IBrandRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+
+    public interface ICategoryRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+
+    public interface IInvoiceDetailRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+
+    public interface IInvoiceRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+
+    public interface IModelRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+    public interface IProductRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
+
+
+    public interface IShoppingCartRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    {
+
+    }
+
 
 
 
@@ -693,7 +765,7 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-15. Hardware.Domain altında Repositories klasörü açtık.
+
 
 
 
