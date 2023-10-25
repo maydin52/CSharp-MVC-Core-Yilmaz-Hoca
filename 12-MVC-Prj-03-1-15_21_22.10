@@ -539,17 +539,41 @@ Daha sonra bu şekilde ilerleyeceğiz.
 Yani Domain katmanındaki interface repositoryler ile infrastructure katmanındaki concrete repositoryler arasında bağlantı noktası oluşturarak birbirine baağlıyoruz.
 Loose Coupling haline getiirmek.
 
+// sadece IBaseEntity i implemente etmiş olmalı. Kısıt koyduk.
+
+
+
+ASENKRON PROGRAMLAMA:
+- Önceden cpu lar tek çekirdekti. Düzensiz gelem işlerde ya sırayla ya da qeune ile ya da zamanı bölerek bunun algoritmaları var. Düşük sistemde hareketin kesik kesik olması
+- Sonra çekirdek sayısı artınca eskiden kasada bir kişi olunca şimdi örneğin 4 kişi oldu. İşler daha hızlı ilerledi ama bu seferde herkes daha fazla gelmeye bağladı. Yani istek arttı.
+Donanım artıyor ama örneğin polygon sayısı arttı.
+çekirdeklerin çalıştırılması özelleştirilebiliyor.
+intel boost : sokak kavgası 4x4. 4 kişi bir kişiye giriyor. Ramde kalan işlemleri sürekli kenara çektiğinden birşeyler birikmesin diye bir gir bitir mantığı.
+asenkron ; Bir iş devam ederken başka bir işin daha başlaması. 
+
+Sıkıntı şu : 
+Single thread : sıralı, farklı sürelerde, önce a, sonra b, sonra c işlemi yapılması gerekiyor normalde. Toplamda 12 sn.
+Bu işlemleri neden sırayla yapıyoruz? sorusundan yola çıkılarak;
+İlk işe başladıktan kısa bir süre sonra aynı anda farklı kanallar açarak diğer işlere başlıyor. 
+En uzun iş bittiğinde diğerleri de bitmiş oluyor. Yani en uzun işin diğerlerini beklemesi gerekiyor await bunun için kullanılıyor. 
+Hem süreden, hem de dosya okuma ve yazma işlemlerinden ciddi zaman kazanımı sağlanıyor.
+
+C# 5.0 2012 yılında bazı metotlar Beginx() ve Endx() gördüysen bu da asenkron kullanımına örnek. Callback delegesi vardı.
+5.0 dan sonra yani 2010 lı yıllarda node.js ten sonra asenkron konusu dünyanın dikkatini çekince MS te geçti. 
+Bütün asenkron dönüş tipleri Task ve metod sonlarında ASync geldi.
+
+
+Bunları kütüphane için DLL e yazıp ihtiyaç halinde içeri alabilirsin.
 
 
 public interface IBaseRepository<T> where T : IBaseEntity
     {
         //void Add(T entity); //Asenkron olmadan yazmak istesydik...
         Task AddAsync(T entity);
-        Task<int> UpdateAsync(T entity);
+        Task<int> UpdateAsync(T entity);      // örneğin one row effected dönüşü için. Mesela 0 geliyorsa kayıt çalışmadı gibi yakalanması.
         Task DeleteAsync(T entity);
-        Task<T> FindByIDAsync(int id);
-        Task<IQueryable<T>> GetAllAsync();
-
+        Task<T> FindByIDAsync(int id);        //update için idden araması gerekiyor
+        Task<IQueryable<T>> GetAllAsync();    //IQueryable sorgulanabilir demek. List dönerse nav prop ulaşamayız. EF desteklemiyor. Where, Select vs yazarken dikkat IQueryable. En son liste çeviriyorduk. List gelen sorgular Include ile joinlenemez. O zaman var result gibi uzun yazmak gerekir.
     }
 
 
@@ -828,14 +852,150 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-15.
+15. Hardware.Infrastructure altında Repositories eklendi.
+
+
+    public class BaseRepository<T> : IBaseRepository<T> where T :class, IBaseEntity
+    {
+        private readonly HardwareDBContext _context;
+        private readonly DbSet<T> table = null;
+        public BaseRepository(HardwareDBContext context)
+        {
+            _context = context;
+            table = context.Set<T>();
+        }
+        public async Task AddAsync(T entity)
+        {
+            entity.CreateDate = DateTime.Now;
+            entity.Status = Domain.Enums.Status.Active;
+            await table.AddAsync(entity);
+            await _context.SaveChangesAsync();
+          
+        }
+
+        public async Task DeleteAsync(T entity)
+        {
+            entity.Status = Domain.Enums.Status.Passive;
+            entity.PassiveDate = DateTime.Now;
+                 
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<T> FindByIDAsync(int id)
+        {
+            return await table.FindAsync(id);
+        }
+
+        public Task<IQueryable<T>> GetAllAsync()
+        {
+            return Task.FromResult(table.Select(x => x));
+        }
+
+        public async Task<int> UpdateAsync(T entity)
+        {
+            entity.Status = Domain.Enums.Status.Modified;
+            entity.UpdateDate = DateTime.Now;
+
+            _context.Entry(entity).State = EntityState.Modified;
+            return await _context.SaveChangesAsync();
+        }
+    }
 
 
 
 
+    public class AppRoleRepository:BaseRepository<AppRole>
+    {
+        public AppRoleRepository(HardwareDBContext context ):base(context)
+        {
+            
+        }
+    }
 
 
 
+
+    public class AppUserRepository:BaseRepository<AppUser>
+    {
+        public AppUserRepository(HardwareDBContext context):base(context)
+        {
+            
+        }
+    }
+
+
+
+    public class BrandRepository:BaseRepository<Brand>
+    {
+        public BrandRepository(HardwareDBContext context):base(context) 
+        {
+            
+        }
+    }
+
+
+
+    public class CategoryRepository:BaseRepository<Category>
+    {
+        public CategoryRepository(HardwareDBContext context):base(context) 
+        {
+            
+        }
+    }
+
+
+
+    public class InvoiceDetailRepository:BaseRepository<InvoiceDetail>
+    {
+        public InvoiceDetailRepository(HardwareDBContext context):base(context) 
+        {
+            
+        }
+    }
+
+
+    public class InvoiceRepository:BaseRepository<Invoice>
+    {
+        public InvoiceRepository(HardwareDBContext context):base(context)
+        {
+            
+        }
+    }
+
+
+
+    public class ModelRepository:BaseRepository<Model>
+    {
+        public ModelRepository(HardwareDBContext context):base(context) 
+        {
+            
+        }
+    }
+
+
+    public class ProductRepository:BaseRepository<Product>
+    {
+        public ProductRepository(HardwareDBContext context):base(context) 
+        {
+            
+        }
+    }
+
+
+
+    public class ShoppingCartRepository:BaseRepository<ShoppingCart>
+    {
+        public ShoppingCartRepository(HardwareDBContext context):base(context)
+        {
+            
+        }
+    }
+
+
+
+
+16. 
 
 
 
