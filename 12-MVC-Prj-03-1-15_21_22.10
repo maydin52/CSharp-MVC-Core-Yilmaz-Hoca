@@ -477,6 +477,69 @@ public enum Status
 
 7. Hardware.Domain altında Repositories klasörü açtık.
 Burada concrete sınıfı olmayacak. Sadece interface olacak. Bağlantı noktasını kurmak için kullanacağız. 
+Repository aslında bir patern.
+Mesela DAL katmanında MSSQL çalışıyor ama firma dedi ki bazı şartlarda Oracle a yazsın bazı şartlarda Oracle a yazsın.
+DAL ve BLL arasına bu yüzden bu katman geliyor ve nereye kaydedileceğine karar veriyor. Diğer katmanlı da Repository ayrı bir katman.
+Katmanın mantığı Oracle söküp MSSQL takabilmek.
+Bkz foto.
+
+Brand ve diğer tüm tablolara veri eklemek için  için xxxs.Add(xxx) ve SaveChanges()
+CRUD işlemleri
+Add, Remove, Update, List, Find hepsi için olmalı.
+Normal şartlarda hepsine bunların yazılması gerekiyor.
+EF desteklemese zaten yazamayız, destekliyor.
+Repository oluşturunca her birine bunları yazmaya gerek kalmayacak.
+
+
+Peki neden hem Domainde hem de Infrastructure da Repositories klasörü var?
+Standart katmanlı mimari 
+
+
+SQL sql = new SQL(); //SQL katmanı olduğunu varsayalım.
+BLL bll = new BLL(); //Bu katmanda SQL katmanını çalıştırmak istersem ne yapmalıyım?
+ctrounda SQL sql = new SQL(); // oracle istiyorsamda ORACLE oracle = new ORACLE();
+Solid Prensipleri gereği (5 prensip) 2. prensip derki ; OCP yani Open Closed Principles; 
+opened extension closed modification. Yani bir yapı gelişime açık olmalı fakat modifiye edilmemeli.
+Yeni bir şeyin gelmesi modifiye değildir. 
+Yani SQl silip ORACLE yazarsak bu prensibi ezmiş oluruz.
+5. prensip Dependecy Inversion Principles derki; Bağımlılıkların tersine çevrilmesi ilkesi. 
+Biz ctor veya metodun yapının içinde DbContext _context = new DbContext yazmıştık ama hoca asla böyle kullanmayacağız, doğru değil demişti.
+Düz MVC de ya yazılıyor ya da injektorler kullanılıyormuş.
+Bu otomatik newlemeyi IOC gönderiyor. 
+SQLi değiştirip ORACLE ı yazmak bir bağımlılık oluşturur. yani gidip birini silip öbürünü yazmam gerekiyor. 
+Bunun literatürdeki özel ismi Tight Coupling yani sıkı bağlı.
+Aslında istenen Loose Coupling yani gevşek bağlamadır.
+Interfaceleri yapıları bağımlılıktan kurtarmak esnek hale getirmek için kullanırdık.
+- ICRUD interfacei oluştursam; 
+- Tablolara ICURD interfaceini bağlasam 
+- ctor(ICRUD db)
+{
+  
+}
+yani bağımlılığı dışarı çıkardık. Yani classı kim oluşturuyorsa o gönderiyor. Ne gönderirse o çalışır.
+AddRange metodu ICollection konusu. Adam dizi array vs demiyor, koleysiyon olsun bana yeter diyor.
+
+Bu yüzden domainde repositoryde sadece bağlantı noktalarını yazdık.
+Diğer katmanla sözleşme yapmak gibi.
+Fiş priz ilişkisi. Katmanların bağımsızlığı bu demek.
+Her cihaz için ayrı priz olsaydı ne olurdu??
+Benim nereye kaydedeceğim infrastructure da belli.
+Infrastructure içindeki repository de de concrete halleri olacak.
+
+Standardın dışındaki yapıyı eklemek için hepsi için açıyoruz.
+
+DAL katmanında işin yapılmasıyla ilgili hiçbirşey bulunmaz. 
+İşin nasıl yapılacağı BLL katmanında olmalıdır.
+İşlerin herbiri birer servis. Application katmanına yazılıyor.
+Mesela login ile ilgili ne varsa orada olacak.
+Daha sonra bu şekilde ilerleyeceğiz.
+
+
+ÖZÜ : 
+Yani Domain katmanındaki interface repositoryler ile infrastructure katmanındaki concrete repositoryler arasında bağlantı noktası oluşturarak birbirine baağlıyoruz.
+Loose Coupling haline getiirmek.
+
+
 
 public interface IBaseRepository<T> where T : IBaseEntity
     {
@@ -762,6 +825,10 @@ hata yoksa update-database
 AspNetUsers tablosundaki PasswordHash gördük
 varcharmax kalan ve diğer düzenlenecekler düzenlenebilir.
 Değerlerin gelip gelmediğine baktık.
+
+
+
+15.
 
 
 
