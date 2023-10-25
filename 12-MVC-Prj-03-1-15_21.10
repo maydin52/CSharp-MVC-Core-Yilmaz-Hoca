@@ -212,6 +212,10 @@ Projede Yapılacaklar;
 *** 4-veya 5 tablo olacak
 *** Identity kullanımında Idler int olmali...
 *** Veritabindan silme islemi olmayacak...(Aktif/Pasif)
+*** DTO(I,U), ViewModel(SELECT) 
+    - ViewModel ; genelde select için kullanılır. Daha önce resim eklemek için kullandığımız IFormFile interface ini Application katmanında Viewmodelde kullanacağız. Çünkü önyüzle alakalı. Web projesinde böyle. Win form uygulamasında
+ön yüz olayı olmadığından bu interface e gerek yok. 
+    - DTO ; genellikle insert ve update için kullanılır. Örneğin insert yaparken id göndermemize gerek yok. 
 
 Analiz: Hardware Project
  Product(ProductID, BrandID,CategoryID, Name, Price,Stock,ProductImage, Detail )
@@ -225,8 +229,221 @@ Analiz: Hardware Project
  + IdentityTables
 
 
+
+
 3. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Domain (Hardware.Core diyen de var) - Next - Create
-Entities (veya Models de olur) adında yeni klasör açtık.
+Hardware.Domain altında Entities (veya Models de olur) adında yeni klasör açtık.
 Class1 i sildik.
+
+
+
+
+4. Nugetten Microsoft.AspNetCore.Identity.EntityFrameworkCore seçip, domain projesini seçip, versiyon seçip 6.0.23 yüklüyoruz.
+AppUser:IdentityUser<int> vr AppUser:IdentityUser<int> için. Dikkat!!! önceden UserId varchar(250) idi, guid tutuyordu. Int çevireceğiz.
+IdentityUser den türetmemiz gerektiği için bunu yaptık.
+Bunu normal katmanlı mimaride yaptığınızda herşey birbirine giriyor. Katmanlar birbirinden bağımsız olmalıydı ama ben DAL ı EF ye bağlıyorum.
+Onion da toplaya toplaya gittiği için oradan kurtarıyor.
+Normal katmanlıda bu sefer her iki katmana da framework kurulması gerekiyor bu da bağımlılık oluşturuyor.
+
+
+
+5. Entities klasörü içerisinde iki klasör daha oluşturduk; birisi Abstract diğeri Concrete.
+
+5.a Abstract klasörü içerisine aşağıdaki interface ekledik;
+Neden interface? Çünkü interface soyut bir yapıdır. Ramde karşılığı olmaz.
+Id neden vermedik? EntityID tercih ediyoruz. AppUser ve AppRole tablolarından da ID gelecek. Sorun olacağı için eklemedik. Identity özelleştirmesi olmasaydı eklenebilirdi.
+Loglama her tablo için olmasa da çok stratejik konularda ayrı tablolarda kaydedilir. Her tablo için olması; kapladığı alandan ziyade sunucu ile sürekli konuşması olumsuz performans.
+
+
+public interface IBaseEntity
+    {
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }      //nullable
+        public DateTime? PassiveDate { get; set; }    //nullable
+        public Status Status { get; set; }
+    }
+
+
+
+
+5.b Concrete klasörü içerisine aşağıdaki interface ekledik;
+- Neden Concrete? Çünkü Ramde karşılıkları olacak. Gerçekte olması gereken sınıfları yerleştiriyoruz.
+
+
+
+    public class AppRole:IdentityRole<int>
+    {
+
+    }
+
+
+    public class AppUser:IdentityUser<int>        //MS in tablosuna ilave ekstra istenilen alanlar
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+
+        public ICollection<Product>? Products { get; set; }
+        public ICollection<Invoice>? Invoices { get; set; }
+
+    }
+
+
+    public class Brand:IBaseEntity
+    {
+        public int BrandID { get; set; }
+        public string Name { get; set; }
+
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        public ICollection<Model>? Models { get; set; }
+        public ICollection<Product>? Products { get; set; }
+    }
+
+
+
+    public class Category:IBaseEntity
+    {
+        public int CategoryID { get; set; }
+        public string Name { get; set; }
+
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        public ICollection<Model>? Models { get; set; }
+        public ICollection<Product>? Products { get; set; }
+    }
+
+
+
+    public class Invoice:IBaseEntity
+    {
+        public int InvoiceID { get; set; }
+        public DateTime InvoiceDate { get; set; }
+
+        public int AppUserID { get; set; }
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        public AppUser? AppUser { get; set; }
+        public ICollection<InvoiceDetail>? InvoiceDetails { get; set; }
+    }
+
+
+
+    public class InvoiceDetail:IBaseEntity
+    {
+        //ID, InvoiceID, ProductID, Amount,Price
+
+        public int InvoiceDetailID { get; set; }
+        public int InvoiceID { get; set; }
+        public int ProductID { get; set; }
+        public int Amount { get; set; }
+        public decimal Price { get; set; }
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        public Invoice? Invoice { get; set; }
+        public Product? Product { get; set; }
+
+    }
+
+
+
+    public class Model:IBaseEntity
+    {
+        public int ModelID { get; set; }
+        public string Name { get; set; }
+
+        public int? BrandID { get; set; }
+        public int? CategoryID { get; set; }
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        public Brand? Brand { get; set; }
+        public Category? Category { get; set; }
+
+    }
+
+
+
+    public class Product:IBaseEntity
+    {
+        public int ProductID { get; set; }
+        public string Name { get; set; }
+
+        public int? BrandID { get; set; }
+        public int? CategoryID { get; set; }
+
+        public decimal Price { get; set; }
+        public int AmountOfStock { get; set; }
+        public string ProductImage { get; set; }
+        public string Details { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        //Nav. Prop.
+        public Brand? Brand { get; set; }
+        public Category? Category { get; set; }
+
+        public ICollection<ShoppingCart>? ShoppingCart { get; set; }
+        public ICollection<AppUser>? Users { get; set; }
+        public ICollection<InvoiceDetail>? InvoiceDetails { get; set; }
+    }
+
+
+
+    public class ShoppingCart:IBaseEntity
+    {
+        public int ShoppingCartID { get; set; }
+
+        public int ProductID { get; set; }
+        public int Amount { get; set; }
+
+        public int AppUserID { get; set; }
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
+
+        public Product? Product { get; set; }
+        public AppUser? AppUser { get; set; }
+    }
+
+
+
+
+6. Hardware.Domain altında Enums klasörü açtık. 
+String değerlerle numerik değerleri eşleştirmek için kullandık.
+Bu projede silmeyeceğiz, silindi statüsüne alacağız kayıtları.
+DİKKAT!!! bu projede log arşivlemesi yapmayacağız. Daha sonra eklenebilir.
+
+public enum Status
+    {
+        Active=1,
+        Modified=2,
+        Passive=3
+    }
+
+
 
 
