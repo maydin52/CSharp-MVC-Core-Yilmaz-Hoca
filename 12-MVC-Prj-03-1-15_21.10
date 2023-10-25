@@ -499,9 +499,12 @@ Burada DAL yazacağız.
 Üst katmandan alt katmana ilişki tanımlanıyor. Yön önemli. Mesela 2 katmandan 5. katman görünmez ama 5. katmandan 2. katman görünür.
 Diğer katman mantığında hepsi kendisinden bir öncekine ve bir sonrakine bağlıydı yani birinci ve üçüncü katman ikinci katman üzerinden birbiriyle iletişim kuruyordu.
 
+DİKKAT!!! Tepesolution üzerinde sağ tık - properties - current selection
+
 
 
 11. Hardware.Infrastructure altında EntityConfigurations klasörü açtık.
+İçine her modelin aşağıdaki configlerini oluşturduk.
 
     public class AppRoleCFG : IEntityTypeConfiguration<AppRole>
     {
@@ -549,6 +552,8 @@ Diğer katman mantığında hepsi kendisinden bir öncekine ve bir sonrakine ba�
                 .HasColumnType("varchar")
                 .HasMaxLength(30)
                 .IsRequired(true);
+
+            //Params kullanımı. Bir dizi ama dizi göndermiyoruz, virgüllerle gönderiyoruz.
 
             builder.HasData(
                 new Brand { BrandID=1, Name="Intel", CreateDate=DateTime.Now, Status = Domain.Enums.Status.Active },
@@ -675,16 +680,20 @@ public class HardwareDBContext:IdentityDbContext<AppUser,AppRole,int>
 
 
 
+13. Solutionu rebuild yapıyoruz, hta olup olmadığına bakıyoruz - nuget console açıyoruz, default project infrastructure seçiyoruz, add-migration init dedik 
+ve eğer yukarıda bahsi geçen varsayılan constructor u yazmadıysak bu hatayı alıyoruz: Unable to create an object of type HardwareDBContext. For the different patterns supported at design time, see ......
+hata yoksa update-database
 
 
 
+14. Database den AspNetUsers ve AspNetRoles tablosundaki id kolonları int döndü. 
+AspNetUsers tablosundaki PasswordHash gördük
+varcharmax kalan ve diğer düzenlenecekler düzenlenebilir.
+Değerlerin gelip gelmediğine baktık.
 
 
 
-
-
-
-13. Hardware.Domain altında Repositories klasörü açtık.
+15. Hardware.Domain altında Repositories klasörü açtık.
 
 
 
