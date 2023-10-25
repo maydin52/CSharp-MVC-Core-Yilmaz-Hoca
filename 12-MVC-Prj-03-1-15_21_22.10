@@ -297,20 +297,32 @@ bkz. foto
     //IdentityRole go to definition ile varsayılan alanları incele.
     //İlişkiyi kendisi kurduğu için EF halledecek.
 
-    public class AppRole:IdentityRole<int>
-    {
 
+
+
+    public class AppRole : IdentityRole<int>, IBaseEntity
+    {
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
     }
 
 
 
     //IdentityUser go to definition ile varsayılan alanları incele.
 
-    public class AppUser:IdentityUser<int>        //MS in tablosuna ilave ekstra istenilen alanlar
+    public class AppUser:IdentityUser<int>,IBaseEntity        //MS in tablosuna ilave ekstra istenilen alanlar
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
+
+
+        public DateTime CreateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
+        public DateTime? PassiveDate { get; set; }
+        public Status Status { get; set; }
 
         public ICollection<Product>? Products { get; set; }
         public ICollection<Invoice>? Invoices { get; set; }
@@ -640,7 +652,7 @@ public interface IBaseRepository<T> where T : IBaseEntity
 
 
 
-8. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Infrastructure (Hardware.Core diyen de var) - Next - Create
+8. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Infrastructure - Next - Create
 Infrastructure : altyapı
 Burada DAL yazacağız. 
 
@@ -859,18 +871,19 @@ Değerlerin gelip gelmediğine baktık.
     {
         private readonly HardwareDBContext _context;
         private readonly DbSet<T> table = null;
+
         public BaseRepository(HardwareDBContext context)
         {
             _context = context;
-            table = context.Set<T>();
+            table = context.Set<T>();    //Set diye ayrı bir metot. Geriye DbSet tipinde döndürüyor.
         }
+
         public async Task AddAsync(T entity)
         {
             entity.CreateDate = DateTime.Now;
             entity.Status = Domain.Enums.Status.Active;
             await table.AddAsync(entity);
             await _context.SaveChangesAsync();
-          
         }
 
         public async Task DeleteAsync(T entity)
@@ -878,13 +891,13 @@ Değerlerin gelip gelmediğine baktık.
             entity.Status = Domain.Enums.Status.Passive;
             entity.PassiveDate = DateTime.Now;
                  
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            _context.Entry(entity).State = EntityState.Modified;    //sql servere update cümlesi olarak yazacak.
+            await _context.SaveChangesAsync();        //açıklamasında awaitable yazanlarda await kullanılacak.
         }
 
         public async Task<T> FindByIDAsync(int id)
         {
-            return await table.FindAsync(id);
+            return await table.FindAsync(id);      
         }
 
         public Task<IQueryable<T>> GetAllAsync()
@@ -904,15 +917,19 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
+    // daire, silindir, koni örneğinde; içerde constructorın parametresi varsa silindir oluşturmak istediğimde önce daire oluşuyordu, sonra silindir oluşuyordu.
+    //Yani cons arası arametreyi base ile gönderiyorduk.
+    //Matruşka gibi sırayla en içerden dışarı doğru çalışır. daire çalıştı, silindir, çalıştı, koni çalıştı yazmıştı. ama biz koniyi oluşturmuştuk.
+    //İçerdeki parametre varsa, dışarıdan parametreyi de base ile gönderiyorduk. 
+    //İki yöntem vardı; aynı seviyede bir sınıfın constructoruna parametre göndermek için this, üst sınıfa göndermek için base kullanıyorduk.
 
     public class AppRoleRepository:BaseRepository<AppRole>
     {
-        public AppRoleRepository(HardwareDBContext context ):base(context)
+        public AppRoleRepository(HardwareDBContext context ):base(context)      //yukarıda bkz migration da özellikle alınan hata konusu
         {
             
         }
     }
-
 
 
 
@@ -995,11 +1012,55 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-16. 
+16. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Application - Next - Create
+Infrastructure ın görevi veriyi al gönder.
+Application da ise işin nasıl yapıldığıyla ilgili kodlar.
+
+
+
+17. Katmanların birbirini görmesi için Hardware.Application üzerinde sağ tık - Add - Project Reference - Hardware.Infrastructure tikleyip kaydediyoruz.
+
+
+
+18. Hardware.Application altında Services altında klasör açtık.
+Services altında AppUserService klasörü açtık.
+Dependecy Injection için yaptık.
+IOC container e bağlamak için açtık.
+
+    public class AppUserService
+    {
+
+    }
+
+    public interface IAppUserService
+    {
+
+    }
+
+
+
+
+
+19. Hardware.Application altında Models altında klasör açtık.
+Models altında VMs klasörü açtık.
+Models altında DTO klasörü açtık. Data Transfer Object katmanlar arasında verileri taşımak için kullanılır. 
+Brand entitysinde insert edeceksin mesela, id ye ihtiyaç var mı? İhtiyacın olmayan şeyleri DTO ya yazmazsın. 
+Application ile User Interface arasında DTO veri taşıyacak.
+Mesela listeleme yapacağım, createdate veya updatedate göndermesine taşımasına gerek yok.
+
+Entity üzerinden değil DTO üzerinden, güvenlik, daha az alanda taşınıyor, performans.
+Ön yüzcünün bilmemesi gereken bilgiyi göndermemeliyiz.
+Genellikle hepsi için yazılıyor.
+
+Farkları;
+VM eğer select cümleleri varsa yani joinlemeniz gerekiyorsa bazı şeyleri o zaman VM
+DTO genellikle insert ve update de kullanılır. Sadece ihtiyacı olan verileri kullanacak, gönderecek.
 
 
 
 
 
 
+DİKKAT!!!! DİĞER DERSE HATIRLATMA
+ASPNETUSERS TABLOSUNA BASE ALANLAR GELMEDİ. APP İLE İNF STR ARASINDA BAĞLANTI KURULMADI. AppUserService altındaki eksikleri tamamlayacağız.
 
