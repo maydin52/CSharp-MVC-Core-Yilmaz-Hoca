@@ -270,12 +270,16 @@ public interface IBaseEntity
 - Neden Concrete? Çünkü Ramde karşılıkları olacak. Gerçekte olması gereken sınıfları yerleştiriyoruz.
 
 
+    //IdentityRole go to definition ile varsayılan alanları incele.
 
     public class AppRole:IdentityRole<int>
     {
 
     }
 
+
+
+    //IdentityUser go to definition ile varsayılan alanları incele.
 
     public class AppUser:IdentityUser<int>        //MS in tablosuna ilave ekstra istenilen alanlar
     {
@@ -287,6 +291,7 @@ public interface IBaseEntity
         public ICollection<Invoice>? Invoices { get; set; }
 
     }
+
 
 
     public class Brand:IBaseEntity
