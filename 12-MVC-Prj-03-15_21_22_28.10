@@ -119,6 +119,14 @@ Application - bir sonraki çember içinde    // O VERİYİ NASIL KODLAYACAKSINIZ
 Presentation veya UI(User interface) - bir sonraki çember içinde - bu çember alanı da ayrı parçalara ayrılabiliyor. Bir kısmı MVC bir kısmı Windows gibi. // AL - VER GÜLÜM.
                                                                     //KULLANICIDAN VERİYİ ALACAK VE GÖNDERECEK SADECE. HERHANGİ BİR MANTIK YOK. MANTIK BİR ÖNCEKİNDE.
 
+Domain / Core
+Infrastructure / DAL
+Application / BLL
+UI
+
+
+Dikkat!!! Normal katmanlıda bir öncekiyle ve bir sonrakiyle ilişki kuruluyor. Ayarlarken dikkat!!!
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
 DLL OLUŞTURMA
@@ -244,6 +252,22 @@ Analiz: Hardware Project
  *** Update-Database
  TODO
  ***Repository .....
+
+
+22/10/2023
+ *** 
+
+ 28/10/2023
+ *** userRoles tablosunda admin yok 1 1 !!!!
+
+ ***AppUser 
+ *** Login,LogOut, Register
+ *** Automapper kullanımı gosterilecek...
+
+ *** UI Katmanını olustur...
+ *** Application katmanını refarans olarak ver...
+ *** DbContext sınıfını ve Identity ayarlarını yap...
+ *** appsettings.json dosyasına connection string'i yaz...
 
 
 
@@ -1029,24 +1053,30 @@ IOC container e bağlamak için açtık.
 
 Services altında aşağıdaki klasörleri, içlerine de class ve interfacelerini açtık.
 
+
 --- AppUserService klasörü açtık.
 public class AppUserService : IAppUserService
 {
-    private readonly SignInManager<AppUser> _signInManager;
+        //SignInManager ve UserManager sınıfları MS in sağladığı sınıflar.
+
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly UserManager<AppUser> _userManager;
+
+        //Dependecy Injection gereği yazılan ctor. Constructor Injection yaptık.
 
         public AppUserService(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
         }
+
         public async Task<bool> LoginAsync(LoginDTO login)
         {
             var user = await _userManager.FindByNameAsync(login.UserName);
             //var user = await _userManager.FindByIdAsync("1");
             //var user = await _userManager.FindByEmailAsync("userRoot@deneme.com");
 
-            var result=await _signInManager.PasswordSignInAsync(user, login.Password, false, false);
+            var result=await _signInManager.PasswordSignInAsync(user, login.Password, false, false);      //Password hash kontrolünü kendisi yapıyor.
 
             return result.Succeeded;
         }
@@ -1080,6 +1110,8 @@ public class AppUserService : IAppUserService
     }
 
 
+
+
     public interface IAppUserService
     {
         Task<bool> LoginAsync(LoginDTO login);
@@ -1087,6 +1119,8 @@ public class AppUserService : IAppUserService
         Task<bool> RegisterUserAsync(RegisterDTO register);
 
     }
+
+
 
 
 --- AppRoleService klasörü açtık.
@@ -1144,26 +1178,37 @@ public interface IInvoiceService
     }
 
 
+--- ModelService klasörü açtık.
+
+public class ModelService:IModelService
+    {
+    }
+
+public interface IModelService
+    {
+    }
 
 
+--- ProductService klasörü açtık.
+
+public class ProductService:IProductService
+    {
+    }
+
+public interface IProductService
+    {
+    }
 
 
+--- ShoppingCartService klasörü açtık.
 
+public class ShoppingCartService:IShoppingCartService
+    {
+    }
 
-
-
---- xxxService klasörü açtık.
-
-
-
-
-
-
-
-
-
-
-
+public interface IShoppingCartService
+    {
+    }
 
 
 
@@ -1183,11 +1228,58 @@ Farkları;
 VM eğer select cümleleri varsa yani joinlemeniz gerekiyorsa bazı şeyleri o zaman VM
 DTO genellikle insert ve update de kullanılır. Sadece ihtiyacı olan verileri kullanacak, gönderecek.
 
+//DTO ları daha önce Insert ve Update için kullanırız demiştik. Burada Select içinde kullanılacak.
+//Burada kullanıcı adı ve şifre olarak belirledik. Buna AspNetUsers tablosunun Indexes klasörü altında UserName Unique olduğu için.
+//AspNetUsers tablosunu açtık. Kullanıcı login olması için diğer alanların hiçbirisiyle işimiz yok. Bu yüzden AspUser nesnesi kullanmak yerine DTO kullandık. DTO burada select olarak kullandık.
+//VM leri genelde joinli yapılarda kullanırız.
+
+Models altında DTO klasörü açmıştık. Onun Altına Login klasörü açtık.
+
+public class LoginDTO
+    {
+        public string UserName { get; set; }
+        public string Password { get; set; }      //arkada hashlenmiş halinin karşılaştırmasını yapacağız.
+    }
+
+
+//Bir kullanıcıyı kaydetmek istediğimde ihtiyacım olan alanlar; AspNetUsers tablosuyla karşılaştırarak değerlendirdik.
+
+public class RegisterDTO
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+        public string UserName { get; set; }
+        public string Password{ get; set; }
+        public string ConfirmPassword{ get; set; }
+        public string Email{ get; set; }
+
+    }
+
+
+DİKKAT!!! AspNetUsers tablosuna BaseEntity alanlar gelmemişti. Hoca nugetten komut girerken dikkat. default project Infrastructure seçilmeli. drop-database ve remove-migration yaptık ve add migration init ve update-database yaptık.
+Sonuçta hem AspNetUsers hem de AspNetRoles tabloları başlarına eklendi alanlar.
+Ayrıca AspNetUsers tablosunda yeni kullanıcıyı da oluşturmuş.
 
 
 
 
 
-DİKKAT!!!! DİĞER DERSE HATIRLATMA
-ASPNETUSERS TABLOSUNA BASE ALANLAR GELMEDİ. APP İLE İNF STR ARASINDA BAĞLANTI KURULMADI. AppUserService altındaki eksikleri tamamlayacağız.
+
+
+
+
+
+
+
+
+
+
+DİKKAT!!! CATEGORY SERVICE İÇİNDE INTERFACE MİRAS VERİLMEDİ.
+
+
+
+ASPNETUSERS TABLOSUNA BASE ALANLAR GELMEDİ. 
+create date doğru formatta gelmemişti aspnetusersta
+
 
