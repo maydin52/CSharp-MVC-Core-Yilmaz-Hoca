@@ -1023,19 +1023,146 @@ Application da ise işin nasıl yapıldığıyla ilgili kodlar.
 
 
 18. Hardware.Application altında Services altında klasör açtık.
-Services altında AppUserService klasörü açtık.
 Dependecy Injection için yaptık.
 IOC container e bağlamak için açtık.
 
-    public class AppUserService
-    {
 
+Services altında aşağıdaki klasörleri, içlerine de class ve interfacelerini açtık.
+
+--- AppUserService klasörü açtık.
+public class AppUserService : IAppUserService
+{
+    private readonly SignInManager<AppUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+
+        public AppUserService(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager)
+        {
+            _signInManager = signInManager;
+            _userManager = userManager;
+        }
+        public async Task<bool> LoginAsync(LoginDTO login)
+        {
+            var user = await _userManager.FindByNameAsync(login.UserName);
+            //var user = await _userManager.FindByIdAsync("1");
+            //var user = await _userManager.FindByEmailAsync("userRoot@deneme.com");
+
+            var result=await _signInManager.PasswordSignInAsync(user, login.Password, false, false);
+
+            return result.Succeeded;
+        }
+
+        public async Task LogoutAsync()
+        {
+            await _signInManager.SignOutAsync();
+        }
+
+        public async Task<bool> RegisterUserAsync(RegisterDTO register)
+        {
+            AppUser user = new AppUser();
+            user.UserName = register.UserName;
+            user.FirstName = register.FirstName;
+            user.LastName = register.LastName;
+            user.Email = register.Email;
+            user.PasswordHash = register.Password;
+            user.Address = register.Address;
+            user.Status = Domain.Enums.Status.Active;
+            user.CreateDate = DateTime.Now;
+
+            var result= await _userManager.CreateAsync(user);
+
+            if(result.Succeeded) {
+               await  _signInManager.SignInAsync(user, false);
+               await _userManager.AddToRoleAsync(user, "User");
+
+            }
+            return result.Succeeded;
+        }
     }
+
 
     public interface IAppUserService
     {
+        Task<bool> LoginAsync(LoginDTO login);
+        Task LogoutAsync();
+        Task<bool> RegisterUserAsync(RegisterDTO register);
 
     }
+
+
+--- AppRoleService klasörü açtık.
+
+public class AppRoleService:IAppRoleService
+    {
+    }
+
+public interface IAppRoleService
+    {
+    }
+
+
+--- BrandService klasörü açtık.
+
+public class BrandService:IBrandService
+    {
+    }
+
+public interface IBrandService
+    {
+    }
+
+
+--- CategoryService klasörü açtık.
+
+public class CategoryService:ICategoryService
+    {
+    }
+
+public interface ICategoryService
+    {
+    }
+
+
+--- InvoiceDetailService klasörü açtık.
+
+public class InvoiceDetailService:IInvoiceDetailService
+    {
+    }
+
+public interface IInvoiceDetailService
+    {
+    }
+
+
+--- InvoiceService klasörü açtık.
+
+public class InvoiceService:IInvoiceService
+    {
+    }
+
+public interface IInvoiceService
+    {
+    }
+
+
+
+
+
+
+
+
+
+
+--- xxxService klasörü açtık.
+
+
+
+
+
+
+
+
+
+
 
 
 
