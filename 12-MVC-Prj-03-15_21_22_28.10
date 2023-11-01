@@ -122,7 +122,7 @@ Presentation veya UI(User interface) - bir sonraki çember içinde - bu çember 
 Domain / Core
 Infrastructure / DAL
 Application / BLL
-UI
+UI / Presentation
 
 
 Dikkat!!! Normal katmanlıda bir öncekiyle ve bir sonrakiyle ilişki kuruluyor. Ayarlarken dikkat!!!
@@ -1076,9 +1076,9 @@ public class AppUserService : IAppUserService
             //var user = await _userManager.FindByIdAsync("1");
             //var user = await _userManager.FindByEmailAsync("userRoot@deneme.com");
 
-            var result=await _signInManager.PasswordSignInAsync(user, login.Password, false, false);      //Password hash kontrolünü kendisi yapıyor.
+            var result = await _signInManager.PasswordSignInAsync(user, login.Password, false, false);      //Password hash kontrolünü kendisi yapıyor.
 
-            return result.Succeeded;
+            return result.Succeeded;  
         }
 
         public async Task LogoutAsync()
@@ -1086,31 +1086,36 @@ public class AppUserService : IAppUserService
             await _signInManager.SignOutAsync();
         }
 
+
+        //Register ile gelen verileri AppUser a çeviriyoruz. Bunu AutoMapper ile daha kolay yapabiliyoruz. Neyi neyle eşleştireceğiniz söylüyorsunuz o her zaman onları eşleştiriyor. Hoca gösterecek.
+
         public async Task<bool> RegisterUserAsync(RegisterDTO register)
         {
             AppUser user = new AppUser();
+
             user.UserName = register.UserName;
             user.FirstName = register.FirstName;
             user.LastName = register.LastName;
             user.Email = register.Email;
-            user.PasswordHash = register.Password;
+            user.PasswordHash = register.Password;      //BURAYA DİKKAT!!! KONTROL EDİLECEK. UI katmanında da olabilir demişti.
             user.Address = register.Address;
             user.Status = Domain.Enums.Status.Active;
             user.CreateDate = DateTime.Now;
 
-            var result= await _userManager.CreateAsync(user);
+            var result= await _userManager.CreateAsync(user);    //AppUser istiyor. 
 
             if(result.Succeeded) {
-               await  _signInManager.SignInAsync(user, false);
-               await _userManager.AddToRoleAsync(user, "User");
-
+               await  _signInManager.SignInAsync(user, false);      //persistent yani kalıcı olması : false
+               await _userManager.AddToRoleAsync(user, "User");     // "User"   AspNetRoles tablosundaki Name alanından geliyor. Aynı anda birden fazla rol verebilmek için; AddToRolesAsync.
+                                                                            //Ya da register başlangıçta olmayıp yönetim panelinden admin tanımlayacak. Kullanıcıya rol seçimi verilemez.
             }
+
             return result.Succeeded;
         }
     }
 
 
-
+    // <bool> yazmamızdaki maksat daha sonra test ettiğimizde çalışıp çalışmadığını anlayabilmek
 
     public interface IAppUserService
     {
@@ -1263,6 +1268,108 @@ Ayrıca AspNetUsers tablosunda yeni kullanıcıyı da oluşturmuş.
 
 
 
+20. Ağacın en tepesinde sağ tık - Add - New Project - ASP.NET Core Web App (MVC) - Hardware.UI ismini verdik - .NET 6.0 , authentication type : none , configure klikli, enable kliksiz , do not kliksiz - create
+
+
+21. Katmanların birbirini görmesi için Hardware.UI üzerinde sağ tık - Add - Project Reference - Hardware.Application tikleyip kaydediyoruz.
+
+
+22. appsettings.json içine querystring ekleyecekti ama eklemedi infrasturcture da tanımlı olduğundan. Deneyelim dedi.
+
+
+23. Program.cs içerisine aşağıdaki eklemeleri yaptık;
+
+
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+-------İLE
+
+
+//Context sınıfı ile ilgili ayarları yap...
+
+//ZATEN INFRASTRUCTURE KATMANINDA CONNECTION BİLGİSİNİ VERMİŞTİK. O YÜZDEN BUNU KAPATTIK.
+//builder.Services.AddDbContext<HardwareDBContext>(x => x.UseSqlServer(
+//    builder.Configuration.GetConnectionString("ConnStr")
+//    ));
+
+builder.Services.AddDbContext<HardwareDBContext>(x => x.UseSqlServer());
+
+
+//Standart Identity kullanımının dışına çıktığımız için;
+
+builder.Services.AddIdentity<AppUser, AppRole>(x => {
+
+    //BU ARAYA FARKLI ÖZELLİKLER EKLENEBİLİR. LOGIN-LOGOUT-REGISTER KONULARINDA
+
+    x.Password.RequiredLength = 7;
+    
+}).AddEntityFrameworkStores<HardwareDBContext>();
+
+
+
+//IoC =>Inversion Of Control...
+
+//Gerektikce ekle...
+builder.Services.AddTransient<IAppUserService,AppUserService>();
+//builder.Services.AddTransient<IAppUserRepository, AppUserRepository>();
+
+--------------------ARASINA
+
+
+var app = builder.Build();
+
+
+
+24. Hardware.UI üzerinde sağ tık - Add - New Scaffolded Item - MVC Area - Create - AdminPanel ismi verdik - Add
+
+
+25. Hardware.UI üzerinde sağ tık - Add - New Scaffolded Item - MVC Area - Create - UserPanel ismi verdik - Add
+
+
+26. Kendi oluşan aşağıdaki kodu kopyalayıp program.cs içinde aşağıdaki yere yapıştırıyoruz. Kaç Area oluşrsa olsun bu işlemi bir defa yapıyoruz.
+
+app.UseEndpoints(endpoints =>
+        {
+          endpoints.MapControllerRoute(
+            name : "areas",
+            pattern : "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+          );
+        });
+
+
+
+
+app.UseAuthorization();
+//eklemeyi unutma....
+
+--------------------------İLE
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+      name: "areas",
+      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+    );
+});
+
+
+--------------------------ARASINA
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+
+
+
+
+
+
+24. Hardware.UI üzerinde sağ tık - Add - New Scaffolded Item - MVC Area - Create - AdminPanel ismi verdik - Add
 
 
 
@@ -1274,12 +1381,15 @@ Ayrıca AspNetUsers tablosunda yeni kullanıcıyı da oluşturmuş.
 
 
 
+DİKKAT!!! CATEGORY SERVICE İÇİNDE INTERFACE MİRAS VERİLMEDİ. 
+REGISTER YAZARKEN HOCA DAHA PRTAİK YÖNTEM VAR DEDİ GÖSTERİRİM DEDİ AUTOMAPPER SOR.
+user.PasswordHash = register.Password;      //BURAYA DİKKAT!!! KONTROL EDİLECEK.  UI KATMANI İÇİNDE OLABİLİR KONUŞURUZ DEMİŞTİ.??? 
 
-DİKKAT!!! CATEGORY SERVICE İÇİNDE INTERFACE MİRAS VERİLMEDİ.
+app.UseAuthorization();
+//eklemeyi unutma....
 
 
 
-ASPNETUSERS TABLOSUNA BASE ALANLAR GELMEDİ. 
 create date doğru formatta gelmemişti aspnetusersta
 
 
