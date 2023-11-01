@@ -322,6 +322,7 @@ bkz. foto
     //İlişkiyi kendisi kurduğu için EF halledecek.
 
 
+    //Rol için veritabanında oluşan çokaçok tabloyu burada model oluşturmadık.
 
 
     public class AppRole : IdentityRole<int>, IBaseEntity
@@ -330,6 +331,8 @@ bkz. foto
         public DateTime? UpdateDate { get; set; }
         public DateTime? PassiveDate { get; set; }
         public Status Status { get; set; }
+
+        public ICollection<AppUser>? Users { get; set; }
     }
 
 
@@ -350,6 +353,8 @@ bkz. foto
 
         public ICollection<Product>? Products { get; set; }
         public ICollection<Invoice>? Invoices { get; set; }
+
+        public ICollection<AppRole>? Roles { get; set; }
 
     }
 
@@ -718,6 +723,9 @@ DİKKAT!!! Tepesolution üzerinde sağ tık - properties - current selection
     {
         public void Configure(EntityTypeBuilder<AppUser> builder)
         {
+            //DİKKAT!!! NORMALIZEDUSERNAME VE NORMALIZEDEMAIL BOŞ BIRAKILMAYACAK VE BÜYÜK HARFLERLE DOLDURULACAK. LOGIN İŞLEMİNDE IDENTITY NİN BUNA BAKTIĞI ANLAŞILDI TESTTE.
+            //IDENTITY VARSAYILAN DÜZENİNE UYSAYDIK KENDİSİ DOLDURUYORDU. BİZ MÜDAHALE ETTİĞİMİZ İÇİN BUNLARI DA DOLDURMAK ZORUNDAYIZ.
+            // SecurityStamp de olmazsa yanlış çalışır.
 
             AppUser user = new AppUser
             {
@@ -725,9 +733,14 @@ DİKKAT!!! Tepesolution üzerinde sağ tık - properties - current selection
                 FirstName = "root",
                 LastName = "user",
                 UserName = "rootUser",
+                NormalizedUserName = "ROOTUSER",
                 Email = "rootuser@deneme.com",
+                NormalizedEmail="ROOTUSER@DENEME.COM",
+                Status = Domain.Enums.Status.Active,
+                CreateDate = DateTime.Now,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 Address="Everywhere"
+                
             };
 
             PasswordHasher<AppUser> password = new PasswordHasher<AppUser>();
@@ -861,6 +874,8 @@ public class HardwareDBContext:IdentityDbContext<AppUser,AppRole,int>
         {
             base.OnModelCreating(builder);
 
+            builder.ApplyConfiguration<AppRole>(new AppRoleCFG());
+            builder.ApplyConfiguration<AppUser>(new AppUserCFG());
             builder.ApplyConfiguration<Product>(new ProductCFG());
             builder.ApplyConfiguration<Brand>(new BrandCFG());
             builder.ApplyConfiguration<Category>(new CategoryCFG());
@@ -868,8 +883,8 @@ public class HardwareDBContext:IdentityDbContext<AppUser,AppRole,int>
             builder.ApplyConfiguration<Invoice>(new InvoiceCFG());
             builder.ApplyConfiguration<InvoiceDetail>(new InvoiceDetailCFG());
             builder.ApplyConfiguration<ShoppingCart>(new ShoppingCartCFG());
-            builder.ApplyConfiguration<AppUser>(new AppUserCFG());
-            builder.ApplyConfiguration<AppRole>(new AppRoleCFG());
+            
+            
         }
     }
 
@@ -1262,7 +1277,8 @@ public class RegisterDTO
     }
 
 
-DİKKAT!!! AspNetUsers tablosuna BaseEntity alanlar gelmemişti. Hoca nugetten komut girerken dikkat. default project Infrastructure seçilmeli. drop-database ve remove-migration yaptık ve add migration init ve update-database yaptık.
+DİKKAT!!! AspNetUsers tablosuna BaseEntity alanlar gelmemişti. Hoca nugetten komut girerken dikkat. default project Infrastructure seçilmeli. HardwareDbContext sayfası üzerinde olunması gerekiyor.
+drop-database ve remove-migration yaptık ve add migration init ve update-database yaptık.
 Sonuçta hem AspNetUsers hem de AspNetRoles tabloları başlarına eklendi alanlar.
 Ayrıca AspNetUsers tablosunda yeni kullanıcıyı da oluşturmuş.
 
@@ -1369,7 +1385,230 @@ app.Run();
 
 
 
-24. Hardware.UI üzerinde sağ tık - Add - New Scaffolded Item - MVC Area - Create - AdminPanel ismi verdik - Add
+27. Areas - AdminPanel - Controllers üzerinde sağ tık - Add - Controller - Empty - Add - PanelController adını verdik - Add
+
+[Area("AdminPanel")]
+    public class PanelController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+
+
+28. AdminPanel - PanelController içindeki Index aksiyonu/metodu üzerinden sağ tık - Add View - Empty - Add - Index.cshtml adını verdik - Add
+
+<h1>Admin Panel...</h1>
+
+
+
+29. Areas - UserPanel - Controllers üzerinde sağ tık - Add - Controller - Empty - Add - PanelController adını verdik - Add
+
+[Area("UserPanel")]
+    public class PanelController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+
+
+
+30. UserPanel - PanelController içindeki Index aksiyonu/metodu üzerinden sağ tık - Add View - Empty - Add - Index.cshtml adını verdik - Add
+
+<h1>User Panel...</h1>
+
+
+
+
+31. Login ekranı için ana Controllers üzerinde sağ tık - Add - Controller - Empty - Add - LoginController adını verdik - Add
+
+//Diikat!!! Artık iş hesaplamaları servislerin içerisinde. Burada sadece veriyi al kontrol et ve gönder kısmı var.
+
+public class LoginController : Controller
+    {
+        
+        private readonly IAppUserService _appUserService;
+
+
+
+        public LoginController(IAppUserService appUserService)
+        {
+            _appUserService=appUserService;
+        }
+
+
+        
+        public async Task<IActionResult> Login()
+        {
+            return View();
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginDTO login)
+        {
+            //return Content(login.UserName + " " + login.Password);
+            var result = await _appUserService.LoginAsync(login);
+
+            if (result)
+                return Content("login islemi basarili...");
+            else
+                return Content("hatalı giris...");
+        }
+
+
+
+        public IActionResult LogOut()
+        {
+            return View();
+        }
+
+
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterDTO register)
+        {
+            var result= await _appUserService.RegisterUserAsync(register);
+            if (result)
+                return Content("olustu...");
+            else
+                return Content("hata  var...");
+        }
+    }
+
+
+
+
+
+32. Ana Controller altındaki LoginController içindeki Login aksiyonu/metodu üzerinden sağ tık - Add View - Empty - Add - Login.cshtml adını verdik - Add
+Scaffold yaptık ama çalışmadı.
+
+@using Hardware.Application.Models.DTOs.Login;
+@model LoginDTO;
+
+<form asp-action="Login" method="post">
+    <table class="table table-striped">
+        <tr>
+            <td>
+                User Name:
+            </td>
+            <td>
+                <input type="text" asp-for="UserName"  class="form-control"/>
+            </td>
+            </tr>
+            <tr>
+            <td>
+                Password:
+            </td>
+            <td>
+                <input type="password" asp-for="Password" class="form-control" />
+            </td>
+            </tr>
+            <tr>
+            <td colspan="2">
+              <input type="submit"  value="Login"/>
+            </td>
+        </tr>
+    </table>
+</form>
+
+
+
+//KATMANSIZ PROJEDE SCAFFOLD YAPIP BURAYA ATILABİLİR. YÖNTEMLERDEN BİRİ. DATABASE FIRST YAKLAŞIMI İLE. ÖNCE PROJEDE MIGRATION YAPIP DATABASE OLUŞTURUP SONRA VAR OLAN DB ÜZERİNDEN DATABASE FIRST İLE İKİNCİ PROJE OLUŞTURULABİLİR.
+
+
+
+33. Ana Controller altındaki LoginController içindeki Register aksiyonu/metodu üzerinden sağ tık - Add View - Empty - Add - Register.cshtml adını verdik - Add
+
+@using Hardware.Application.Models.DTOs.Login;
+@model RegisterDTO;
+
+<form asp-action="Register" method="post">
+    <table class="table table-striped">
+        <tr>
+            <td>
+                <label asp-for="FirstName"></label>
+            </td>
+            <td>
+                <input type="text" asp-for="FirstName" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="LastName"></label>
+            </td>
+            <td>
+                <input type="text" asp-for="LastName" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="Address"></label>
+            </td>
+            <td>
+                <input type="text" asp-for="Address" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="UserName"></label>
+            </td>
+            <td>
+                <input type="text" asp-for="UserName" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="Email"></label>
+            </td>
+            <td>
+                <input type="text" asp-for="Email" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="Password"></label>
+            </td>
+            <td>
+                <input type="password" asp-for="Password" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="ConfirmPassword"></label>
+            </td>
+            <td>
+                <input type="password" asp-for="ConfirmPassword" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" value="Register User" />
+            </td>
+        </tr>
+    </table>
+</form>
+
+
+
+34. Projeyi çalıştırıp kullanıcı oturum açılması ve kullanıcı eklenmesi konuları test edildi.
+
+
+
+
+
+
+
 
 
 
@@ -1383,13 +1622,17 @@ app.Run();
 
 DİKKAT!!! CATEGORY SERVICE İÇİNDE INTERFACE MİRAS VERİLMEDİ. 
 REGISTER YAZARKEN HOCA DAHA PRTAİK YÖNTEM VAR DEDİ GÖSTERİRİM DEDİ AUTOMAPPER SOR.
+
 user.PasswordHash = register.Password;      //BURAYA DİKKAT!!! KONTROL EDİLECEK.  UI KATMANI İÇİNDE OLABİLİR KONUŞURUZ DEMİŞTİ.??? 
 
 app.UseAuthorization();
 //eklemeyi unutma....
 
 
+//builder.Services.AddTransient<IAppUserRepository, AppUserRepository>();  buna bakacaktık hata vermişti. scaffold view yapmaya çalışıyorduk
 
-create date doğru formatta gelmemişti aspnetusersta
+rooyUser admin için role tablosuna 1 1 eklenecek. yarım kaldı.
+
+
 
 
