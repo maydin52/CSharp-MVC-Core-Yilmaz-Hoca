@@ -957,6 +957,207 @@ PK FK ilişkisi gereği eğer kitap tablosuyla yazar tablosunu ilişkilendirecek
 
 
 -----------------------------------------------------------------------------------------
+11-MVC-Prj-02-4-14_15.10
 
+
+
+ÇOKA ÇOK İLİŞKİ 
+
+
+1. VM Oluşturulması
+
+public class BookVM
+    {
+        public Book Book { get; set; }
+        public SelectList Categories  { get; set; }
+        public SelectList Authors  { get; set; }
+
+        public string GetIDs { get; set; }
+        //public ICollection<int> AuthorID { get; set; }
+    }
+
+
+
+
+2. Areas - AdminPanel - Controllers - BookController
+
+    [Area("AdminPanel")]
+    [Authorize]            //    ARTIK OTURUM AÇILDIĞINDA BURAYA GİRİŞ YAPILABİLİR. DİKKAT AREAS - ADMINPANEL ALTINDAKİ TÜM CONTROLLERLARA EKLE.
+    public class BookController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public BookController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public IActionResult Index()
+        {
+            return View(_context.Books.Include("Category").ToList());
+        }
+
+        public IActionResult Create()
+        {
+            BookVM bookVM = new BookVM();
+
+            bookVM.Categories = new SelectList(_context.Categories, "CategoryID", "CategoryName");
+            bookVM.Authors = new SelectList(_context.Authors, "AuthorID", "FullName");
+            //bookVM.AuthorID = new List<int>();
+            return View(bookVM);
+        }
+
+
+        // DİKKAT !!! HANGİ VERİLERİN GELİP GELMEDİĞİNE BU ŞEKİLDE KONTROL ETTİ.
+        //[HttpPost]
+        //public IActionResult Create(IFormCollection frm)
+        //{
+            //string str = "";
+
+            //foreach (var s in frm)
+                //str += s.Key + "=>" + s.Value + " ";
+
+            //return Content("authorName" + str)            //DİKKAT!!! SCRİPT TAGİ İÇİNDE GEÇİYOR authorName
+        //}
+
+
+        [HttpPost]
+        public IActionResult Create(Book book, string getIds)
+        {
+            string[] authorIDs = getIds.Split(' ');
+            //Console.WriteLine(authorIDs.Length);
+            List<BookAuthor> authors = new List<BookAuthor>();
+            for (int i= 0;i < authorIDs.Length - 1;i++)            //ENSONDAKİ BOŞLUKTAN KURTULMAK İÇİN
+            {
+                authors.Add(new BookAuthor { AuthorID = int.Parse(authorIDs[i]), Book = book });  //AUTHORID LER HIDDEN DAN GELİYOR. DİKKAT! Book = book BOOK TABLOSUNA BİRŞEY YAZMADIM. UOW
+            }
+
+            book.BookAuthors = authors;    // YUKARIDAKİ LİST İ NAV PROP ATTIK.
+
+            _context.Books.Add(book);
+            _context.BooksAuthors.AddRange(authors);    // BİRDEN FAZLA OLDUĞUNDAN
+            _context.SaveChanges();        //UOW
+
+            return RedirectToAction("Index");
+        }
+    }
+
+
+
+3. BookController ın Index.cshtml
+
+@model IEnumerable<Book>
+
+    <a asp-area="AdminPanel" asp-controller="Book" asp-action="Create">Add a Book</a>
+    <br />
+<table>
+@foreach(Book book in Model)
+{
+    <tr>
+        <td>@book.BookName</td>
+        <td>@book.Category.CategoryName</td>
+        <td>@book.Price</td>
+    </tr>
+}
+</table>
+
+
+
+
+4. BookController ın Create.cshtml
+
+@using MVC_BookApp.Models.ViewModels;
+@model BookVM
+
+
+// BURADA DAHA BASİT BİR ÇÖZÜM Kİ ŞÖYLE; HER BİR SEÇİLEN İÇİN SUNUCUYA GİDİP SORDURABİLİRDİK. AMA BU ŞEKİLDE SUNUCUYA TEK SEFERDE GİTTİK. HER SEÇİLENİN KİM OLDUĞUNU SORMAK İÇİN GİTMEDİK.
+<script>
+    function selectAuthor(data)
+    {
+        //Secilen ad....
+        let text = data.options[data.selectedIndex].text;
+        //let frm = document.getElementById("frmBook");
+        let authors = document.getElementById("authorsDiv");
+        let hidden = document.getElementById("Ids");
+
+        let input = document.createElement("input");
+        //let label =document.createElement("label");
+        input.type="text";                                            //SEÇİLDİKÇE EKLENEN TEXTBOX
+        input.value= text;
+        input.readOnly=true;
+        input.name = data.value;
+        
+        input.addEventListener("click",(e)=>{ 
+            let id=e.target.name;
+            let authors = document.getElementById("authorsDiv");
+            let hidden = document.getElementById("Ids");
+          
+            hidden.value = hidden.value.replace(id+" ", "");    //BOŞLUKTAN DOLAYI ÇIKMIYORDU.
+            authors.removeChild(e.target);
+        });
+     
+
+        hidden.value += data.value + " ";
+      
+        authors.appendChild(input);                
+        // FORMUN İÇİNE EKLE DEMEK. NESNEYİ OLUŞTURMAK EKRANDA GÖRÜNMESİ İÇİN YETERLİ DEĞİL. 
+        // O KOLEKSİYONA EKLENMESİ GEREK. WİNDOWS FORMDAKİ THİSLE EKLEME GİBİ.
+        // DİĞER TÜRLÜ RAMDE VARDIR AMA EKRAN GÖRÜNTÜSÜ YOKTUR.
+  
+    }
+
+   
+</script>
+
+<form method="post" enctype="multipart/form-data" asp-area="AdminPanel" asp-controller="Book" asp-action="Create" id="frmBook">
+<table class="table table-striped">
+    <tr>
+        <td><label asp-for="Book.BookName"></label></td>
+        <td><input type="text" asp-for=Book.BookName class="form-control" /></td>
+    </tr>
+        <tr>
+            <td><label asp-for="Book.ReleaseDate"></label></td>
+            <td><input type="date" asp-for=Book.ReleaseDate class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Book.Category"></label></td>
+            <td><select  asp-for=Book.CategoryID asp-items=Model.Categories class="form-control"></select></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Book.Price"></label></td>
+            <td><input type="text" data-type="currency" asp-for=Book.Price class="form-control" /></td>
+        </tr>
+
+        <tr>
+            <td><label asp-for="Book.CoverImage"></label></td>
+            <td><input type="file"  asp-for=Book.CoverImage class="form-control" />
+                <input type="hidden" asp-for=Book.CoverImagePath class="form-control" value="empty.jpg" />
+            </td>
+        </tr>
+        <tr>
+            @*<td><label asp-for=""></label></td>*@
+            <td>Authors</td>
+            <td>
+                <select asp-items=Model.Authors class="form-control" onchange="selectAuthor(this)">
+                    <option value="" disabled selected hidden>Seciniz... </option >
+                </select>
+                <input type="hidden" id="Ids" value="" name="GetIDs"/>
+                <ul id="authorsDiv" >
+
+                </ul>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2">
+                <input type="submit" value="Add Book" />
+            </td>
+        </tr>
+</table>
+</form>
+
+
+
+               
 
 
