@@ -956,7 +956,547 @@ INDEX
 </table>
 
 
+-------------------------------------------------------------------------------------------
+07-MVC-Prj-01-2-30.09
+
+adamın ihtiyacına göre teknoloji seçmek gerekiyor.
+küçük bir projenin veya gelecekte büyüme ihtimali olmayan yerlerde katmanlı mimariye ihtiyacı yok.
+Bazen katmanlıda scaffolding doğru çalışmazsa (sınıfı görmüyormuş) katmansız yapıp kodu alıp katmanlıya atarak ta soru çözülebiliyor.
+Özelleştirirken ypılması gereken bazı özelleştirmeler var.
+zaman maliyeti, bütçe
+
+Core olmayan MVC de de scaffolding olduğundan html helper yapısını değiştirmemiş.
+
+type hidden yapmak : kullanıcıya gelir ama gösterilmez. performanstan dolayı uygun değil.
+
+Dikkat!!!! arkada çalışan sql cümlelerini açılan exe promptunda da görebilirsiniz. Düz mvc de bu yok. 
+Bu dosya açık kalmalı. Yoksa yeniden compile edilmesi gerekiyor.
+
+sql üzerinde değişiklik yapılacaksa migration yapılmalı.
+
+yazılımcı 4x4 araç gibidir. yol yoksa arazi ye alır, yol varsa basar gider yani kurguyu bileceğiz ama tool ları da kullanacağız.
+
+create de hem combobox hemde resim eklemeyi viewmodel kullanacağız ikinci projede
+
+---------------------------------------------------------- Scaffolding haricindeki uygulama
+1. CarController ın Index.cshtml dosasında bazı kolonları açıklama satırı haline getirdik.
+// class="img-thumbnail"   resme çerçeve koyuyor ama tam thumbnail uygulamas değil yani resim küçülmüş değil.
 
 
+@model IEnumerable<MVCAppArac.Models.Car>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+    <br />
+    <a asp-action="AddCarVM">Create New Car(VM)</a>
+    <br /><br />
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ImagePath)
+            </th>
+
+            <th>
+                @Html.DisplayNameFor(model => model.NumberPlate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Model)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ModelYear)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Color)
+            </th>
+           
+            <th>
+                @Html.DisplayNameFor(model => model.Details)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ListPrice)
+            </th>
+           @* <th>
+                @Html.DisplayNameFor(model => model.AddedDate)
+            </th>*@
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Brand)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+                <td>
+                   @* <img src="~/CarImages/@item.ImagePath" width="200px" height="140px">*@
+                    <img src="~/CarImages/@item.ImagePath" class="img-thumbnail">
+                </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.NumberPlate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Model)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ModelYear)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Color)
+            </td>
+           
+            <td>
+                @Html.DisplayFor(modelItem => item.Details)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ListPrice)
+            </td>
+          @*  <td>
+                @Html.DisplayFor(modelItem => item.AddedDate)
+            </td>*@
+            <td>
+                @Html.DisplayFor(modelItem => item.Category.CategoryName)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.BrandID)
+                @Html.DisplayFor(modelItem => item.Brand.BrandName)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.CarID">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@item.CarID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+
+--------------------------------------
+2. Car/Index sayfasında Category ve Brand bilgilerini getirdik. 
+CONTROLLERDA JOIN YAPTIK. INDEXTE ALANI YAKALADIK. Navigation property üzerinden zıplayarak diğer alanlara ulaşım sağlayabiliyoruz.
+COMBOBOX yaptık.
+
+public class CarController : Controller
+    {
+        private readonly GalleryContext _galleryContext;
+
+        public CarController(GalleryContext galleryContext)
+        {
+            _galleryContext = galleryContext;
+        }
+
+        public IActionResult Index()
+        {
+            //Veriler başlangıçta JOIN li gelmez....
+            //JOIN için;
+            //1.Yontem:LINQ sorgusu yaz
+            //var result = from c in _galleryContext.Cars
+            //             join cat in _galleryContext.Categories
+            //             on c.CategoryID equals cat.CategoryID
+            //             select c;
+            //return View(result);
+            //sorguyu görmek için exe dosyaya bak.
+
+            //2.Yontem:Include kullanımı (EAGER LOADING)  GENEL YÖNTEM;
+            //NAV PROP İKİ AMAÇ İÇİN KULLANIRIZ; 1- PK-FK İLİŞKİSİ, 2- JOIN İÇİN (KULLANIMI AŞAĞIDA. INCLUDE)
+            //var result = _galleryContext.Cars.Include(x => x.Brand).Include(x => x.Category).ToList();    //BRAND VE CATEGORY CLASSLARDAKİ NAVIGATION PROPERTY
+            //return View(result);
+            //sorguyu görmek için exe dosyaya bak.
+
+            //3.Yonetm: Lazy Loading kullanımı... 
+            //SERİLEŞTİRME YAPILDIĞINDA SONSUZ DÖNGÜYE GİRDİĞİNDEN MAHSURLU.SERİLEŞTİRECEĞİMİZ SINIFLARI VIEWMODEL İLE AYIRIP ONDAN SONRA KULLANIYORLARMIŞ.
+            //CORE DA AYAR YAPMADAN VARSAYILAN OLARAK KULLANILAMIYOR.
+            //Oncelikle Nuget uzerinden; 
+            //Microsoft.EntityFrameworkCore.Proxies yukle...
+            //Tum navigation Proplar virtual olmalı...
+            //DbContext sınıfından turetilen context sınıfı içerisinde OnConfiguring() metodu içerisinde optionsBuilder.UseLazyLoadingProxies(); //VARSAYIALN AYARI TRUE
+            //return View(_galleryContext.Cars.ToList());       //ARTIK KENDİSİNİN DOLDURUP GETİRMESİ LAZIM.
+            //sorguyu görmek için exe dosyaya bak.  //ÜÇ AYRI SORGU GELDİ. 100 TANE SATIR VAR. HER SEFERİNDE SELECT CÜMLESİ YAZACAK.
+        }
+
+
+Aşağıda Brand üzerinden BrandName e ulaştık.
+Örneğin;
+            <td>
+                    @Html.DisplayFor(modelItem => item.BrandID)
+                @Html.DisplayFor(modelItem => item.Brand.BrandName)        //EKLENEN SATIR
+            </td>
+
+
+--------------------------------------
+3. Car/Create aksiyonu oluşturuyoruz.
+Kullanıcı Index sayfasındaki Create New linkine tıkladığında;
+
+    public class CarController : Controller
+    {
+        public IActionResult Create() 
+        {
+            //Form ekrarını goster
+            //comboboxlar için viewbaglar;
+            // DİKKAT!!! ÖNÜNDE NEW VAR. new SelectList( 5 TANE AŞIRI YÜKLENMİŞ CONSTRUCTOR I VAR.
+            ViewBag.Markalar = new SelectList(_galleryContext.Brands.ToList(),"BrandID","BrandName");
+            ViewBag.Kategoriler = new SelectList(_galleryContext.Categories.ToList(), "CategoryID", "CategoryName");
+            return View();
+        }
+
+        //Kullanıcı alanı doldurmamasına karşılık, required anonation ve taglarin içinde kullanımı ve If ModelState.IsValid kullanımı
+        //benzersiz isim verilmezse resimlerde karışıklık oluşabilir.
+
+        [HttpPost]
+        public IActionResult Create(Car car)
+        {
+            //Form Post edildiğinde calis...
+            if (ModelState.IsValid)
+            {
+                //yapılacak isleri ekle...
+
+                string dosyaAdi = car.Image.FileName;
+
+                //GUID Kullanımı Globaly Unit Identifier - çok zaıf bir ihtimal- yanına id vs eklenir ihtimal daha  da düşürülebilir
+                Guid guid = Guid.NewGuid();
+                dosyaAdi = guid+"_"+ dosyaAdi;
+
+                FileStream fs = new FileStream("wwwroot/CarImages/" + dosyaAdi, FileMode.Create);
+                car.Image.CopyTo(fs);
+                fs.Close();
+                car.ImagePath = dosyaAdi;          //ImagePath sql deki varchar(100) bu yüzden
+
+                _galleryContext.Cars.Add(car);
+                _galleryContext.SaveChanges();
+
+              return RedirectToAction("Index"); 
+            }
+            return View();
+        }
+    }
+
+
+-----
+
+Create.cshtml      //ismi aynı olması mecbur değil ama genel kullanım aynı
+//DİKKAT!!!   scaffolddaki aradığım şey; HTML helper @Html.DisplayFor(modelItem => item.BrandID) -  tag helper: asp-for="NumberPlate"
+//form kullanmadan js kullanarak yakalayıp arkadan da post etme durumu var.
+//Brand combobox uygulamasına dikkat (model dışındaki seçeneklerin hepsi)
+//imaj ekleme uygulaması yaptık.
+
+@model Car
+
+<form method="post" asp-controller="Car" asp-action="Create" enctype="multipart/form-data">
+    <table class="table table-bordered">
+        <tr>
+            <td><label asp-for="NumberPlate"></label></td>
+            <td><input type="text" asp-for="NumberPlate" class="form-control" /></td>
+        </tr>
+         <tr>
+            <td><label asp-for="Brand"></label></td>
+            <td><select asp-for="BrandID" asp-items="@ViewBag.Markalar" class="form-control">
+                <option value="">Choose a brand </option>
+            </select></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Category"></label></td>
+            <td><select asp-for="CategoryID" asp-items="@ViewBag.Kategoriler" class="form-control"></select></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Model"></label></td>
+            <td><input type="text" asp-for="Model" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="ModelYear"></label></td>
+            <td><input type="number" asp-for="ModelYear" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Color"></label></td>
+            <td><input type="text" asp-for="Color" class="form-control" /></td>
+        </tr>
+          <tr>
+            <td><label asp-for="Image"></label></td>
+            <td><input type="file" asp-for="Image" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="ListPrice"></label></td>
+            <td><input type="text" asp-for="ListPrice" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Details"></label></td>
+            <td><textarea cols="50" rows="5" class="form-control" asp-for="Details"></textarea></td>
+        </tr>
+       <tr>
+           <td colspan="2">
+               <input type="submit" value="Save Car Data" class="btn btn-primary" />
+           </td>
+       </tr>
+    </table>
+
+</form>
+
+------
+
+wwwwroot içinde CarImages klasörü açtık.
+
+-------
+4. ViewModel kullanımı (ViewBag kullanmasaydık)
+
+4.a Index sayfasına  <a asp-action="AddCarVM">Create New Car(VM)</a> ekledik.
+
+4.b Model içinde ViewModels klasörü oluştur. Altında CarVM veya VMCar adında bir class oluştur. Bunun veritabanında bir karşılığı yok. Sadece View tarafında kullanılacak.
+ViewBag de front end çiye ben viewbag.Markalar oluşturdum demeniz lazım. Böyle olunca direkt kendisi ulaşıyor zaten
+ViewModel daha modern ve profesyonel
+
+public class CarVM
+    {
+        public  Car Car { get; set; }
+        public SelectList  Brands { get; set; }
+        public SelectList Categories { get; set; }
+    }
+
+4.c CarController a aşağıdaki aksiyonu ekledik.
+
+        public IActionResult AddCarVM()
+        {
+            CarVM carVM = new CarVM();
+            carVM.Brands = new SelectList(_galleryContext.Brands.ToList(), "BrandID", "BrandName");
+            carVM.Categories = new SelectList(_galleryContext.Categories.ToList(), "CategoryID", "CategoryName");
+            return View(carVM);
+        }
+
+        [HttpPost]
+        public IActionResult AddCarVM(Car car)
+        {
+            if (ModelState.IsValid)
+            {
+                //yapılacak isleri ekle...
+
+                string dosyaAdi = car.Image.FileName;
+
+                //GUID Kullanımı
+                Guid guid = Guid.NewGuid();
+                dosyaAdi = guid + "_" + dosyaAdi;
+
+
+                FileStream fs = new FileStream("wwwroot/CarImages/" + dosyaAdi, FileMode.Create);
+                car.Image.CopyTo(fs);
+                fs.Close();
+                car.ImagePath = dosyaAdi;
+
+                _galleryContext.Cars.Add(car);
+                _galleryContext.SaveChanges();
+
+
+                return RedirectToAction("Index");
+            }
+        
+            return View();
+        }
+
+4.d AddCarVM.cshtml oluşturduk.
+action değiştirdik.
+modeli değiştirdik. asp-for lar patladı. Car.xxxx olarak düzelttik
+viewbagler patladı. @Model.xxx olarak düzelttik
+
+
+@using MVCAppArac.Models.ViewModels;
+@model CarVM
+
+
+<form method="post" asp-controller="Car" asp-action="AddCarVM" enctype="multipart/form-data">
+    <table class="table table-bordered">
+        <tr>
+            <td><label asp-for="Car.NumberPlate"></label></td>
+            <td><input type="text" asp-for="Car.NumberPlate" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Brand"></label></td>
+            <td>
+                <select asp-for="Car.BrandID" asp-items="@Model.Brands" class="form-control">
+                    <option value="">Choose a brand </option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Category"></label></td>
+            <td><select asp-for="Car.CategoryID" asp-items="@Model.Categories" class="form-control"></select></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Model"></label></td>
+            <td><input type="text" asp-for="Car.Model" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.ModelYear"></label></td>
+            <td><input type="number" asp-for="Car.ModelYear" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Color"></label></td>
+            <td><input type="text" asp-for="Car.Color" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Image"></label></td>
+            <td><input type="file" asp-for="Car.Image" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.ListPrice"></label></td>
+            <td><input type="text" asp-for="Car.ListPrice" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Details"></label></td>
+            <td><textarea cols="50" rows="5" class="form-control" asp-for="Car.Details"></textarea></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" value="Save Car Data" class="btn btn-primary" />
+            </td>
+        </tr>
+    </table>
+
+</form>
+
+----------------------------------------------
+
+5. Delete aksiyonu
+
+Index.cshtml sayfasındaki 
+ <a asp-action="Delete" asp-route-id="@item.CarID">Delete</a>
+asp-route-id neden var? Silme, düzenleme id üzerinden. id olarak ne göndermek istiyorsak onu tanımlıyoruz.
+fareyle delete linkinin üzerine geldiğinde sol alttaki link önizlemesinde /id görünüyor. 
+
+CarController içinde;
+
+//parametre asp-route-id den geliyor.
+//Problem(Risk) !!!!           querystringten/id yazarsa silebilir. Sonraki projede olması gerekeni gösterecek.
+        public IActionResult Delete(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            Car car = _galleryContext.Cars.FirstOrDefault(x => x.CarID == id);
+
+            if (car != null)
+            {
+                _galleryContext.Cars.Remove(car);
+                _galleryContext.SaveChanges();
+            }
+            return RedirectToAction("Index");
+        }
+    }
+
+---------------------------------------------------------
+
+6. Edit aksiyonu
+Index.cshtml sayfasındaki 
+ <a asp-action="Edit" asp-route-id="@item.CarID">Edit</a>
+içinin dolu gelmesi gerekiyor form elemanlarının
+where IQuareable tipinde döndürüyor.
+
+CarController içinde;
+
+        public IActionResult Edit(int id)
+        {
+            CarVM carVM = new CarVM();
+            carVM.Car = _galleryContext.Cars.Where(x => x.CarID == id).SingleOrDefault();
+            carVM.Brands = new SelectList(_galleryContext.Brands.ToList(), "BrandID", "BrandName");
+            carVM.Categories = new SelectList(_galleryContext.Categories.ToList(), "CategoryID", "CategoryName");
+            return View(carVM);
+        }
+
+
+        //ÖNEMLİ!!! Edit formunda post yaptığımızda form elemanlarının içindeki değerler controller a gittiğinden carID aralarında yok.
+        // O zaman hidden yapacağız. Açıklama aşağıda.
+        //exe dosyasındaki sorgudan yakaladık.
+
+        [HttpPost]
+        public IActionResult Edit(Car car)
+        {
+            if (ModelState.IsValid)
+            {
+                //resim boş bırakıldığında kaydetme yapmıştı sonradan kaldırdı.          
+                //Car oldcar = _galleryContext.Cars.Find(car.CarID);
+                //car.ImagePath = oldcar.ImagePath;
+
+               _galleryContext.Entry<Car>(car).State = EntityState.Modified; 
+              // _galleryContext.Update(car);
+               _galleryContext.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View();
+        }
+
+
+
+Edit.cshtml;
+açıklaması yukarıda
+    <input type="hidden" asp-for="Car.CarID" />
+    <input type="hidden" asp-for="Car.ImagePath" />
+
+
+
+@using MVCAppArac.Models.ViewModels;
+@model CarVM
+
+
+<form method="post" asp-controller="Car" asp-action="Edit" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Car.CarID" />
+    <input type="hidden" asp-for="Car.ImagePath" />
+    <table class="table table-bordered">
+        <tr>
+            <td><label asp-for="Car.NumberPlate"></label></td>
+            <td><input type="text" asp-for="Car.NumberPlate" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Brand"></label></td>
+            <td>
+                <select asp-for="Car.BrandID" asp-items="@Model.Brands" class="form-control">
+                    <option value="">Choose a brand </option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Category"></label></td>
+            <td><select asp-for="Car.CategoryID" asp-items="@Model.Categories" class="form-control"></select></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Model"></label></td>
+            <td><input type="text" asp-for="Car.Model" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.ModelYear"></label></td>
+            <td><input type="number" asp-for="Car.ModelYear" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Color"></label></td>
+            <td><input type="text" asp-for="Car.Color" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Image"></label></td>
+            <td><input type="file" asp-for="Car.Image" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.ListPrice"></label></td>
+            <td><input type="text" asp-for="Car.ListPrice" class="form-control" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Car.Details"></label></td>
+            <td><textarea cols="50" rows="5" class="form-control" asp-for="Car.Details"></textarea></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" value="Edit Car Data" class="btn btn-primary" />
+            </td>
+        </tr>
+    </table>
+
+</form>
+
+-------------------------------------------------------------------------------------------
 
 
