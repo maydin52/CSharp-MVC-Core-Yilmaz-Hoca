@@ -636,64 +636,57 @@ public interface IBaseRepository<T> where T : IBaseEntity
     }
 
 
-    public interface IAppRoleRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface IAppRoleRepository : IBaseRepository<AppRole> 
+    {
+    }
+
+
+
+    public interface IAppUserRepository :IBaseRepository<AppUser> 
     {
 
     }
 
 
 
-    public interface IAppUserRepository<T> :IBaseRepository<T> where T:IBaseEntity 
+    public  interface IBrandRepository : IBaseRepository<Brand> 
     {
-
     }
 
 
 
-    public  interface IBrandRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface ICategoryRepository : IBaseRepository<Category>
     {
-
     }
 
 
 
-    public interface ICategoryRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface IInvoiceDetailRepository : IBaseRepository<InvoiceDetail> 
     {
-
     }
 
 
 
-    public interface IInvoiceDetailRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface IInvoiceRepository : IBaseRepository<Invoice> 
     {
-
     }
 
 
 
-    public interface IInvoiceRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface IModelRepository: IBaseRepository<Model> 
     {
-
     }
 
 
 
-    public interface IModelRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface IProductRepository : IBaseRepository<Product> 
     {
-
-    }
-
-
-    public interface IProductRepository<T> : IBaseRepository<T> where T : IBaseEntity
-    {
-
     }
 
 
 
-    public interface IShoppingCartRepository<T> : IBaseRepository<T> where T : IBaseEntity
+    public interface IShoppingCartRepository : IBaseRepository<ShoppingCart> 
     {
-
     }
 
 
@@ -928,19 +921,18 @@ Değerlerin gelip gelmediğine baktık.
     {
         private readonly HardwareDBContext _context;
         private readonly DbSet<T> table = null;
-
         public BaseRepository(HardwareDBContext context)
         {
             _context = context;
-            table = context.Set<T>();    //Set diye ayrı bir metot. Geriye DbSet tipinde döndürüyor.
+            table = context.Set<T>();          //Set diye ayrı bir metot. Geriye DbSet tipinde döndürüyor.
         }
-
         public async Task AddAsync(T entity)
         {
             entity.CreateDate = DateTime.Now;
             entity.Status = Domain.Enums.Status.Active;
             await table.AddAsync(entity);
             await _context.SaveChangesAsync();
+          
         }
 
         public async Task DeleteAsync(T entity)
@@ -948,11 +940,10 @@ Değerlerin gelip gelmediğine baktık.
             entity.Status = Domain.Enums.Status.Passive;
             entity.PassiveDate = DateTime.Now;
                  
-            _context.Entry(entity).State = EntityState.Modified;    //sql servere update cümlesi olarak yazacak.
-            await _context.SaveChangesAsync();        //açıklamasında awaitable yazanlarda await kullanılacak.
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
 
-       
         public async Task<T> FindByIDAsync(int id)
         {
             return await table.FindAsync(id);
@@ -963,26 +954,27 @@ Değerlerin gelip gelmediğine baktık.
             return await table.Where(x => x.Status == Status.Active).FirstOrDefaultAsync();
         }
 
-        public async Task<IQueryable<T>> GetAllAsync()
+        public Task<IQueryable<T>> GetAllAsync()
         {
             return Task.FromResult(table.Select(x => x));
         }
-
-        public async Task<IQueryable<T>> GetOnlyAllActivesAsync()
+        
+        public Task<IQueryable<T>> GetOnlyAllActivesAsync()
         {
             return Task.FromResult(table.Where(x => x.Status == Status.Active).Select(x => x));
         }
 
-
         public async Task<int> UpdateAsync(T entity)
         {
-            entity.Status = Domain.Enums.Status.Modified;
+            entity.Status = Domain.Enums.Status.Modified;        //sql servere update cümlesi olarak yazacak.
             entity.UpdateDate = DateTime.Now;
 
             _context.Entry(entity).State = EntityState.Modified;
-            return await _context.SaveChangesAsync();
+            _context.Update(entity);
+            return await _context.SaveChangesAsync();            //açıklamasında awaitable yazanlarda await kullanılacak.
         }
     }
+
 
 
 
@@ -1012,7 +1004,7 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-    public class BrandRepository:BaseRepository<Brand>
+    public class BrandRepository:BaseRepository<Brand>,IBrandRepository
     {
         public BrandRepository(HardwareDBContext context):base(context) 
         {
@@ -1022,7 +1014,7 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-    public class CategoryRepository:BaseRepository<Category>
+    public class CategoryRepository:BaseRepository<Category>,ICategoryRepository
     {
         public CategoryRepository(HardwareDBContext context):base(context) 
         {
@@ -1032,7 +1024,7 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-    public class InvoiceDetailRepository:BaseRepository<InvoiceDetail>
+    public class InvoiceDetailRepository:BaseRepository<InvoiceDetail>,IInvoiceDetailRepository
     {
         public InvoiceDetailRepository(HardwareDBContext context):base(context) 
         {
@@ -1041,7 +1033,8 @@ Değerlerin gelip gelmediğine baktık.
     }
 
 
-    public class InvoiceRepository:BaseRepository<Invoice>
+
+    public class InvoiceRepository:BaseRepository<Invoice>,IInvoiceRepository
     {
         public InvoiceRepository(HardwareDBContext context):base(context)
         {
@@ -1051,7 +1044,7 @@ Değerlerin gelip gelmediğine baktık.
 
 
 
-    public class ModelRepository:BaseRepository<Model>
+    public class ModelRepository:BaseRepository<Model>,IModelRepository
     {
         public ModelRepository(HardwareDBContext context):base(context) 
         {
@@ -1059,9 +1052,6 @@ Değerlerin gelip gelmediğine baktık.
         }
     }
 
-
-
-dikkat!!!!!!!!!
 
 
     public class ProductRepository:BaseRepository<Product>,IProductRepository
@@ -1074,7 +1064,7 @@ dikkat!!!!!!!!!
 
 
 
-    public class ShoppingCartRepository:BaseRepository<ShoppingCart>
+    public class ShoppingCartRepository:BaseRepository<ShoppingCart>,IShoppingCartRepository
     {
         public ShoppingCartRepository(HardwareDBContext context):base(context)
         {
@@ -1193,23 +1183,59 @@ public interface IAppRoleService
 
 --- BrandService klasörü açtık.
 
-public class BrandService:IBrandService
+    public class BrandService : IBrandService
     {
+        private readonly IBrandRepository _brandRepository;
+        private readonly IMapper _mapper;
+
+        public BrandService(IBrandRepository brandRepository, IMapper mapper)
+        {
+            _brandRepository = brandRepository;
+            _mapper = mapper;
+        }
+
+        public async Task<List<BrandDTO>> GetAllActives()
+        {
+            var result= await _brandRepository.GetOnlyAllActivesAsync();
+            List<BrandDTO> brands = new List<BrandDTO>();
+            _mapper.Map(result, brands);
+            return brands;
+        }
     }
 
-public interface IBrandService
+    public interface IBrandService
     {
+        Task<List<BrandDTO>> GetAllActives();
     }
 
 
 --- CategoryService klasörü açtık.
 
-public class CategoryService:ICategoryService
+public class CategoryService : ICategoryService
     {
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
+
+        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
+        {
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
+        }
+
+        public async Task<List<CategoryDTO>> GetAllActives()
+        {
+           var result = await _categoryRepository.GetOnlyAllActivesAsync();
+            List<CategoryDTO> categories= new List<CategoryDTO>();
+            _mapper.Map(result, categories);
+            return categories;
+
+        }
     }
+
 
 public interface ICategoryService
     {
+        Task<List<CategoryDTO>> GetAllActives();
     }
 
 
@@ -1248,23 +1274,152 @@ public interface IModelService
 
 --- ProductService klasörü açtık.
 
-public class ProductService:IProductService
+public class ProductService : IProductService
     {
+        private readonly IProductRepository _productRepository;
+        //private readonly IBrandRepository _brandRepository;
+        //private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
+
+        public ProductService(IProductRepository productRepository,
+            IMapper mapper)
+        {
+            _productRepository = productRepository;
+            _mapper = mapper;
+
+           
+
+        }
+
+        public async Task<bool> AddProductAsync(ProductDTO product)
+        {
+           
+            Product newProduct = new Product();
+           
+            _mapper.Map(product, newProduct);
+            await _productRepository.AddAsync(newProduct);
+            //Islemin basarili olup olmadığı !!!!!
+            return false;
+        }
+
+        public async Task<bool> DeleteProductAsync(int productID)
+        {
+            var product = await _productRepository.FindByIDAsync(productID);
+            await _productRepository.DeleteAsync(product);
+            return true;
+        }
+
+        public Task<ProductDetailVM> GetActiveProduct(int productID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<ProductVM>> GetAllOnlyActiveProducts()
+        {
+            
+            var result = _productRepository.GetOnlyAllActivesAsync().Result.Include("Brand").Include("Category").ToList();
+
+            List<ProductVM> products = new List<ProductVM>();
+
+            _mapper.Map(result, products);
+
+            return products;
+        }
+
+        public async Task<List<ProductVM>> GetAllProducts()
+        {
+            var result= _productRepository.GetAllAsync().Result.Include("Brand").Include("Category").ToList();
+            List<ProductVM> products = new List<ProductVM>();
+           
+            _mapper.Map(result, products);
+
+            return products;
+
+        }
+
+        public async Task<ProductDetailVM> GetProduct(int productID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateProductAsync(ProductDTO product)
+        {
+            throw new NotImplementedException();
+        }
     }
+
 
 public interface IProductService
     {
+        Task<bool> AddProductAsync(ProductDTO product);
+        Task<bool> UpdateProductAsync(ProductDTO product);
+        Task<bool> DeleteProductAsync(int productID);
+
+        Task<List<ProductVM>> GetAllProducts();
+        Task<List<ProductVM>> GetAllOnlyActiveProducts();
+
+        Task<ProductDetailVM> GetProduct(int productID );
+        Task<ProductDetailVM> GetActiveProduct(int productID);
     }
 
 
 --- ShoppingCartService klasörü açtık.
 
-public class ShoppingCartService:IShoppingCartService
+public class ShoppingCartService : IShoppingCartService
     {
+        private readonly IShoppingCartRepository _shoppingCartRepository;
+        private readonly IMapper _mapper;
+
+        public ShoppingCartService(IShoppingCartRepository shoppingCartRepository, IMapper mapper)
+        {
+            _shoppingCartRepository = shoppingCartRepository;
+            _mapper = mapper;
+        }
+
+        public async Task AddProductAsync(ShoppingCartDTO product)
+        {
+            ShoppingCart shoppingCart = new ShoppingCart();
+            _mapper.Map(product, shoppingCart);
+
+            var cart = _shoppingCartRepository.GetOnlyAllActivesAsync().Result.Where(x=>x.ProductID==product.ProductID && x.AppUserID==product.AppUserID).ToList();
+
+            if (cart.Count() == 0)
+                await _shoppingCartRepository.AddAsync(shoppingCart);
+            else
+            {
+                var sCart = _shoppingCartRepository.GetOnlyAllActivesAsync().Result.Where(x => x.ProductID == product.ProductID && x.AppUserID == product.AppUserID).SingleOrDefault();
+                sCart.ShoppingCartID = shoppingCart.ShoppingCartID;
+                sCart.Amount = sCart.Amount + 1;
+                await _shoppingCartRepository.UpdateAsync(sCart);
+            }
+        }
+
+        public async Task<List<ShoppingCartVM>> AllProductsAsync()
+        {
+            List<ShoppingCartVM> shoppingList = new List<ShoppingCartVM>();
+            var result = _shoppingCartRepository.GetOnlyAllActivesAsync()
+                                                      .Result.Include("Product");
+
+            _mapper.Map(result, shoppingList);
+            return shoppingList;
+        }
+
+        public async Task UpdateAmountAsync(int shoppingCartID, int amount)
+        {
+            var result =  _shoppingCartRepository.FindByIDOnlyActiveAsync(shoppingCartID).Result;
+            result.Amount = amount;
+
+            await _shoppingCartRepository.UpdateAsync(result);
+        }
     }
+
 
 public interface IShoppingCartService
     {
+        Task AddProductAsync(ShoppingCartDTO product);
+        Task<List<ShoppingCartVM>> AllProductsAsync();
+        Task UpdateAmountAsync(int shoppingCartID, int amount);
+
     }
 
 
@@ -1362,22 +1517,57 @@ builder.Services.AddIdentity<AppUser, AppRole>(x => {
 
 
 
+builder.Services.AddAutoMapper(x => x.AddProfile(typeof(HardwareMapper)));
+
+
+
 //IoC =>Inversion Of Control...
 
 //Gerektikce ekle...
-builder.Services.AddTransient<IAppUserService,AppUserService>();
-builder.Services.AddTransient<IProductService, ProductService>();
-builder.Services.AddTransient<IBrandService, BrandService>();
-builder.Services.AddTransient<ICategoryService, CategoryService>();
-
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<ICategoryRepository, CategoryRepository>();
 builder.Services.AddTransient<IBrandRepository, BrandRepository>();
+builder.Services.AddTransient<IShoppingCartRepository, ShoppingCartRepository>();
+
+builder.Services.AddTransient<IAppUserService, AppUserService>();
+builder.Services.AddTransient<IBrandService, BrandService>();
+builder.Services.AddTransient<ICategoryService, CategoryService>();
+
+builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IShoppingCartService, ShoppingCartService>();
 
 --------------------ARASINA
 
 
 var app = builder.Build();
+
+
+
+
+ve 
+
+
+
+
+app.UseAuthentication();
+
+
+-----------------------ÜSTÜNE
+app.UseAuthorization();
+//eklemeyi unutma....
+
+
+
+
+
+
+
+
+AddTransient : Ramde yaşam süresi en kısa olan
+AddScoped : 
+AddSingleton : 
+
+
 
 
 
@@ -1731,6 +1921,15 @@ Application - Models - DTOs altına Brand klasörü açıyoruz. İçine aşağı
     }
 
 
+Application - Models - DTOs altına ShoppingCart klasörü açıyoruz. İçine aşağıdaki sınıfı oluşturuyoruz.
+public class ShoppingCartDTO
+    {
+        public int ShoppingCartID { get; set; } //UPDATE
+        public int ProductID { get; set; }
+        public int Amount { get; set; }
+        public int AppUserID { get; set; }
+    }
+
 
 
 39.b 
@@ -1768,6 +1967,18 @@ Application - Models - VMs altına aşağıdaki sınıfları oluşturuyoruz.
 
 
 
+    public class ShoppingCartVM
+    {
+        public int ShoppingCartID { get; set; } 
+        public int ProductID { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public int Amount { get; set; }
+        public int AppUserID { get; set; }
+    }
+
+
+
 40. AutoMapper kullanımı
 Register içerisinde eşleştirme yaparken AutoMapper kullanmadık, uzadı. 
 Automapper da isimler aynıysa kendi eşleştiriyor, farklıysa biz hangisinin hangisiyle bağlanacağını tanımlıyoruz.
@@ -1776,219 +1987,97 @@ Automapper da isimler aynıysa kendi eşleştiriyor, farklıysa biz hangisinin h
 
 40.b Hardware.Application üzerinde sağ tık - Add - New Folder - AutoMapper klasörü oluştur ve içerisine de aşağıdaki sınıfı oluştur. Çünkü servisler bu katmanda.
 
-    public class Mapper:Profile
+public class HardwareMapper:Profile
     {
-        public Mapper()
+        public HardwareMapper()
         {
-            CreateMap<Product, ProductDTO>().ReverseMap();    //Tersten de gelse bağla demek.
+            CreateMap<Product, ProductDTO>().ReverseMap();      //Tersten de gelse bağla demek.
             
             CreateMap<Product, ProductVM>()
                 .ForMember(x=>x.BrandName,y=>y.MapFrom(y=>y.Brand.Name)).ForMember(x=>x.CategoryName,y=>y.MapFrom(y=>y.Category.Name)).ReverseMap();
 
             CreateMap<Category,CategoryDTO>().ReverseMap();
             CreateMap<Brand,BrandDTO>().ReverseMap();
+
+            CreateMap<ShoppingCart,ShoppingCartDTO>().ReverseMap();
+            CreateMap<ShoppingCart, ShoppingCartVM>()
+                .ForMember(x=>x.Name, y=>y.MapFrom(y=>y.Product.Name))
+                .ForMember(x=>x.Price, y=>y.MapFrom(y=>y.Product.Price))
+                .ReverseMap();
         }
     }
 
 
-40.c Program.cs içine AddDbContext üstüne aşağıdaki kodu ekledik.
-builder.Services.AddAutoMapper(x => x.AddProfile(new Mapper()));
+40.c Program.cs içine IOC üstüne aşağıdaki kodu ekledik.
+builder.Services.AddAutoMapper(x => x.AddProfile(typeof(HardwareMapper)));
+
+
+
 
 
 41. Hardware.Application - Services - ProductService içerisindeki interface ve sınıfları doldurduk.
 
-    public interface IProductService
-    {
-        Task<bool> AddProductAsync(ProductDTO product);
-        Task<bool> UpdateProductAsync(ProductDTO product);
-        Task<bool> DeleteProductAsync(int product);
-
-        Task<List<ProductVM>> GetAllProducts();
-        Task<List<ProductVM>> GetAllOnlyActiveProducts();
-
-        Task<ProductDetailVM> GetProduct(int productID );
-        Task<ProductDetailVM> GetActiveProduct(int productID);
-    }
-
-
-
-    public class ProductService : IProductService
-    {
-        private readonly IProductRepository _productRepository;
-        private readonly IBrandRepository _brandRepository;
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly Mapper _mapper;
-
-        public ProductService(IProductRepository productRepository, IBrandRepository brandRepository, ICategoryRepository categoryRepository,
-            Mapper mapper)
-        {
-            _productRepository = productRepository;
-            _brandRepository = brandRepository;
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
-
-        }
-
-        public async Task<bool> AddProductAsync(ProductDTO product)
-        {
-            Product newProduct = new Product();
-            _mapper.Map(product, newProduct);    //Genelde geleni bağlıyoruz.
-            await _productRepository.AddAsync(newProduct);
-            //Islemin basarili olup olmadığı !!!!!
-            return false;
-        }
-
-        public Task<bool> DeleteProductAsync(int product)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ProductDetailVM> GetActiveProduct(int productID)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<List<ProductVM>> GetAllOnlyActiveProducts()
-        {
-            
-            var result = _productRepository.GetOnlyAllActivesAsync().Result.Include("Brand").Include("Category").ToList();
-
-            List<ProductVM> products = new List<ProductVM>();
-
-            _mapper.Map(result, products);
-
-            return products;
-        }
-
-        public async Task<List<ProductVM>> GetAllProducts()
-        {
-            var result= _productRepository.GetAllAsync().Result.Include("Brand").Include("Category").ToList();
-            List<ProductVM> products = new List<ProductVM>();
-           
-            _mapper.Map(result, products);
-
-            return products;
-
-        }
-
-        public async Task<ProductDetailVM> GetProduct(int productID)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateProductAsync(ProductDTO product)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-
-
-
+   
 
 42. Hardware.Application - Services - CategoryService içerisindeki interface ve sınıfları doldurduk.
-
-    public interface ICategoryService
-    {
-        Task<List<CategoryDTO>> GetAllActives();
-    }
-
-
-
-    public class CategoryService : ICategoryService
-    {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly Mapper _mapper;
-
-        public CategoryService(ICategoryRepository categoryRepository, Mapper mapper)
-        {
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
-        }
-
-        public async Task<List<CategoryDTO>> GetAllActives()
-        {
-           var result = await _categoryRepository.GetOnlyAllActivesAsync();
-            List<CategoryDTO> categories= new List<CategoryDTO>();
-            _mapper.Map(result, categories);
-            return categories;
-
-        }
-    }
-
-
 
 
 
 43. Hardware.Application - Services - BrandService içerisindeki interface ve sınıfları doldurduk.
-
-    public interface IBrandService
-    {
-        Task<List<BrandDTO>> GetAllActives();
-    }
-
-
-    public class BrandService : IBrandService
-    {
-        private readonly IBrandRepository _brandRepository;
-        private readonly Mapper _mapper;
-
-        public BrandService(IBrandRepository brandRepository, Mapper mapper)
-        {
-            _brandRepository = brandRepository;
-            _mapper = mapper;
-        }
-
-        public async Task<List<BrandDTO>> GetAllActives()
-        {
-            var result= await _brandRepository.GetOnlyAllActivesAsync();
-            List<BrandDTO> brands = new List<BrandDTO>();
-            _mapper.Map(result, brands);
-            return brands;
-        }
-    }
 
 
 
 44. Hardware.UI - Areas - AdminPanel - Controller - sağ tık Add - Controller - Empty - ProductController adını verdik - 
 Scaffold çalışsaydı ProductDTO üzerinden yapacaktık.
 
-[Area("AdminPanel")]    
-public class ProductController : Controller
+[Area("AdminPanel")]
+    public class ProductController : Controller
     {
-        private readonly ProductService _productService;
-        private readonly CategoryService _categoryService;
-        private readonly BrandService _brandService;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IBrandService _brandService;
 
-        public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService)
+        public ProductController(IProductService productService, ICategoryService categoryService, IBrandService brandService)
         {
             _productService = productService;
             _categoryService = categoryService;
             _brandService = brandService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+
+
+            return View(await _productService.GetAllOnlyActiveProducts());    //BU VM GÖNDERECEK.
         }
 
         public async Task<IActionResult> AddProduct()
         {
-            ViewBag.Brands = new SelectList(await _brandService.GetAllActives());
-            ViewBag.Categories = new SelectList(await _categoryService.GetAllActives());
+            ViewBag.Brands = new SelectList(await _brandService.GetAllActives(), "BrandID", "Name");
+            ViewBag.Categories = new SelectList(await _categoryService.GetAllActives(), "CategoryID", "Name");
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddProduct(ProductDTO product,IFormFile file)
+        public async Task<IActionResult> AddProduct(ProductDTO product, IFormFile file)
         {
             product.ProductImage = file.FileName;
-            //Sunucuya kaydett!!!
+
+            string strFilePath = "wwwroot\\Resimler\\" + file.FileName;
+            FileStream fs = new FileStream(strFilePath, FileMode.Create);
+            await file.CopyToAsync(fs);
+            fs.Close();
             await _productService.AddProductAsync(product);
-            return View();
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            await _productService.DeleteProductAsync(id);
+
+            return Content("urun Silindi...");
         }
     }
-
 
 
 45. Yukarıdaki controllerdaki aksiyon adı üzerinden sağ tık - sdd view - AddProduct.cshtml oluşturduk.
@@ -2067,6 +2156,162 @@ public class ProductController : Controller
         </tr>
     </table>
 </form>
+
+
+
+
+
+46. Yukarıdaki controllerdaki aksiyon adı üzerinden sağ tık - sdd view - Index.cshtml oluşturduk.
+
+@using Hardware.Application.Models.VMs;
+@model IEnumerable<ProductVM>
+
+    <a asp-area="AdminPanel" asp-controller="Product" asp-action="AddProduct" >Add new Product</a>
+<br />
+
+<table>
+@foreach(var item in Model)
+{
+    <tr>
+        <td>
+                @item.ProductID
+        </td>
+            <td>
+                @item.Name
+            </td>
+            <td>
+                <a class="btn btn-danger" asp-area="AdminPanel" asp-controller="Product" asp-action="DeleteProduct" asp-route-id="@item.ProductID">Delete</a>
+            </td>
+    </tr>
+
+    
+
+}
+</table>
+
+
+
+47. Program çalıştırıldı ve ürün ekleme işlemi yapıldı.
+
+
+48. Yukarıdaki Index sayfasını herkes göreceğinden kendimize göre özelleştirdik. 
+
+    public class HomeController : Controller
+    {
+        private readonly IProductService _productService;
+
+        public HomeController(IProductService productService)
+        {
+            _productService = productService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            //Tum urunleri sayfada goster
+
+            return View(await _productService.GetAllOnlyActiveProducts());
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+
+
+49. Home un Indexini düzenledik.
+
+@inject SignInManager<AppUser> _signInManager    //RAZOR INJECTION
+
+@using Hardware.Application.Models.VMs;
+@using Hardware.Domain.Entities.Concrete;
+@using Microsoft.AspNetCore.Identity;
+@model IEnumerable<ProductVM>
+
+
+
+@foreach (var item in Model)
+{
+    <table>
+        <tr>
+            <td>
+                <img src="~/Resimler/@item.ProductImage" width="140" height="110" />
+            </td>
+            <td>
+                @item.Name
+            </td>
+            <td>
+                @item.BrandName
+            </td>
+            <td>
+                @item.CategoryName
+            </td>
+            <td>
+                @item.Price
+            </td>
+            <td>
+                @if(_signInManager.IsSignedIn(User))    //DİKKAT!!! KULLANICI OTURUM AÇMADIYSA BUTONU GÖRMEZ.
+                {
+                <a class="btn btn-secondary" asp-area="UserPanel" asp-controller="ShoppingCart" asp-action="AddToCart" asp-route-id="@item.ProductID">Add to Cart </a>
+                }
+                
+            </td>
+        </tr>
+    </table>
+  
+}
+
+
+
+50. Areas - UserPanel - Controllers içine aşağıdaki controlleri ekledik.
+
+[Area("UserPanel")]
+    public class ShoppingCartController : Controller
+    {
+
+        private readonly IShoppingCartService _shoppingCartService;
+        private readonly UserManager<AppUser> _userManager;
+
+        public ShoppingCartController(IShoppingCartService shoppingCartService, UserManager<AppUser> userManager)
+        {
+            _shoppingCartService = shoppingCartService;
+            _userManager = userManager;
+        }
+
+
+
+        //public IActionResult Index()
+        //{
+        //    return View();
+        //}
+
+
+        public async Task<IActionResult> AddToCart(int id)
+        {
+            ShoppingCartDTO shoppingDTO = new ShoppingCartDTO();
+            shoppingDTO.ProductID = id;
+            shoppingDTO.Amount = 1;
+            shoppingDTO.AppUserID = GetUserID();
+            await _shoppingCartService.AddProductAsync(shoppingDTO);
+            return NoContent();
+
+        }
+
+        private int GetUserID()
+        {
+            return  _userManager.GetUserAsync(User).Result.Id;
+        }
+    }
+
+
+
+
 
 
 
