@@ -2316,6 +2316,7 @@ Scaffold çalışsaydı ProductDTO üzerinden yapacaktık.
 
         }
 
+        //Kullanıcı ID sinin gelip gelmediğinin kontrolü için
         private int GetUserID()
         {
             return  _userManager.GetUserAsync(User).Result.Id;
@@ -2324,6 +2325,7 @@ Scaffold çalışsaydı ProductDTO üzerinden yapacaktık.
 
 
 
+51. 
 
 
 
