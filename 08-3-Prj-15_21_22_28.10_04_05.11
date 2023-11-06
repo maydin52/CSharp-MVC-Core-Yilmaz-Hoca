@@ -2174,7 +2174,7 @@ Scaffold çalışsaydı ProductDTO üzerinden yapacaktık.
 
 
 
-46. Yukarıdaki controllerdaki aksiyon adı üzerinden sağ tık - sdd view - Index.cshtml oluşturduk.
+46. Yukarıdaki controllerdaki aksiyon adı üzerinden sağ tık - add view - Index.cshtml oluşturduk.
 
 @using Hardware.Application.Models.VMs;
 @model IEnumerable<ProductVM>
