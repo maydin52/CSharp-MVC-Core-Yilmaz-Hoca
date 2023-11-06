@@ -288,6 +288,19 @@ Automapper kullanımı
 
 
 
+
+
+
+Dikkat!!! sıfır veri giremesin ve stokta kaç tane varsa ayı gelsin pratik çözümü;
+HTML number taginin min max değerleri var. - kontrolünü de bu şekilde yapabilirsin stok değerini de db den çekersin.
+
+
+
+
+
+
+
+
 3. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Domain (Hardware.Core diyen de var) - Next - Create
 Hardware.Domain altında Entities (veya Models de olur) adında yeni klasör açtık.
 Class1 i sildik.
