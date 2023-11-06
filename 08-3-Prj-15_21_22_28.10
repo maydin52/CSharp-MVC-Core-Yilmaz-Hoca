@@ -1112,10 +1112,13 @@ public class AppUserService : IAppUserService
             user.FirstName = register.FirstName;
             user.LastName = register.LastName;
             user.Email = register.Email;
-            user.PasswordHash = register.Password;      //BURAYA DİKKAT!!! KONTROL EDİLECEK. UI katmanında da olabilir demişti.
+            //user.PasswordHash = register.Password;         //Hasher ı koymadan önce şifreyi direk db yazmış. girememiştik. Sistem hash liyi bekliyor. migration silip yeniden oluşturduk sonra
             user.Address = register.Address;
             user.Status = Domain.Enums.Status.Active;
             user.CreateDate = DateTime.Now;
+
+            PasswordHasher<AppUser> password = new PasswordHasher<AppUser>();
+            user.PasswordHash = password.HashPassword(user,register.Password);
 
             var result= await _userManager.CreateAsync(user);    //AppUser istiyor. 
 
@@ -1431,14 +1434,15 @@ public class LoginController : Controller
     {
         
         private readonly IAppUserService _appUserService;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
 
-
-
-        public LoginController(IAppUserService appUserService)
+        public LoginController(IAppUserService appUserService,UserManager<AppUser> userManager,SignInManager<AppUser> signInManager)
         {
             _appUserService=appUserService;
+            _userManager=userManager;
+            _signInManager=signInManager;
         }
-
 
         
         public async Task<IActionResult> Login()
@@ -1454,8 +1458,9 @@ public class LoginController : Controller
             //return Content(login.UserName + " " + login.Password);
             var result = await _appUserService.LoginAsync(login);
 
+            //Kullanıcı Admin se admin sayfasında, user sa user sayfasına yönlendirme işlemi için kullanıcının rolünü görme
             if (result)
-                return Content("login islemi basarili...");
+                return Content("login islemi basarili..." + User.IsInRole("User") + User.Identity.Name);
             else
                 return Content("hatalı giris...");
         }
@@ -1605,6 +1610,40 @@ Scaffold yaptık ama çalışmadı.
 
 
 
+35. Role tablosuna Admin rolü verisi gelmiyordu. O düzeltildi.
+
+protected override void OnModelCreating(ModelBuilder builder)
+{
+
+içine
+
+ //İlk user'a Admin yetkisi vermek için...
+builder.Entity<IdentityUserRole<int>>().HasData( new IdentityUserRole<int> { UserId=1, RoleId=1 });
+
+ekledik.
+
+drop-database
+remove-migration
+add-migration init
+update-database
+
+
+
+36. Programı çalıştırdık ve registerden kullanıcı oluşturacaktık. Şifre konusunda sorun oluştu, yukarıda düzeltmesini yaptık ve oluşturduk, db den user tablosundan hash kontrol ettik.
+Çalıştırırken dikkat.
+Login Controller ekranda açıkken çalıştır veya hata verirse farklı ekranları dene.
+
+
+37. UI katmanı içindeki Views içindeki _ViewImports ve _ViewStart dosyalarını kopyalayıp, 
+Areas - AdminPanel - Views ve
+Areas - UserPanel - Views içine yapıştırıyoruz ve Rebuild yapıyoruz. Layoutun gelmesi için. 
+
+
+38. Kullanıcı Admin se admin sayfasında, user sa user sayfasına ynlendirme işlemi.
+Bunun için sayfa oluşturacağız.
+
+
+Areas - AdminPanel - Controllers - Panel Controller içindeki 
 
 
 
@@ -1620,18 +1659,20 @@ Scaffold yaptık ama çalışmadı.
 
 
 
-DİKKAT!!! CATEGORY SERVICE İÇİNDE INTERFACE MİRAS VERİLMEDİ. 
-REGISTER YAZARKEN HOCA DAHA PRTAİK YÖNTEM VAR DEDİ GÖSTERİRİM DEDİ AUTOMAPPER SOR.
-
-user.PasswordHash = register.Password;      //BURAYA DİKKAT!!! KONTROL EDİLECEK.  UI KATMANI İÇİNDE OLABİLİR KONUŞURUZ DEMİŞTİ.??? 
-
-app.UseAuthorization();
-//eklemeyi unutma....
 
 
-//builder.Services.AddTransient<IAppUserRepository, AppUserRepository>();  buna bakacaktık hata vermişti. scaffold view yapmaya çalışıyorduk
 
-rooyUser admin için role tablosuna 1 1 eklenecek. yarım kaldı.
+
+
+
+
+
+
+
+
+
+
+
 
 
 
