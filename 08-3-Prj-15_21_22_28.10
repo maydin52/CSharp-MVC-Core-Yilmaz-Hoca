@@ -270,6 +270,22 @@ Analiz: Hardware Project
  *** appsettings.json dosyasına connection string'i yaz...
 
 
+Automapper kullanımı
+ *** Nuget uerinden gerekli paketi yukle...
+     Automapper.Extensions.Microsoft.DependencyInjection
+ 
+ *** Application katmanında
+     Bir klasor olustur içerisine bir sınıf olustur...
+     Profile sınıfından bu sınıfı türet...
+     ctor => içerisinde Map tanılamalarını yapınız...
+
+ *** program.cs tarafında (IoC Container için)
+   
+     buider.Services.AddAutoMapper(x=>x.AddProfile(new Mapper()))
+
+ !!! Login oldugunda Rol bilgisi gelmiyor....
+
+
 
 
 3. Proje üzerinde sağ tık - add - new project - class library - isimlendirmeye dikkat Hardware.Domain (Hardware.Core diyen de var) - Next - Create
@@ -1640,17 +1656,64 @@ Areas - UserPanel - Views içine yapıştırıyoruz ve Rebuild yapıyoruz. Layou
 
 
 38. Kullanıcı Admin se admin sayfasında, user sa user sayfasına ynlendirme işlemi.
-Bunun için sayfa oluşturacağız.
+Bunun için öncelikle kitabın girileceği sayfayı yapıyoruz.
 
 
-Areas - AdminPanel - Controllers - Panel Controller içindeki 
+Areas - AdminPanel - Views - Panel - Index.cshtml  içine aşağıdakileri ekliyoruz.
+
+
+<h1>Admin Panel...</h1>
+
+<ul>
+    <li><a asp-area="AdminPanel" asp-controller="Product" asp-action="Index">Products</a></li>
+</ul>
 
 
 
+39. Application - Models - DTOs altına Product klasörü açıyoruz. İçine aşağıdaki sınıfı oluşturuyoruz.
 
 
+public class ProductDTO
+    {
+        public int ProductID { get; set; }    //Insert için gerek yok ama update ve delete için gerekli olacağından bıraktık. 
+        public string Name { get; set; }
+
+        public int? BrandID { get; set; }
+        public int? CategoryID { get; set; }
+
+        public decimal Price { get; set; }
+        public int AmountOfStock { get; set; }
+        public string ProductImage { get; set; }    //Bunu içeren bir nesneye ihtiyacım olabilir. 
+        public string Details { get; set; }
+       
+    }
 
 
+40. AutoMapper kullanımı
+Register içerisinde eşleştirme yaparken AutoMapper kullanmadık, uzadı. 
+Automapper da isimler aynıysa kendi eşleştiriyor, farklıysa biz hangisinin hangisiyle bağlanacağını tanımlıyoruz.
+
+Tools - Nuget - browse - automapper arat - AutoMapper.Extensions.Microsoft.DependencyInjection seç - HardwareApplication klikle - 12.0.1 versiyon - Install
+
+Hardware.Applicaion üzerinde sağ tık - Add - New Folder - AutoMapper klasörü oluştur ve içerisine de aşağıdaki sınıfı oluştur.
+
+public class Mapper:Profile
+    {
+        public Mapper()
+        {
+            CreateMap<Product, ProductDTO>().ReverseMap();    //Tersten de gelse bağla demek.
+            
+            CreateMap<Product, ProductVM>()
+                .ForMember(x=>x.BrandName,y=>y.MapFrom(y=>y.Brand.Name)).ForMember(x=>x.CategoryName,y=>y.MapFrom(y=>y.Category.Name)).ReverseMap();
+
+            CreateMap<Category,CategoryDTO>().ReverseMap();
+            CreateMap<Brand,BrandDTO>().ReverseMap();
+        }
+    }
+
+
+Program.cs içine AddDbContext üstüne aşağıdaki kodu ekledik.
+builder.Services.AddAutoMapper(x => x.AddProfile(new Mapper()));
 
 
 
