@@ -630,7 +630,9 @@ public interface IBaseRepository<T> where T : IBaseEntity
         Task<int> UpdateAsync(T entity);      // örneğin one row effected dönüşü için. Mesela 0 geliyorsa kayıt çalışmadı gibi yakalanması.
         Task DeleteAsync(T entity);
         Task<T> FindByIDAsync(int id);        //update için idden araması gerekiyor
+        Task<T> FindByIDOnlyActiveAsync(int id);
         Task<IQueryable<T>> GetAllAsync();    //IQueryable sorgulanabilir demek. List dönerse nav prop ulaşamayız. EF desteklemiyor. Where, Select vs yazarken dikkat IQueryable. En son liste çeviriyorduk. List gelen sorgular Include ile joinlenemez. O zaman var result gibi uzun yazmak gerekir.
+        Task<IQueryable<T>> GetOnlyAllActivesAsync();
     }
 
 
@@ -950,15 +952,27 @@ Değerlerin gelip gelmediğine baktık.
             await _context.SaveChangesAsync();        //açıklamasında awaitable yazanlarda await kullanılacak.
         }
 
+       
         public async Task<T> FindByIDAsync(int id)
         {
-            return await table.FindAsync(id);      
+            return await table.FindAsync(id);
         }
 
-        public Task<IQueryable<T>> GetAllAsync()
+        public async Task<T> FindByIDOnlyActiveAsync(int id)
+        {
+            return await table.Where(x => x.Status == Status.Active).FirstOrDefaultAsync();
+        }
+
+        public async Task<IQueryable<T>> GetAllAsync()
         {
             return Task.FromResult(table.Select(x => x));
         }
+
+        public async Task<IQueryable<T>> GetOnlyAllActivesAsync()
+        {
+            return Task.FromResult(table.Where(x => x.Status == Status.Active).Select(x => x));
+        }
+
 
         public async Task<int> UpdateAsync(T entity)
         {
@@ -1046,7 +1060,11 @@ Değerlerin gelip gelmediğine baktık.
     }
 
 
-    public class ProductRepository:BaseRepository<Product>
+
+dikkat!!!!!!!!!
+
+
+    public class ProductRepository:BaseRepository<Product>,IProductRepository
     {
         public ProductRepository(HardwareDBContext context):base(context) 
         {
@@ -1348,7 +1366,13 @@ builder.Services.AddIdentity<AppUser, AppRole>(x => {
 
 //Gerektikce ekle...
 builder.Services.AddTransient<IAppUserService,AppUserService>();
-//builder.Services.AddTransient<IAppUserRepository, AppUserRepository>();
+builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IBrandService, BrandService>();
+builder.Services.AddTransient<ICategoryService, CategoryService>();
+
+builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<ICategoryRepository, CategoryRepository>();
+builder.Services.AddTransient<IBrandRepository, BrandRepository>();
 
 --------------------ARASINA
 
@@ -1670,10 +1694,12 @@ Areas - AdminPanel - Views - Panel - Index.cshtml  içine aşağıdakileri ekliy
 
 
 
-39. Application - Models - DTOs altına Product klasörü açıyoruz. İçine aşağıdaki sınıfı oluşturuyoruz.
+39. DTO ve VM lerin oluşturulması
 
+39.a DTO ların oluşturulması
 
-public class ProductDTO
+Application - Models - DTOs altına Product klasörü açıyoruz. İçine aşağıdaki sınıfı oluşturuyoruz.
+    public class ProductDTO
     {
         public int ProductID { get; set; }    //Insert için gerek yok ama update ve delete için gerekli olacağından bıraktık. 
         public string Name { get; set; }
@@ -1689,15 +1715,68 @@ public class ProductDTO
     }
 
 
+Application - Models - DTOs altına Category klasörü açıyoruz. İçine aşağıdaki sınıfı oluşturuyoruz.
+    public class CategoryDTO
+    {
+        public int CategoryID { get; set; }
+        public string Name { get; set; }
+    }
+
+
+Application - Models - DTOs altına Brand klasörü açıyoruz. İçine aşağıdaki sınıfı oluşturuyoruz.
+    public class BrandDTO
+    {
+        public int BrandID { get; set; }
+        public string Name { get; set; }
+    }
+
+
+
+
+39.b 
+Application - Models - VMs altına aşağıdaki sınıfları oluşturuyoruz.
+
+    public class ProductVM
+    {
+        public int ProductID { get; set; }
+        public string Name { get; set; }
+
+        public string BrandName { get; set; }
+        public string CategoryName { get; set; }
+
+        public decimal Price { get; set; }
+       
+        public string ProductImage { get; set; }      
+    }
+
+
+
+    public class ProductDetailVM
+    {
+        public int ProductID { get; set; }
+        public string Name { get; set; }
+
+        public string BrandName { get; set; }
+        public string CategoryName { get; set; }
+
+        public decimal Price { get; set; }
+        public int AmountOfStock { get; set; }        //bunları detayda gösterdik.
+        public string ProductImage { get; set; }
+        public string Details { get; set; }           //bunları detayda gösterdik. 
+    }
+
+
+
+
 40. AutoMapper kullanımı
 Register içerisinde eşleştirme yaparken AutoMapper kullanmadık, uzadı. 
 Automapper da isimler aynıysa kendi eşleştiriyor, farklıysa biz hangisinin hangisiyle bağlanacağını tanımlıyoruz.
 
-Tools - Nuget - browse - automapper arat - AutoMapper.Extensions.Microsoft.DependencyInjection seç - HardwareApplication klikle - 12.0.1 versiyon - Install
+40.a Tools - Nuget - browse - automapper arat - AutoMapper.Extensions.Microsoft.DependencyInjection seç - HardwareApplication klikle - 12.0.1 versiyon - Install
 
-Hardware.Applicaion üzerinde sağ tık - Add - New Folder - AutoMapper klasörü oluştur ve içerisine de aşağıdaki sınıfı oluştur.
+40.b Hardware.Application üzerinde sağ tık - Add - New Folder - AutoMapper klasörü oluştur ve içerisine de aşağıdaki sınıfı oluştur. Çünkü servisler bu katmanda.
 
-public class Mapper:Profile
+    public class Mapper:Profile
     {
         public Mapper()
         {
@@ -1712,30 +1791,282 @@ public class Mapper:Profile
     }
 
 
-Program.cs içine AddDbContext üstüne aşağıdaki kodu ekledik.
+40.c Program.cs içine AddDbContext üstüne aşağıdaki kodu ekledik.
 builder.Services.AddAutoMapper(x => x.AddProfile(new Mapper()));
 
 
+41. Hardware.Application - Services - ProductService içerisindeki interface ve sınıfları doldurduk.
+
+    public interface IProductService
+    {
+        Task<bool> AddProductAsync(ProductDTO product);
+        Task<bool> UpdateProductAsync(ProductDTO product);
+        Task<bool> DeleteProductAsync(int product);
+
+        Task<List<ProductVM>> GetAllProducts();
+        Task<List<ProductVM>> GetAllOnlyActiveProducts();
+
+        Task<ProductDetailVM> GetProduct(int productID );
+        Task<ProductDetailVM> GetActiveProduct(int productID);
+    }
+
+
+
+    public class ProductService : IProductService
+    {
+        private readonly IProductRepository _productRepository;
+        private readonly IBrandRepository _brandRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly Mapper _mapper;
+
+        public ProductService(IProductRepository productRepository, IBrandRepository brandRepository, ICategoryRepository categoryRepository,
+            Mapper mapper)
+        {
+            _productRepository = productRepository;
+            _brandRepository = brandRepository;
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
+
+        }
+
+        public async Task<bool> AddProductAsync(ProductDTO product)
+        {
+            Product newProduct = new Product();
+            _mapper.Map(product, newProduct);    //Genelde geleni bağlıyoruz.
+            await _productRepository.AddAsync(newProduct);
+            //Islemin basarili olup olmadığı !!!!!
+            return false;
+        }
+
+        public Task<bool> DeleteProductAsync(int product)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ProductDetailVM> GetActiveProduct(int productID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<ProductVM>> GetAllOnlyActiveProducts()
+        {
+            
+            var result = _productRepository.GetOnlyAllActivesAsync().Result.Include("Brand").Include("Category").ToList();
+
+            List<ProductVM> products = new List<ProductVM>();
+
+            _mapper.Map(result, products);
+
+            return products;
+        }
+
+        public async Task<List<ProductVM>> GetAllProducts()
+        {
+            var result= _productRepository.GetAllAsync().Result.Include("Brand").Include("Category").ToList();
+            List<ProductVM> products = new List<ProductVM>();
+           
+            _mapper.Map(result, products);
+
+            return products;
+
+        }
+
+        public async Task<ProductDetailVM> GetProduct(int productID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateProductAsync(ProductDTO product)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 
 
 
 
+42. Hardware.Application - Services - CategoryService içerisindeki interface ve sınıfları doldurduk.
+
+    public interface ICategoryService
+    {
+        Task<List<CategoryDTO>> GetAllActives();
+    }
+
+
+
+    public class CategoryService : ICategoryService
+    {
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly Mapper _mapper;
+
+        public CategoryService(ICategoryRepository categoryRepository, Mapper mapper)
+        {
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
+        }
+
+        public async Task<List<CategoryDTO>> GetAllActives()
+        {
+           var result = await _categoryRepository.GetOnlyAllActivesAsync();
+            List<CategoryDTO> categories= new List<CategoryDTO>();
+            _mapper.Map(result, categories);
+            return categories;
+
+        }
+    }
 
 
 
 
 
+43. Hardware.Application - Services - BrandService içerisindeki interface ve sınıfları doldurduk.
+
+    public interface IBrandService
+    {
+        Task<List<BrandDTO>> GetAllActives();
+    }
+
+
+    public class BrandService : IBrandService
+    {
+        private readonly IBrandRepository _brandRepository;
+        private readonly Mapper _mapper;
+
+        public BrandService(IBrandRepository brandRepository, Mapper mapper)
+        {
+            _brandRepository = brandRepository;
+            _mapper = mapper;
+        }
+
+        public async Task<List<BrandDTO>> GetAllActives()
+        {
+            var result= await _brandRepository.GetOnlyAllActivesAsync();
+            List<BrandDTO> brands = new List<BrandDTO>();
+            _mapper.Map(result, brands);
+            return brands;
+        }
+    }
 
 
 
+44. Hardware.UI - Areas - AdminPanel - Controller - sağ tık Add - Controller - Empty - ProductController adını verdik - 
+Scaffold çalışsaydı ProductDTO üzerinden yapacaktık.
+
+[Area("AdminPanel")]    
+public class ProductController : Controller
+    {
+        private readonly ProductService _productService;
+        private readonly CategoryService _categoryService;
+        private readonly BrandService _brandService;
+
+        public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService)
+        {
+            _productService = productService;
+            _categoryService = categoryService;
+            _brandService = brandService;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> AddProduct()
+        {
+            ViewBag.Brands = new SelectList(await _brandService.GetAllActives());
+            ViewBag.Categories = new SelectList(await _categoryService.GetAllActives());
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddProduct(ProductDTO product,IFormFile file)
+        {
+            product.ProductImage = file.FileName;
+            //Sunucuya kaydett!!!
+            await _productService.AddProductAsync(product);
+            return View();
+        }
+    }
 
 
 
+45. Yukarıdaki controllerdaki aksiyon adı üzerinden sağ tık - sdd view - AddProduct.cshtml oluşturduk.
 
 
+@using Hardware.Application.Models.DTOs.Product;
+@model ProductDTO
 
-
+<form asp-area="AdminPanel" asp-controller="Product" asp-action="AddProduct" method="post" enctype="multipart/form-data">
+    <table class="table table-striped">
+        <tr>
+            <td>
+                <label asp-for="Name" class="form-control"></label>
+            </td>
+            <td>
+                <input type="text"  asp-for="Name" class="form-control"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="BrandID" class="form-control"></label>
+            </td>
+            <td>
+                <select  asp-for="BrandID" class="form-control" asp-items="@ViewBag.Brands" >
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="CategoryID" class="form-control"></label>
+            </td>
+            <td>
+                <select asp-for="CategoryID" class="form-control" asp-items="@ViewBag.Categories">
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="Price" class="form-control"></label>
+            </td>
+            <td>
+                <input type="number" asp-for="Price" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="AmountOfStock" class="form-control"></label>
+            </td>
+            <td>
+                <input type="number" asp-for="AmountOfStock" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="ProductImage" class="form-control"></label>
+            </td>
+            <td>
+                <input type="hidden" asp-for="ProductImage" class="form-control" value="empty.jpg ">
+                <input type="file" name="file" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label asp-for="Details" class="form-control"></label>
+            </td>
+            <td>
+                <textarea asp-for="Details" class="form-control" rows="5" cols="60" >
+                </textarea>
+            </td>
+        </tr>
+        <tr>
+           
+            <td colspan="2">
+                <input type="submit" class="btn btn-primary" value="Add a Product" />
+            </td>
+        </tr>
+    </table>
+</form>
 
 
 
