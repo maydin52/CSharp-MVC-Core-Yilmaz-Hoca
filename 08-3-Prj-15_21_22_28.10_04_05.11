@@ -918,6 +918,11 @@ public class HardwareDBContext:IdentityDbContext<AppUser,AppRole,int>
 ve eğer yukarıda bahsi geçen varsayılan constructor u yazmadıysak bu hatayı alıyoruz: Unable to create an object of type HardwareDBContext. For the different patterns supported at design time, see ......
 hata yoksa update-database
 
+DİKKAT!!! AspNetUsers tablosuna BaseEntity alanlar gelmemişti. Hoca nugetten komut girerken dikkat. default project Infrastructure seçilmeli. HardwareDbContext sayfası üzerinde olunması gerekiyor.
+drop-database ve remove-migration yaptık ve add migration init ve update-database yaptık.
+Sonuçta hem AspNetUsers hem de AspNetRoles tabloları başlarına eklendi alanlar.
+Ayrıca AspNetUsers tablosunda yeni kullanıcıyı da oluşturmuş.
+
 
 
 14. Database den AspNetUsers ve AspNetRoles tablosundaki id kolonları int döndü. 
