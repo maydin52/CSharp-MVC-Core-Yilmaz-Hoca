@@ -1,0 +1,20 @@
+
+
+https://www.google.com/search?q=c%23+smtp+sender&rlz=1C5CHFA_enTR1036TR1036&oq=c%23+smtp+sender&aqs=chrome..69i57j0i22i30l6j69i58.8808j0j15&sourceid=chrome&ie=UTF-8
+
+https://blog.elmah.io/how-to-send-emails-from-csharp-net-the-definitive-tutorial/
+Yukarıdaki site içeirisinde;
+Sending emails from C# using an SMTP server requires only a few lines of code:
+
+var smtpClient = new SmtpClient("smtp.gmail.com")
+{
+    Port = 587,
+    Credentials = new NetworkCredential("username", "password"),
+    EnableSsl = true,
+};
+    
+smtpClient.Send("email", "recipient", "subject", "body");
+
+Fakat bunun dışında bir de smtp sunucuya ihtiyaç var. 
+Araştır.
+Google un varmış. 
