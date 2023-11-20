@@ -1,1 +1,34 @@
-0
+Tarih uzatma Proje 3=>2 Aralık...
+
+RESTful Services
+1 Hafta MVC-Web Proje (25-26)
+
+Stored-procedure (2)
+Invoice-Detail
+.NET 8 ile gelen yenilikler
+Proje Teslim...
+
+SOLID 3 Aralık
+
+
+https://www.chartjs.org/
+
+
+-----------------------------------------
+
+Distributed Architecture(Dağıtık Mimari)
+Client-Server
+WebApp
+RESTFul Services
+
+Services:
+CORBA
+Remoting
+XML Web Services
+WCF(Windows Communication Foundation)
+  SOAP(Simple Object Access Protocol) => XML based
+RESTful Services :2000 Yılı Doktora Tezi=>Roy J. Fielding..
+    WebAPI:
+	MS tarafından geliştirilmiştir....
+	MVC altyapısını kullanır...(View Yok...)
+	VS2022 => Artık Controller da kullanmak zorunda degiliz...(Minimal API)
