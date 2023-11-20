@@ -1,4 +1,61 @@
 
+https://excalidraw.com/
+
+N-Layer Architecture
+Onlarca yöntem var ama biz klasik ve onion olarak çalıştık.
+------------------
+3 katman
+
+*** Projeleri matıksal ve fizikse olarak parçalamaya yarar...
+*** Katmanlar mümkün olduğunca birbirinden bağımsız olmalı...
+*** Katman (dll)
+Klasik n-Lyter => DAL => BLL(BL) => PL
+
+Veriye erişimi olan herşeyin ayrı bir DLL de tutulması
+
+Örneğin SQL ve ORACLE ın ayrı DLL lerde olması (DbContextlerinin mesela)
+
+BL içindeki karşılığı Services ve içindeki interface ler.
+
+Interface kullanmamızın sebebi dependecy injection ve katmanlar arası iletişim
+
+bkz foto : katmanli-aciklama
+
+----------------------
+Onion;
+madem klasik katmanlı işimizi görüyor onion niye var?
+iki katmanla çalışan firmalar bile var.
+Katman sayısı arttıkça performans düşer yani bürokrasiyi arttırıyoruz. 
+
+onion 2008 yılında ortaya çıkmıştır yani yazılım dünyası için çok yeni.
+son 4-5 yıldır çok popüler. Peki neden? Katmanlı mimarideki problemlerden dolayı.
+Yani bazen PL den Dal a veya ulaşmak istiyorsunuz.
+başlangıç ve orta seviyedeki uygulamalar için klasik katmanlı ihtiyacı daha iyi çözüyor.
+Onion büyük ölçekli projelerde kullanılabilen bir yöntem.
+
+Her seferinde farklı yerlerde farklı şeyleri eklemek yerine bir uygulamada en çok kullanılan her yerde kullanılan yapıları Core a alıyoruz.
+
+
+Programlamayı oop , veritabanı rdbms yani ilişkisel olduğundan.
+Object - Oriented veritabanına geçildiğinde olay kısalacak.
+
+veya bugün mongo ile json gönderip alma konusu var.
+
+veritabanındaki verileri modellerde tutmak gerekiyor.
+
+Entity içindeki classlar veritabanındaki tablolarla aynı olmak zorunda fakat ön yüzde veri taşırken, veya oluşturuken ViewModel kullanmalıyız.
+
+ViewModel kullanılan yerler;
+Birincisi; Çok büyük dataları birleştirmek için, 
+İkinci kullanımı; insert işlemi için örneğin marka comboboxlarının dolu gelmesi konusu,
+Üçüncüsü; katman yoksa include ile git ama katman varsa ön yüzdeki adam. Nav prop göndermiyoruz, onlar modelde kalıyor. Ne gözükmesini istyorsan o prop ları ekliyorsun. Front endçiden soyutluyoruz.
+
+Db tablolarından alan silinmemeli. gerekmiyorsa bile bırakılmalı.
+
+Yazılım geliştirme süreçlerinde; proje netleştirilmeli ve sonradan gelebilecek istekler tahmin edilmeli ve her talebe ücretsiz yaklaşılmamalı. Tamamen sana da bırakılmamalı.
+
+------------------
+
 MVVM(Model View ViewModel)  //DESKTOP TİPİ UYGULAMALAR İÇİN KULLANILIR. WEB İÇİN UYGUN DEĞİL.
 
 Webforms tan MS desteğini 2019 da kaldırdı. Yerine Razor Pages geldi. 2001-2002 yılında başlamıştı. Şuan piyasada çok var da yavaş yavaş core a geçecekler. Düz MVC. 
