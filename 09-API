@@ -16,19 +16,155 @@ https://www.chartjs.org/
 
 -----------------------------------------
 
-Distributed Architecture(Dağıtık Mimari)
-Client-Server
+Distributed Architecture(Dağıtık Mimari) uygulamalarına örnekler;
 WebApp
 RESTFul Services
+Sohbet uygulamaları
+File sharing uygulamaları
+sql server
+multiplayer oyunlar
 
-Services:
+Client-Server olması hepsinin ortak özelliği;
+
+1960 lara kadar gidiyor.
+Main frame system.
+dummy client systems
+
+
+Örneğin; 
+sağlık bajkanlığına aait bir hastaneye gittik. 
+girdiğimizde müstehaklık sorgulaması yaptıklar.
+Benim bu hizmeti alıp alamayacağımın bilgisi SGK'da.
+Servis yapısı olmasaydı, oradan SGK ya bağlanıp bir select sorgusu çalıştıran butona tıklayıp çalıştıracak. Ne kadar güvenli?
+Servis bir ara yapıdır, katman olarak ta düşünülebilir. Servis denilen yapı bir class ve classın nesneleri.
+SGK diyorki sen bana parametre olarak TC No gönder, gerisine karışma. Ben sana sonucu döndüreceğim.
+Aynı zamanda soyutlama var, yani gerçek sisteme adamı karıştırmıyoruz.
+
+Servisler sadece yukarıdaki uygulamalar için değil, örneğin nvidia now teknolojisi için de kullanılıyor. Sonuç sunucuda render edilip kullanıcıya geliyor.
+Aslında 1960 da da vardı. Main frame güç kaybetti, client servisler güç kazandı.
+Artık yapı clouda doğru giderken biz yine dummy clientlere doğru gidiyoruz.
+Yakında bu kadar cipe gerek yok ya da fiyat arttıracaklar vs yavaş yavaş giyilebilir cihazlara ve doğru gidiyor. 
+Yani gelen veriyi göster, aldığın veriyi gönder sistemine evriliyor. 
+2001-2022 yılında hocaya remoting anlatılırken duyduğu; MS servis tabalı bir işletim sistemi üzerinde çalışıyor denilmiş. 
+2010-2012 yılında biz servis tabanlı işletim sistemini azure işletim sistemini gördük. 
+
+Örnekler;
+Muhasebe uygulamaları artık kişisel bilgisayarlarda tutulmayacak. Bu iş için uzman yerler olacak ve oadan kullanacaksınız.
+Photoshop kullanmayacaksınız, resmi gönderip ne istediğinizi yazacaksınız, sonuç geri gelecek. 
+-- İleride gelecek -- ileride pclere işletim sistemi yüklenemyecek ya ni hardcopy olmayacak. 60 lı yıllardan bu zamana kadar geniş bant yüzünden bekledik.
+
+Otel konaklama bilgileri de otomatik olarak kolluk kuvvetlerine gönderiliyor.
+ 
+
+Services teknolojileri tarihçesi: 1960 lı yıllardan beri gelen teknoloji
 CORBA
 Remoting
-XML Web Services
-WCF(Windows Communication Foundation)
-  SOAP(Simple Object Access Protocol) => XML based
-RESTful Services :2000 Yılı Doktora Tezi=>Roy J. Fielding..
+XML Web Services - DİKKAT!!! Bu ve sonrasındakileri çalışır olarak piyasada karşılaşabilirsin.
+WCF(Windows Communication Foundation) - 2008 de MS tüm yapıyı değiştirdi ve bunu çıkardı. 2019 da desteğini kesti. Daha önce 20 den farklı protokolü kullanabiliyorduk. Bunları birleştirdi.
+  SOAP(Simple Object Access Protocol) => XML based - geriye dataset gönderiyor ama client örn apple olunca dataset ne? - bu cihazlara ado.net yüklemen gerekiyor çünkü dataset oradan geliyor. 
+	Mesela apple daki int ile senin int aynı değil. Kiminde 8 byte kiminde 4 byte gibi. Yani ortam bağımlı çalışıyor. 
+	Diğer sorun; Envelope yani zarf gibi. yani bir header ı var bir de datası var ve bu da bir xml dosyası.
+	SOAP protokolünde; ben bir servise bağlanıyorum, raminde bir nesne var, ben buradan o nesneyi invoke etmem (yani tetiklemek, çalıştırmak) gerekiyor. 
+	O zaman lokalde bir proxy nesneye ihtiyaç var onu refere edecek. Proxy nesnenin oluşması için de metadata ya ihtiyaç var. 
+	Yani SOAP ın karışıklığı, ikincisi XML in veri taşırken çok büyük boyutta olması, çünkü bantwidth i etkiliyor ve üç platform uyumsuzluğu.
+
+RESTful Services :2000 Yılı Doktora Tezi=>Roy J. Fielding.. şimdilik HTTP protokolü üzerinde çalışır. günümüzde neredeyse her cihazda bir browser var vr browser olan yerde bu servis çalışır. ayrıca ortam bağımsızlığı avantajı
+	client-server yapısını desteklemeli.
+	stateless bir protokol olmalı.
+	verbler kullanılmalı.
+	json xml e göre yarı yarıya daha az. bant genişliği avantajı
+	bana datasetmiş vs bana sadece datayı gönder. SAOP taki gibi envelope kavramı yok bunda. gelen data json formatında istediğin gibi kullan göster.
+	2010 dan sonra popüler olmaya başladı.
+
     WebAPI:
+	MS in restful servis altyapısıyla çalışan teknolojisinin adı.
+
+	https://halilozel1903.medium.com/rest-ve-restful-nedir-f6c8596eb38a
+
 	MS tarafından geliştirilmiştir....
-	MVC altyapısını kullanır...(View Yok...)
+
+	MVC altyapısını kullanır...(View Yok...). ben saba datayı gönderiyorum sen kullanıcıya istediğin gibi göster.
+
+
 	VS2022 => Artık Controller da kullanmak zorunda degiliz...(Minimal API)
+	Örneğin docker ile kullanıldığında controller kullanmazsak docker boyutu azalıyor. 
+	Ayrıca controller sınıfından türetme de olmayacağı için daha az ram kullanıyor.
+	dosya boyutu olarakta avantajlı.
+	Dolayısıyla docker da örn 1000 kont taşıyabilecekken 2000 kont taşıyorsun. 
+	program.cs te karşılayacak middleware yazılması gerekiyor. Dolayısıyla extra controller yazılmasına gerek kalmıyor.
+	2022 de geldi ve geliştirilmeye devam ediyor. 
+
+
+	Microservice yazdık 5 yıldır çalışıyor diyelim. 
+	MS işletim sistemini güncelledi. 
+	Hayda çalışan sistem bazen çalışmaz olur.
+	Ya bunları sürekli çalışmadıkça değiştirmen gerekiyor ya da ducker kullanmak gerekiyor. Bize işletim sisteminden bağımsız küçük micro sistemler oluşturuyor. 
+	Servisi yazıyprsunuz ve bunu docker container e atıyorsunuz. Fakat 2 mb servis dosyası orada 200 mb oluyor. Yani izole bir sistem oluşturuyor. İşletim sistemi update edilsede servis çalışıyor. 
+	
+
+
+WebAPI teknolojisiyle Restful servisi oluşturuyoruz; Bu arada MVC projesi içinden de açılabilir daha sonra MVC projesine de eklenebilir. İlla projeden ayırmak zorunda değiliz. 
+
+1- vs code aç - ASP.NET Core Web API seç - Next - dosya adı veiyoruz WebApplication1 - Next - Framework 6.0, configure kliksiz, autho none, enable docker kliksiz, use controllers klikli, enable OpenAPI klikli, do not use kliksiz ve Create
+
+Aşağıdakiler dosyanın sample verileri;
+
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebApplication1.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class WeatherForecastController : ControllerBase		//DİKKAT!!! Buradaki controller ControllerBase den türüyor. Yani düz controllerdan türüyor. Yani View desteği yok. 
+    {
+        private static readonly string[] Summaries = new[]
+        {
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    };
+
+        private readonly ILogger<WeatherForecastController> _logger;
+
+        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        {
+            _logger = logger;
+        }
+
+        [HttpGet(Name = "GetWeatherForecast")]			//DİKKAT!!! HTTP VERB => her eylemin bir ismi var. HTTPGET-SELECT, HTTPPOST-INSERT, HTTPDELETE-DELETE, HTTPPUT-UPDATE e karşılık geliyor sqlde. Başka da var ama sıklıkla bunlar kullanılıyor.
+        public IEnumerable<WeatherForecast> Get()			//DİKKAT!!! MVC gibi actionlar var.
+        {
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateTime.Now.AddDays(index),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+            .ToArray();
+        }
+    }
+}
+
+2- Çalıştırdığımızda swagger arayüzü geldi. Varsayılan web tabanlı test clienti.
+Request URL : Servisin adresi
+
+JSON datası yorumlamak.
+
+veriyi taşımak için;
+Ramdeki bir objeyi alıp JSON a çevirmek istediğimde Serilizaiton yapmam gerekiyor.
+Karşıda ise Deseriliaze yapmam gerekiyor.
+
+köşeli parantez dizi - list e karşşılık, object - classa karşılık, property-property e karşılık
+
+yani bizim bunu karşılayacak sınıfı yazmamız gerekiyor. Tip dönüşümü yapacağım.
+
+Servise;
+-web uygulamasından,
+-consoldan,
+-winform dan,
+-mvc den vs bağlanabilirim ve kullanabilirim.
+
+web sayfası üzerinden bağlanacaksak ya AJAX yani XMLHTTPREQUEST veya FETCH , diğerleri üzerinden HTTPCLIENT istemcisi oluşturarak ve o nesneyi kullanarak.
+
+reqres.in sitesini inceledik.
+
+
+
