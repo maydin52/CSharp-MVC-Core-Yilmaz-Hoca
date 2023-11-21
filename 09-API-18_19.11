@@ -417,7 +417,7 @@ namespace WebAPI.Controllers
             var aranılanKitap = _kitaplar.Find(x=>x.KitapID == id);
             if (aranılanKitap == null)
                 return BadRequest("Aranılan kitap bulanamadi...");
-            aranılanKitap.KitapAdi = kitap.KitapAdi;
+            aranılanKitap.KitapAdi = kitap.KitapAdi;		//BU SATIR VE ALTINDAKİ SATIR OLMADAN DA ÇALIŞIYORMU DENE!!!  BİRDE POSTMAN İLE DENE!!!
             aranılanKitap.Fiyat = kitap.Fiyat;
             
             return Ok("Guncelleme Islemi basarili...");
@@ -425,7 +425,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpDelete]
-        public IActionResult Sil(int id)
+        public IActionResult Sil(int id)	//EYLEM SİLME EYLEMİ. GERÇEKTE SİLMEYİP PASİFE ALSAK BİLE BU EYLEM ÜZERİNDEN GELMELİ. O SİLİNDİ SANSIN.
         {
             var kitap = _kitaplar.Find(x => x.KitapID == id);
             _kitaplar.Remove(kitap);
@@ -435,5 +435,282 @@ namespace WebAPI.Controllers
 
     }
 }
+
+-----------------------------
+
+1- Proje içerisinde yukarıdaki şekilde bir webAPI rpojesi açtık.
+
+2- properties - current selection apply
+
+3- nuget üzerinden her biri için proje adları kliklenip aynı versiyon no seçilerek kurulum yapılır. Microsoft.EntityFrameworkCore, Microsoft.EntityFrameworkCore.SqlServer, Microsoft.EntityFrameworkCore.Tools
+packagesten kontrol et.
+
+4- Models klasörü açtık ve aşağıdakileri oluşturduk.
+
+namespace WebAPI_Book.Models
+{
+    public class Book
+    {
+        public int BookID { get; set; }
+        public string BookName { get; set; }
+        public decimal BookPrice { get; set; }
+
+        public int? CategoryID { get; set; }
+        public Category? Category { get; set; }
+    }
+}
+
+
+
+namespace WebAPI_Book.Models
+{
+    public class Book_VM
+    {
+        public int BookID { get; set; }
+        public string BookName { get; set; }
+        public decimal BookPrice { get; set; }
+        public string CategoryName { get; set; }
+        
+    }
+}
+
+
+
+using Microsoft.EntityFrameworkCore;
+
+namespace WebAPI_Book.Models
+{
+    public class BookContext:DbContext
+    {
+        public BookContext(DbContextOptions<BookContext> options):base(options) 
+        {
+            
+        }
+
+        public DbSet<Book> Books { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            
+            modelBuilder.Entity<Category>().HasData(
+                new Category { CategoryID=1, CategoryName="Deneme" },
+                new Category { CategoryID=2, CategoryName="Roman" },
+                new Category { CategoryID=3, CategoryName="Hikaye" },
+                new Category { CategoryID=4, CategoryName="Atlas" }
+                );
+
+            modelBuilder.Entity<Book>().HasData(
+                new Book { BookID=1, BookName="Denemeler", BookPrice=56, CategoryID=1 },
+                new Book { BookID=2, BookName="Baslangic", BookPrice=78, CategoryID=2 },
+                new Book { BookID=3, BookName="Suc ve Ceza", BookPrice=45, CategoryID=2 },
+                new Book { BookID=4, BookName="Dunya Atlasi", BookPrice=560, CategoryID=4 }
+                );
+        }
+    }
+}
+
+
+
+namespace WebAPI_Book.Models
+{
+    public class Category
+    {
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
+
+        public ICollection<Book>? Books { get; set; }
+    }
+}
+
+
+
+5- appsettings.json dosyasına connection string ekledik.
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {"ConnStr": "Data source=.;initial catalog=YZL3440_BookDB_API;integrated security=true"}, 
+  "AllowedHosts": "*"
+}
+
+
+
+
+6- program.cs içine ekledik.
+
+
+dikkat builder.Services.AddControllers(); altına
+
+builder.Services.AddDbContext<BookContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("ConnStr")));
+
+
+
+
+7- migration yaptık dikkat migration yaparken hem yukarıdan seçili olması lazım hem de ekranda o projenin açık olması lazım. Veritabanı ve tablolar oluştu, kontrol edildi.
+
+
+8- controllers üzerinde sağ tık - Add - controller - sol taraftan API - (listedeki alttan iki tanesi minimal API için) API Controller with actions, using Entity Framework seçtik - Add - Model class book, dbcontext bookdbcontext, controllername BooksController - Add
+Hata vermişti. SQLLite silmiştik, yeniden kendisi getirid, yazdı.
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebAPI_Book.Models;
+
+namespace WebAPI_Book.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BookController : ControllerBase
+    {
+        private readonly BookContext _context;
+
+        public BookController(BookContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/Book
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+        {
+          if (_context.Books == null)
+          {
+              return NotFound();
+          }
+            return await _context.Books.ToListAsync();
+        }
+
+        [HttpGet("WithCategories")]
+        public async Task<ActionResult<List<Book_VM>>> GetBooksWithCategories()
+        {
+            if (_context.Books == null)
+            {
+                return NotFound();
+            }
+
+            List<Book_VM> books = new List<Book_VM>();
+            foreach (var book in _context.Books.Include("Category"))
+            {
+                books.Add(new Book_VM() {
+                     BookID= book.BookID, 
+                     BookName = book.BookName,
+                     BookPrice =book.BookPrice,
+                     CategoryName = book.Category.CategoryName });
+            }
+
+            return  books ;
+        }
+
+        // GET: api/Book/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Book>> GetBook(int id)
+        {
+          if (_context.Books == null)
+          {
+              return NotFound();
+          }
+            var book = await _context.Books.FindAsync(id);
+
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return book;
+        }
+
+        // PUT: api/Book/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutBook(int id, Book book)
+        {
+            if (id != book.BookID)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(book).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BookExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/Book
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<Book>> PostBook(Book book)
+        {
+          if (_context.Books == null)
+          {
+              return Problem("Entity set 'BookContext.Books'  is null.");
+          }
+            _context.Books.Add(book);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetBook", new { id = book.BookID }, book);
+        }
+
+        // DELETE: api/Book/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            if (_context.Books == null)
+            {
+                return NotFound();
+            }
+            var book = await _context.Books.FindAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            _context.Books.Remove(book);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool BookExists(int id)
+        {
+            return (_context.Books?.Any(e => e.BookID == id)).GetValueOrDefault();
+        }
+    }
+}
+
+
+9- Çalıştırdık ve ön tanımlı verilerin gelip gelmediğini kontrol ettik.
+
+
+10-
+
+
+
 
 
