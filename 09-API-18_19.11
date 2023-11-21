@@ -592,6 +592,8 @@ namespace WebAPI_Book.Controllers
             return await _context.Books.ToListAsync();
         }
 
+//scaffolda eklenen action
+
         [HttpGet("WithCategories")]
         public async Task<ActionResult<List<Book_VM>>> GetBooksWithCategories()
         {
@@ -599,7 +601,7 @@ namespace WebAPI_Book.Controllers
             {
                 return NotFound();
             }
-
+										//BURAYI VM OLMADAN ANYNOMUS İLE YAZMAYI DENE.
             List<Book_VM> books = new List<Book_VM>();
             foreach (var book in _context.Books.Include("Category"))
             {
@@ -612,6 +614,8 @@ namespace WebAPI_Book.Controllers
 
             return  books ;
         }
+
+//
 
         // GET: api/Book/5
         [HttpGet("{id}")]
@@ -705,11 +709,229 @@ namespace WebAPI_Book.Controllers
 }
 
 
+
+
+Program.cs içine aşağıdaki eklenecek. DİKKAT!!! HOCA WebAPI YE EKLEDİ. ONDAN ÇALIŞMAMIŞ OLABİLİR. BURASI WebAPI_Book. HEM CLIENT HEM SERVİS PROGRAM.CS EKLENECEK.
+
+app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+
+-------- app.UseAuthorization(); üstüne yukarıdaki eklenecek.
+
+
+
+
 9- Çalıştırdık ve ön tanımlı verilerin gelip gelmediğini kontrol ettik.
 
 
-10-
+10- Client yazmaya başlıyoruz.
+Book tablosunda category name yok gelmesi için ya VM oluşturup, include ile çekip yeni bir nesne oluşturup göndermek gerekiyor veya join ve sonrasında anynomus object oluşturup teker teker söyleyerek göndermek gerekiyor. Yukarıda örnek var.
 
+Servisleri olusturduktan sonra Client tarafında yapılacaklar...
+
+Clients
+  1-Düz HTML Sayfası...(AJAX, Fetch)JS - Bu biraz farklı.
+
+  2-MVC
+  3-Window Forms 
+  4-Console
+  (2,3,4 => HttpClient) Bu nesneyi kullanacağız.
+
+
+
+10.a Add - new project - console app - Console_Client - Next - net6.0 ve do not use kliksiz - Create
+
+EN ÖNEMLİ KONULARDAN BİRİ; HEM SERVİS UYGULAMASININ HEM DE CLIENT UYGULAMASININ ÇALIŞMASI GEREKİYOR. YANLIŞLIKLA KAPATMA.
+
+nuget - newtonsoft.json - solution seç - versiyon seç - install
+
+
+-------	DESERIALIZE İÇİN DİKKAT!!! 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Console_Client
+{
+    internal class Book
+    {
+        public int BookID { get; set; }
+        public string BookName { get; set; }
+        public decimal BookPrice { get; set; }
+
+        public int CategoryID { get; set; }
+
+        public override string ToString()		//GÖRSELİ TOPARLAMAK İÇİN EZDİK.
+        {
+            return $"{BookID} {BookName} {BookPrice} {CategoryID}";
+        }
+    }
+}
+
+
+------
+
+Program.cs dosyası;
+
+using Console_Client;
+using Newtonsoft.Json;	//DİKKAT EKLE.
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine("Book Service Client");
+
+HttpClient client = new HttpClient();
+
+string strJSON = client.GetStringAsync("http://localhost:5278/api/Book").Result;	//GetStringAsync metodu geriye Task tipinde değer döndürüyor fakat bizden request uriyani adresi istiyor. 														//swaggerdaki request url kopyala yapıştır buraya.
+
+Console.WriteLine(strJSON);	//yukarıdaki url in verilerini gördük. CTRL+F5 ile çalıştır.
+
+
+
+//Gelen veriler string(düzenlemek için split kullanılabilir). Bunların objeye çevrilmesi gerekiyor. 
+
+var kitaplar= JsonConvert.DeserializeObject<List<Book>>(strJSON);	//JsonConvert.DeserializeObject KÜTÜPHANEDEN GELİYOR. DİKKAT!!! JSON A BAKARAK BOOK CLASSI OLUŞTURULUR. JSON PROPERTYLERİNDEN GELEN 										//İSİMLERLE CLASS İÇİNDEKİ PROPERTY İSİMLERİ AYNI OLMALI. 
+
+foreach (var book in kitaplar)		//ARTIK RAMDE VAR.
+{
+    Console.WriteLine(book);
+}
+
+
+
+
+
+
+10.b Add - new project - windows form app - Next - Wnd_Client - net6.0 - create
+
+form açılmadı.
+
+
+
+
+
+
+
+10.c Add - new project - ASP.NET core web app (MVC) - Next - WebApp_Client - net 6.0 , auth none, configure klikli, enable docker kliksiz, do not use kliksiz - Create
+
+nuget - newtonsoft.json - solution seç - versiyon seç - install
+
+properties içinden multiple startup projects listesi içinde hem clienti hem de servisi start without debugging seç - Apply
+
+wwwroot sağ tık - add - new item - html page - kitap.html - create
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+        function showData(json) {
+            let div = document.getElementById("data");
+            div.innerHTML = json;
+        }
+        function getAJAX()
+        {
+            let xhr = new XMLHttpRequest();
+
+		//evente delege bağlıyoruz, DİKKAT!!!
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    showData(xhr.responseText);
+                }
+            };
+
+            xhr.open("GET","http://localhost:5278/api/Book/WithCategories",true);
+            xhr.send();
+
+        }
+
+        async function getFetch()
+        {
+            let data;
+            fetch("http://localhost:5278/api/Book/WithCategories").then(x => x.text()).then(x => { data = x });
+
+            showData(data);
+        }
+    </script>
+</head>
+<body>
+    <button onclick="getAJAX()">AJAX GET</button>	//önce butona basıldığında hata verdi. developer toolstan cors policy hatası. Program.cs içine eklendi. Düz sayfalardan erişim güvenliği için.
+    <button onclick="getFetch()">Fetch GET</button>
+
+    <div id="data"></div>
+</body>
+</html>
+
+
+
+
+Program.cs içine aşağıdaki eklenecek. DİKKAT!!! HOCA WebAPI YE EKLEDİ. ONDAN ÇALIŞMAMIŞ OLABİLİR. BURASI WebAPI_Book. HEM CLIENT HEM SERVİS PROGRAM.CS EKLENECEK.
+
+app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+
+-------- app.UseAuthorization(); üstüne yukarıdaki eklenecek.
+
+
+
+
+namespace WebApp_Client.Models
+{
+    public class Book
+    {
+        public int BookID { get; set; }
+        public string BookName { get; set; }
+        public decimal BookPrice { get; set; }
+
+        public string CategoryName { get; set; }
+    }
+}
+
+
+
+
+Controller üzerinde sağ tık - add - controller - empty - add - TestController
+
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using WebApp_Client.Models;
+
+namespace WebApp_Client.Controllers
+{
+    public class TestController : Controller
+    {
+        public IActionResult Index()
+        {
+            HttpClient client = new HttpClient();
+
+            string strJSON = client.GetStringAsync("http://localhost:5278/api/Book/WithCategories").Result;
+
+            var books = JsonConvert.DeserializeObject<List<Book>>(strJSON);
+
+            //return Content(strJSON);		//json formatı düz yazı olarak getirdik ama obje deiğil.
+            return View(books);
+        }
+    }
+}
+
+
+
+
+Panel klasörü altındaki Index.cshtml
+
+@model IEnumerable<Book>
+
+<table class="table table-striped">
+    @foreach(var kitap in Model)
+    {
+        <tr>
+            <td>@kitap.BookID</td>
+            <td>@kitap.BookName</td>
+            <td>@kitap.BookPrice</td>
+            <td>@kitap.CategoryName</td>
+        </tr>
+    }
+</table>
 
 
 
