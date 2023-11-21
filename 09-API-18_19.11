@@ -100,6 +100,7 @@ RESTful Services :2000 Yılı Doktora Tezi=>Roy J. Fielding.. şimdilik HTTP pro
 	Hayda çalışan sistem bazen çalışmaz olur.
 	Ya bunları sürekli çalışmadıkça değiştirmen gerekiyor ya da ducker kullanmak gerekiyor. Bize işletim sisteminden bağımsız küçük micro sistemler oluşturuyor. 
 	Servisi yazıyprsunuz ve bunu docker container e atıyorsunuz. Fakat 2 mb servis dosyası orada 200 mb oluyor. Yani izole bir sistem oluşturuyor. İşletim sistemi update edilsede servis çalışıyor. 
+	Docker a ilgili sınıflarında yüklenmesi gerekiyor görmesi için.
 	
 
 
@@ -166,5 +167,273 @@ web sayfası üzerinden bağlanacaksak ya AJAX yani XMLHTTPREQUEST veya FETCH , 
 
 reqres.in sitesini inceledik.
 
+----------------------------------------------------------
+WebAPI
+
+MVC Core da olan Controller lar => Controller sinifindan kalıtım alırken webAPI Controller'lar => ControllerBase sınıfından kalıtım alır...
+
+Neden??? WebAPI de View destegi yok...
+
+RESTful servisleri test etme araçları(tools)
+-Swagger(HTML base) projeyi oluştururken OpenAPI seçersen otomatik geliyor ama projeyi publish ederken kaldırılması gerekiyor 
+(program.cs içindeki;
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+IsDevelopment tan bunu anlıyor.
+)
+-PostMan
+-Fiddler
+
+***Swagger icin => HttpVerb'ler tanımlanmalı...
+[HttpGet]
+public string Merhaba(){}
+
+***Swagger hata versede HttpGet yazmasakta olur !!!(Birden fazla olacaksa mutlaka tanımlanmalı...) 
+
+WebAPI de Aksiyonların return tipleri
+1) void ***
+2) Ontanımlı tipler yada complex(class, koleksiyon) tipler
+3) HttpResponseMessage (CORE oncesi ...)
+4) IActionResult ***** (Async)
+
+[] HttpVerbs
+[HttpGet]  => SELECT(Client'a veri gider(NSA))
+[HttpPost] => INSERT(Veri client dan gelir)
+[HttpPut]  => UPDATE(Veri client dan gelir)
+[HttpDelete]=> DELETE(Veri client dan gelir)
+
+
+Servisleri olusturduktan sonra Client tarafında yapılacaklar...
+
+Clients
+  1-Düz HTML Sayfası...(AJAX, Fetch)JS
+
+  2-MVC
+  3-Window Forms 
+  4-Console
+  (2,3,4 => HttpClient)
+
+
+
+
+1- vs code aç - ASP.NET Core Web API seç - Next - dosya adı veiyoruz WebApplication1 - Next - Framework 6.0, configure kliksiz, autho none, enable docker kliksiz, use controllers klikli, enable OpenAPI klikli, do not use kliksiz ve Create
+
+2- Controller klasöründe sağ tık - add - controller - DİKKAT!!! soldan Common altındaki API seçilir, gelen listeden empty seçilir (ikisi arasındaki fark bunun abstract controllerbase sınıfından miras almış olması) - BaslangicController - Add
+
+3- BaslangicController içinde aşağıdakileri ekledik.
+
+ilk çalışınca swagger hata verdi. Normal.
+..../api/baslangic olarak çalıştırılır.
+Swagger her aksiyonun önünde bir HTTPVerb olmasını istediği için kızıyor. Yazmasamda varsayılan HttpGet.
+State yönetimi; yani restfuldaki representive state, durum yönetimi. 
+Sonucu response body den gördük. Code önemli 200 döndü.
+100-500 arası hata tipleri vardır.
+Bu kodlar beş kategoride sınıflanır.
+https://www.niobehosting.com/blog/http-server-durum-hata-kodlari-ve-anlamlari/
+Bilgilendirici HTTP Durum Kodları  (100-1xx)
+Başarılı HTTP Durum Kodları         (200-2xx)
+Yönlendirme HTTP Durum Kodları (300-3xx)
+İstemci Hata HTTP Durum Kodları (400-4xx)
+Sunucu Hata HTTP Durum Kodları (500-5xx)
+
+
+//Restful servislerdeki işin güzelliklerinden bir tanesi de; artık burada HttpVerb ler var ve metod yani aksiyon isimlerinin anlamı yok. Sistem metod isimleri değil HttpVerb e bakıyor. İki get olunca hata vermişti.
+//Ayırtedici isim verdi. "hi".
+
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebAPI.Controllers
+{
+    
+    //[Route("api/[controller]")]		//ROUTING İKİ ŞEKİLDE OLABİLİR; YA PROGRAM.CS E YAZILIR YA DA BURADAN ATTRIBUTE İLE (ATTRIBUTE ROUTING)
+    [Route("servis/[controller]")]	//Özelleştirilebiliyor.
+    [ApiController]
+    public class BaslangicController : ControllerBase
+    {
+        [HttpGet]					// ....../servis/baslangic/
+        public string Merhaba()			// Aksiyonların NŞA 4 tane return type olabilir; en çok iki tanesini kullanıyoruz. ÖRNEKLER AŞAĞIDA.
+						WebAPI de Aksiyonların return tipleri
+						1) void ***
+						2) Ontanımlı tipler yada complex(class, koleksiyon) tipler
+						3) HttpResponseMessage (daha çok CORE oncesi ...)
+						4) IActionResult ***** (Async desteği) en çok kullanılan. servislerde asenkron prog desteklediği için en çok tercih edilen.
+        {
+            return "Merhaba WebAPI";
+        }
+
+        [HttpGet("hi")]					// ....../servis/baslangic/hi
+        public string Hello(string str)		//swagger üzerinden girilen parametre request URL deki querystring e ekleniyor. Veriyi querystring üzerinden servis bekliyorsa gönderebilirsin. Ya da aksiyona parametre tanımladığımda aksini söylemedikçe querystring üzerinden geleceğini anlamamız gerekiyor.  
+        {
+            return "Hello WebAPI " + str;
+        }
+
+    }
+}
+
+---------------------- RetunTipleriController
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class RetunTipleriController : ControllerBase
+    {
+        [HttpPost]
+        public void Ekle()		//1. MADDE. DİKKAT!!! EKLE NİN HTTPVERB İ HTTPPOST. GERİYE DEĞER DÖNDÜRMESİNE GEREK YOK AMA GET VE SELECT LERDE BİR DEĞERİN DÖNMESİ LAZIM.
+        { 
+            //1.Return Type=> void
+        }
+
+        [HttpGet]
+        public IEnumerable<string> Sehirler() {				//2. MADDE. DİKKAT!!! SWAGGER DAN KONTROL ETTİĞİNDE DİZİ JSON OLARAK GELDİ.
+            //2.Return Type => On tanımlı tip yada complex tip..
+            string[] sehirler = { "Istanbul", "Ankara", "Bursa" };
+
+            return sehirler;
+        }
+
+        [HttpGet("resp")]					//DİKKAT!!! SAYFADA İKİ GET OLDUĞUNDAN BUNA İSİM VERDİK.
+        public HttpResponseMessage Ekle(int? id)		//3. MADDE. DİKKAT!!! BİZİM YÖNETİMİMİZDE. İSTEDİĞİMİZ GİBİ HATA DÖNDÜREBİLİRİZ. ASENKRON DESTEĞİ YOK. ESKİ USÜL.
+        {
+            //3.Return Type=> HttpResponseMessage
+
+            if (id <0)
+                return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+            else
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+        }
+
+        [HttpGet("ara")]
+        public IActionResult Ara(int? id)			//4. MADDE. 
+        {
+            if (id < 0)
+                return BadRequest();			//YUKARIDAKİ UYGULAMANIN BURADAKİ UYGULANIŞI.
+
+            return Ok();
+        }
+    }
+}
+
+--------------------------------
+
+POSTMAN KULLANIMI
+
+1- Yukarı + dan sayfa aç
+
+2- yeşil GET yazan yere tıkla ve yanındaki adres kısmına swagger daki request URL adresini kopyala ve yapıştır. (...../route/controller)
+
+3- Aşağıda parametre girilmesi grekiyorsa haneler açıldı. Girişleri yap ve Send butonuna tıkla.
+
+4- Aşağıya gelen değer json olarak çıktı.
+
+--------------------------------
+
+[] HttpVerbs
+[HttpGet]  => SELECT(Client'a veri gider(NSA))
+[HttpPost] => INSERT(Veri client dan gelir)
+[HttpPut]  => UPDATE(Veri client dan gelir)
+[HttpDelete]=> DELETE(Veri client dan gelir)
+
+
+
+MOdels klsörü içerisinde;
+namespace WebAPI.Models
+{
+    public class Kitap
+    {
+        public int KitapID { get; set; }
+        public string KitapAdi { get; set; }
+        public double Fiyat { get; set; }
+    }
+}
+
+
+--EF KULLANMADAN HttpVerbs KULLANIMI
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using WebAPI.Models;
+
+namespace WebAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class KitapController : ControllerBase		
+    {
+        static List<Kitap> _kitaplar = new List<Kitap>() { 			//NEDEN STATIC ??? PROGRAM KAPANMADIKÇA VERİLER KALIR. VERİTABANINI SİMÜLE ETTİK.
+           new Kitap{ KitapID=123, KitapAdi="Denemeler",Fiyat=45 },
+           new Kitap{ KitapID=125, KitapAdi="Cehennem",Fiyat=65 },
+           new Kitap{ KitapID=166, KitapAdi="Baslangic",Fiyat=85 },
+           new Kitap{ KitapID=184, KitapAdi="Falaka",Fiyat=44 },
+           new Kitap{ KitapID=189, KitapAdi="Kasagi",Fiyat=52 }
+        };
+
+        [HttpGet]
+        public IActionResult TumKitaplar()
+        {
+            return Ok(_kitaplar);	//GENEL KULLANIM
+        }
+
+        [HttpGet("ara")]
+        public IActionResult KitapAra(int? kitapId)
+        {
+            return Ok(_kitaplar.Find(x=>x.KitapID==kitapId));
+        }
+
+        //Veriler  QueryString uzerinden gider...
+        //[HttpPost]
+        //public IActionResult Ekle(int kitapId ,string kitapAdi, double fiyat) {
+        //    Kitap kitap = new Kitap { KitapID = kitapId, KitapAdi = kitapAdi, Fiyat = fiyat };
+
+        //    _kitaplar.Add(kitap);
+
+        //    return Ok("Ekleme Islemi basarili...");
+
+        //}
+
+        [HttpPost]
+        public IActionResult Ekle(Kitap kitap)		//MODEL BINDER GELEN TİPLERE GÖRE ARKADA KENDİSİ HALLEDİYOR. ŞİMDİ SWAGGER DA REQUEST BODY İÇİNDEKİ JSON DOSYA İÇİNE VERİLERİ GİRDİK. VERİYİ JSON OLARAK GÖNDER DİYOR YANİ.
+        {
+            _kitaplar.Add(kitap);
+
+            return Ok("Ekleme Islemi basarili...");
+
+        }
+
+        [HttpPut]
+        public IActionResult Guncelle(Kitap kitap)
+        {
+            //Guncelle
+            int id = kitap.KitapID;
+            var aranılanKitap = _kitaplar.Find(x=>x.KitapID == id);
+            if (aranılanKitap == null)
+                return BadRequest("Aranılan kitap bulanamadi...");
+            aranılanKitap.KitapAdi = kitap.KitapAdi;
+            aranılanKitap.Fiyat = kitap.Fiyat;
+            
+            return Ok("Guncelleme Islemi basarili...");
+
+        }
+
+        [HttpDelete]
+        public IActionResult Sil(int id)
+        {
+            var kitap = _kitaplar.Find(x => x.KitapID == id);
+            _kitaplar.Remove(kitap);
+            return Ok("Kitap isilindi...");
+        }
+
+
+    }
+}
 
 
