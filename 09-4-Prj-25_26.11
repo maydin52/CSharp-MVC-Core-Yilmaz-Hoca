@@ -1,1 +1,83 @@
-vbn
+MVC Core Projesi
+  
+Teknolojiler
+   Web API
+   Identity
+   Draw Charts
+
+
+Users
+Roles
+Customers
+
+
+1. VS aç - Create a new project - ASP.Net Core Web App (MVC) - WebApp_API adını verdik - Next - 6.0, auth none, configure kliksiz, enable kliksiz, do not kliksiz - Create
+
+DİKKAT!!! auth altındaki Microsoft Identity Platform daha çok facebook, twitter girişi gibi mantıkta çalışıyor. 
+Mehmet tüm actionları tek controlllera yazsak sordu?
+https://www.google.com/search?q=separation+of+concerns+nedir&sca_esv=585565771&rlz=1C5CHFA_enTR1036TR1036&sxsrf=AM9HkKkmIvO_ciu7fGo7d3TT-ljQpH05AA%3A1701082243119&ei=g3RkZcT4BtXmxc8P66OKuAM&ved=0ahUKEwiExtaWgeSCAxVVc_EDHeuRAjcQ4dUDCBA&uact=5&oq=separation+of+concerns+nedir&gs_lp=Egxnd3Mtd2l6LXNlcnAiHHNlcGFyYXRpb24gb2YgY29uY2VybnMgbmVkaXIyCBAAGIAEGMsBMgsQABiABBiKBRiGAzILEAAYgAQYigUYhgMyCxAAGIAEGIoFGIYDMgsQABiABBiKBRiGAzILEAAYgAQYigUYhgNIhgxQpgVY5QpwAXgBkAEAmAGpAaAB0QWqAQMwLjW4AQPIAQD4AQHCAgoQABhHGNYEGLADwgINEAAYgAQYigUYsAMYQ8ICBRAAGIAEwgIGEAAYFhgewgIIEAAYFhgeGA_iAwQYACBBiAYBkAYK&sclient=gws-wiz-serp
+SoC (Separation Of Concerns) Prensibi ne göre ayrı olmalı.
+Sen yazıp gittikten sonra kodu incleyen kişi nasıl anlayacak? Evdeki giysi dolabına herşeyi doldurmak gibi. Birşeye ihtiyaç olduğunda bulmanın zorluğu.
+Bunun bir üst seviyesi SOLID
+
++ borç verdi, - borç aldı mantığında.
+
+2. Tools - Nuget Package Manager - ... for solution - browse içinden aşağıdakileri kütüphaneleri kuruyoruz. (her birinde proje seçilecek, versiyonları aynı seçilecek 6.25)
+- Microsoft.EntityFrameworkCore
+- Microsoft.EntityFrameworkCore.SqlServer
+- Microsoft.EntityFrameworkCore.Tools
+
+- Microsoft.Extensions.Identity.Core DİKKAT!!! BUNU YANLIŞ KURDUK SONRADAN DEĞİŞTİR KAYIT SIRASI GELİNCE
+- Microsoft.AspNetCore.Identity.UI - bunu kurarsan hazır ekranları da kullanabilirsin ama kurmadık. Biz kendimiz yazdık.?????
+
+
+Identity sistemi kullanacağız ama db bağlantısını EF kullanmadan mümkün mü? Hayır. Ya da komple senin yazman gerekiyor. 
+
+
+3. Models Klasörü altına aşağıdaki modelleri ekledik.
+
+//DİKKAT!!! Ara tablonun çoka çok ilişki nav prop eklemedik aşağıya. SıgnInManager, UserManager oradan çekiyor. 
+public class AppRole:IdentityRole<int>
+    {
+    }
+
+public class AppUser:IdentityUser<int>    //Identity kullandığımızda varsayılanı IdentityUser. Biz ID lerde int kullanacağımız için bu şekilde yazdık. Yazmasaydık Guid string ifade olarak baz alacaktı. String ifadeler yavaş çalışır.
+    {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string ProfileImagePath { get; set; }
+
+        public ICollection<Customer>? Customers { get; set; }
+    }
+
+public class Customer
+    {
+        public int CustomerID { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public decimal TotalBalance { get; set; }
+
+        //Kim olusturdu...
+        public int AppUserID { get; set; }
+        public AppUser? AppUser { get; set; }
+
+        [NotMapped]
+        public string UserName { get => Name + " " + Surname; }
+
+        public ICollection<MoneyMovement>? MoneyMovements { get; set; }
+    }
+
+public class MoneyMovement
+    {
+        public int ID { get; set; }
+
+        public int CustomerID { get; set; }
+        public DateTime CreateDate { get; set; }
+
+        public string Description { get; set; }
+        public decimal Amount { get; set; }
+
+        public Customer? Customer { get; set; }
+    }
+
+4. Data klasörü ekledik.
