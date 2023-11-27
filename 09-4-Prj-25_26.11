@@ -22,16 +22,22 @@ Bunun bir üst seviyesi SOLID
 
 + borç verdi, - borç aldı mantığında.
 
+
+
+
+
 2. Tools - Nuget Package Manager - ... for solution - browse içinden aşağıdakileri kütüphaneleri kuruyoruz. (her birinde proje seçilecek, versiyonları aynı seçilecek 6.25)
 - Microsoft.EntityFrameworkCore
 - Microsoft.EntityFrameworkCore.SqlServer
 - Microsoft.EntityFrameworkCore.Tools
-
-- Microsoft.Extensions.Identity.Core DİKKAT!!! BUNU YANLIŞ KURDUK SONRADAN DEĞİŞTİR KAYIT SIRASI GELİNCE
+- Microsoft.AspNetCore.Identity.EntityFrameworkCore
 - Microsoft.AspNetCore.Identity.UI - bunu kurarsan hazır ekranları da kullanabilirsin ama kurmadık. Biz kendimiz yazdık.?????
 
 
 Identity sistemi kullanacağız ama db bağlantısını EF kullanmadan mümkün mü? Hayır. Ya da komple senin yazman gerekiyor. 
+
+
+
 
 
 3. Models Klasörü altına aşağıdaki modelleri ekledik.
@@ -80,4 +86,451 @@ public class MoneyMovement
         public Customer? Customer { get; set; }
     }
 
-4. Data klasörü ekledik.
+
+
+
+
+4. Models klasörü içerisine Configurations klasörü açtık ve aşağıdakileri oluşturduk.
+SoC (Separation Of Concerns) Prensibi
+Ön yüzde de kısıtlayabilirdik fakat db de nvarcharmax kalıyor, kalmamalı. Ayrıca db de kısıt olmazsa ön yüzü geçince dbye de geçer. Kademeli defans.
+Her yerde ön yüzde yok, api de ne olacak? Sıkıntı. İki taraftan da kısıtlanmalı.
+
+public class AppRole_CFG : IEntityTypeConfiguration<AppRole>
+    {
+        public void Configure(EntityTypeBuilder<AppRole> builder)
+        {
+            //Initial Value
+
+            builder.HasData(new AppRole { Id=1, Name="Admin", NormalizedName="ADMIN", ConcurrencyStamp=Guid.NewGuid().ToString() } );
+            builder.HasData(new AppRole { Id=2, Name="User", NormalizedName="USER", ConcurrencyStamp=Guid.NewGuid().ToString() } );
+        }
+    }
+
+
+public class AppUser_CFG : IEntityTypeConfiguration<AppUser>
+    {
+        public void Configure(EntityTypeBuilder<AppUser> builder)
+        {
+            builder.Property(x => x.Name).IsRequired().HasMaxLength(25);
+            builder.Property(x => x.Surname).IsRequired().HasMaxLength(25);
+            builder.Property(x => x.ProfileImagePath).IsRequired(false).HasMaxLength(100);
+
+            //superuser olustur...
+            AppUser user = new AppUser() {
+                Id = 1,
+                Name = "Cevdet",
+             Surname = "Korkmaz",
+                UserName = "Cevdo", NormalizedUserName = "CEVDO",
+                Email = "cevdet@deneme.com", NormalizedEmail = "CEVDET@DENEME.COM",
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString(),
+                EmailConfirmed = false,
+                PhoneNumberConfirmed = false,
+                ProfileImagePath = "empty.jpg"
+            };
+
+            //DİKKAT!!!Bunu yazdıktan sonra silmekte ve daha korunaklı bir yere yazıp orada tutmakta fayda var.
+            PasswordHasher<AppUser> hasher = new PasswordHasher<AppUser>();
+            user.PasswordHash = hasher.HashPassword(user, "Cevdo_123");
+            builder.HasData(user);
+        }
+    }
+
+public class Customer_CFG : IEntityTypeConfiguration<Customer>
+    {
+        public void Configure(EntityTypeBuilder<Customer> builder)
+        {
+            builder.Property(x => x.Name).IsRequired().HasColumnType("varchar").HasMaxLength(25);
+            builder.Property(x => x.Surname).IsRequired().HasColumnType("varchar").HasMaxLength(25);
+            builder.Property(x => x.TotalBalance).IsRequired(true).HasColumnType("money").HasDefaultValue(0);
+         
+        }
+    }
+
+public class MoneyMovement_CFG : IEntityTypeConfiguration<MoneyMovement>
+    {
+        public void Configure(EntityTypeBuilder<MoneyMovement> builder)
+        {
+            builder.Property(x => x.Description).IsRequired().HasColumnType("varchar").HasMaxLength(250);
+            builder.Property(x => x.Amount).IsRequired().HasColumnType("money");
+        }
+    }
+
+
+
+
+
+5. Data klasörü altına CustomerContext ekledik.
+
+public class CustomerContext:IdentityDbContext<AppUser,AppRole,int>
+    {
+        public CustomerContext()
+        {
+            
+        }
+        public CustomerContext(DbContextOptions<CustomerContext> options):base(options)
+        {
+                
+        }
+
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<MoneyMovement> MoneyMovements { get; set; }
+        public DbSet<AppUser>  Users { get; set; }
+        public DbSet<AppRole>  Roles { get; set; }
+
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+
+            //başlangıçta burayı yazmadık. 
+            optionsBuilder.UseSqlServer("Data source=.;initial catalog=YZL3440_CustDB;integrated security=true");
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.ApplyConfiguration(new AppRole_CFG());
+            builder.ApplyConfiguration(new AppUser_CFG());
+            builder.ApplyConfiguration(new Customer_CFG());
+            builder.ApplyConfiguration(new MoneyMovement_CFG());
+
+            //Iliski rol çoka çok tablosundaki
+            builder.Entity<IdentityUserRole<int>>().HasData( new IdentityUserRole<int> { UserId=1, RoleId=1 });
+
+            base.OnModelCreating(builder);
+        }
+
+        
+    }
+
+
+
+
+6. Program.cs de aşağıdaki eklemeleri yaptık.
+
+// Add services to the container.
+builder.Services.AddControllersWithViews(); ALTINDAN-------------
+
+builder.Services.AddDbContext<CustomerContext>(x=>x.UseSqlServer(builder.Configuration.GetConnectionString("ConnStr")));
+
+builder.Services.AddIdentity<AppUser, AppRole>(x => { x.SignIn.RequireConfirmedEmail = false; }).AddEntityFrameworkStores<CustomerContext>()
+    .AddRoles<AppRole>();
+
+
+
+//API GÜVENLİĞİNİ YAZARKEN EKLEDİK.
+
+//JWT
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["secretKey"];
+
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+    };
+});
+
+
+var app = builder.Build();------ ARASINDA
+
+
+VE
+
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();  //BUNU OTOMATİK EKLEMEDİYSE EKLE
+    app.UseExceptionHandler("/Home/Error");
+}
+
+VE 
+
+  
+app.UseAuthentication(); ALTINA        //DİKKAT!!! VAR OLUP OLMADIĞINA BAKAR. BİR KULLANICI SİSTEME GİRMEYE ÇALIŞIYORSA.
+app.UseAuthorization();                  //GİRDİKTEN SONRA YETKİLENDİRME 
+
+
+VE
+
+AREA EKLENDİĞİNDE
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+      name: "areas",
+      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+    );
+});
+
+VE
+
+//API GÜVENLİĞİNİ YAZARKEN EKLEDİK.
+app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+
+
+
+
+
+
+7. appsettings.json dosyasına aşağıdaki eklemeleri yaptık.
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+
+BURASI İLE
+
+  "ConnectionStrings": { "ConnStr": "Data source=.;initial catalog=YZL3440_CustDB;integrated security=true" },
+
+ARASINA MIGRATIONDAN ÖNCE,
+
+BURASI İLE 
+  "JwtSettings": {
+    "secretKey": "The most secure key in the world....",
+    "validSubject": "JWTServiceAccessToken"
+
+  },
+
+BURASI ARASINA DA API EKLENDİĞİNDE
+
+  "AllowedHosts": "*"
+
+}
+
+
+
+
+
+
+8. Migration yaptık.
+
+add-migration
+Hata verdi. Boş Constructor ekledik.
+Hata verdi. Context içine onconfiguring içine connection string ekledik. onconfiguring içinden silmedik. Bu sadece migration için geçerliymiş.
+Hata verdi. CustomerCFG içindeki TotalBalance da true ya çektik ve sonuna HasDefaultValue(0); ekledik.
+
+update-database
+Tabloları, ilişkileri, içindeki değerleri ve tiplerini kontrol ettik.
+
+
+
+
+
+9. Admin ve User kullanıcılarının ulaşabilecekleri sayfaları ayırmak için arealar oluşturuyoruz.
+Her areanın kendine ait MVC oluyor.
+
+9.1.a Solution explorer en üst seviyede sağ tık - add - New Scaffolded Item - MVC Area - Add - AdminPanel ismi veriyoruz - Add - gelen scripti program.cs ekledik (yukarıda-startup artık program.cs içerisinde olduğundan - core 5.0 dahil 6.0 a kadar startup içinde hazır bir yapı vardı.) 
+
+9.1.b HomeController oluşturduk.
+
+[Area("AdminPanel")]
+    public class HomeController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+
+9.1.c HomeController un Index.cshtml ini oluşturduk.
+
+<h1>Admin Panel</h1>
+
+-----
+
+9.2.a Solution explorer en üst seviyede sağ tık - add - New Scaffolded Item - MVC Area - Add - UserPanel ismi veriyoruz - Add - gelen scripti bir kere kelemek yeterli. 
+
+9.2.b HomeController oluşturduk.
+
+[Area("UserPanel")]
+    public class HomeController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+
+9.2.c HomeController un Index.cshtml ini oluşturduk.
+
+<h2>User Admin</h2>
+
+<br /><br />
+
+<a asp-controller="Customer" asp-action="Index" class="btn btn-primary">Customer Pages</a>
+
+
+
+
+
+
+10. Identity biz sıfırdan uyarladığımız için aşağıdakileri ekledik.
+
+10.a Areaların dışındaki genel alanda LoginController oluşturduk. 
+
+public class LoginController : Controller
+    {
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signinManager;
+
+        //DİKKAT CONSTRUCTOR U KISA YOLDAN DA YAZDIRABİLİRSİN.
+
+        public LoginController(UserManager<AppUser> userManager, SignInManager<AppUser> signinManager)
+        {
+            _userManager = userManager;
+            _signinManager = signinManager;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginDTO login)
+        {
+            var user =await _userManager.FindByEmailAsync(login.Email);
+            var result =await _userManager.CheckPasswordAsync(user, login.Password);
+
+            if (result) //kullanıcı varsa
+                await _signinManager.SignInAsync(user, false);
+            else
+            {
+                ModelState.AddModelError("HATA","Kullanıcı adı veya sifre yanlıs");
+                return View();
+            }
+
+            return RedirectToAction("Index","Home");
+        }
+
+
+        [HttpPost]
+        public IActionResult LogOut()
+        {
+            _signinManager.SignOutAsync();
+            return RedirectToAction("Index","Home");
+        }
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(User_VM user)
+        {
+            AppUser newUser = new AppUser();
+            newUser.Name = user.Name;
+            newUser.Surname = user.Surname;
+            newUser.Email = user.Email;
+            newUser.UserName = user.Email;
+            newUser.PasswordHash = new PasswordHasher<AppUser>().HashPassword(newUser,user.Password);
+
+            //Image Process...
+            string fileName =  user.Image.FileName;
+            fileName =Guid.NewGuid().ToString() + "_" + fileName;
+            string pathWithName = "wwwroot/profileImages/"+fileName;
+            FileStream fs = new FileStream(pathWithName, FileMode.Create);
+            await user.Image.CopyToAsync(fs);
+            fs.Close();
+            newUser.ProfileImagePath = fileName;
+
+
+            //DİKKAT!!! ASENKRON BİR METODU ASENKRON OLMAYAN BİR YERDE KULLANACAKSAK RESULT EKLENİR. RESULT YAZARSAN DÖNÜŞ DEĞERİNİ (INT VS.) YAZMAZSAN TASKIN TAMAMINI DÖNDÜRÜR.
+            //var result=_userManager.CreateAsync(newUser).Result;
+
+            var result=await _userManager.CreateAsync(newUser);
+            //Varsayılan olara uye yap...
+            await _userManager.AddToRoleAsync(newUser, "User");
+            
+            return Content(result.Succeeded.ToString());
+        }
+    }
+
+
+10.b Register.cshtml oluşturduk.
+
+@using WebApp_API.Models.ViewModels;
+@model User_VM
+
+<form method="post" asp-action="Register" enctype="multipart/form-data">
+    <table>
+        <tr>
+            <td><label asp-for="Name"></label></td>
+            <td><input asp-for="Name" /></td>
+        </tr>
+         <tr>
+            <td><label asp-for="Surname"></label></td>
+            <td><input asp-for="Surname" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Email"></label></td>
+            <td><input asp-for="Email" type="email" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Image"></label></td>
+            <td><input asp-for="Image" type="file" /></td>
+        </tr>
+
+        <tr>
+            <td><label asp-for="Password"></label></td>
+            <td><input asp-for="Password" /> </td>
+        </tr>
+        <tr>
+            <td><label asp-for="ConfirmPassword"></label></td>
+            <td><input asp-for="ConfirmPassword" /> </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" value="Register" />
+            </td>
+        </tr>
+    </table>
+
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
