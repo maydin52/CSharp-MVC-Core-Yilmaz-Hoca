@@ -11,6 +11,21 @@ Roles
 Customers
 
 
+Tablolar arası bağlantı klasikte 3 taneydi. Sinanın sorusuna cevabı.
+1. Yöntem; siz normal sınıfları oluştururken yine miras kullanarak yapıyorsunuz. Miras kullandığınızda hepsini bir tabloda tutuyor. Eşleşmeyen değer varsa null olarak görünüyor. 
+2. Yöntem; Discriminater diye birşey oluşturuyor. Discriminater ile kimin neye ait olduğunu anlamaya çalışıyor. Core da 2 ile başladı. 
+3. Yöntem; bir base tablo oluşturuyor. ikinci ve üçüncü tabloları oluşturuyor. İlişkiyi kuruyor bizdeki gibi. 3. sü EF 7 den itibaren geldi.
+
+Örneğin; Personel base sınıfım var. Bu base sınıftan Müşteri ve Çalışan sınıfını oluşturdum. Discriminator olarak personel ve çalışan olarak birşey tutuyor. Sonra onun kime ait olduğunu discriminator üzerinden anlamaya çalışıyor ama bunlardan bazıları veritabanı programcılığı açısından çok uygun değil. Bazısı da per type yapınca join maliyeti çok artıyor ama kullanabiliyoruz EF de.
+Normalizasyon yaparken join maliyeti de önemli. Çok fazla bölersek bu sefer mesela cross join de çarpım çarpım gittiği için oradan acayip yüksek değerler çıkıyor. 
+Yapabilirsin, üç seçeneğin var ama koşullara göre uygun olan olmayan farklı.
+
+
+
+
+
+
+
 1. VS aç - Create a new project - ASP.Net Core Web App (MVC) - WebApp_API adını verdik - Next - 6.0, auth none, configure kliksiz, enable kliksiz, do not kliksiz - Create
 
 DİKKAT!!! auth altındaki Microsoft Identity Platform daha çok facebook, twitter girişi gibi mantıkta çalışıyor. 
@@ -720,7 +735,7 @@ Ayrıca logout yazıldı. yukarıda yorumdaki form tagi değiştirildi.
 
 
 
-14. Üye Customer ekleyecek. 
+14. Üye Customer ve MoneyMovement ekleyecek ve sadece kendi girdiği kayıt ve akışı görecek.
 
 14.a Areas - UserPanel - Controllers altında Scaffold ile (model class: Customer, context seç, controllername içinden s yi kaldır, hepsi klikli) aşağıdaki controller oluşturduk ve düzenledik.
 
@@ -1135,7 +1150,85 @@ Arkaplanda oturum açan kişinin ID sini yakalamam lazım.
 
 
 
+14.g Details sayfasında gösterimi ayarladık.
 
+@model WebApp_API.Models.Customer
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Customer</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Surname)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Surname)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TotalBalance)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TotalBalance)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.AppUser)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.AppUser.Name)
+        </dd>
+    </dl>
+</div>
+
+
+<div>
+    <h3>Customer Money Movements</h3>
+    <table class="table table-striped">
+        <tr>
+            <th><label asp-for="@Model.MoneyMovements.SingleOrDefault().CreateDate"></label></th>
+            <th><label asp-for="@Model.MoneyMovements.SingleOrDefault().Description"></label></th>
+            <th><label asp-for="@Model.MoneyMovements.SingleOrDefault().Amount"></label></th>
+        </tr>
+    @foreach(var item in Model.MoneyMovements.OrderByDescending(x=>x.CreateDate))
+    {
+        <tr>
+            <td>@item.CreateDate</td>
+            <td>@item.Description</td>
+            <td>@item.Amount</td>
+        </tr>
+
+    }
+    </table>
+</div>
+
+
+
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.CustomerID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
+
+
+
+
+
+15. Chart gösterimi ayarlaması
+
+https://www.chartjs.org/
+
+https://www.chartjs.org/docs/latest/samples/bar/vertical.html
 
 
 
