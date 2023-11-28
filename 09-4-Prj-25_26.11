@@ -376,11 +376,23 @@ Her areanın kendine ait MVC oluyor.
 <a asp-controller="Customer" asp-action="Index" class="btn btn-primary">Customer Pages</a>
 
 
+public class User_VM
+    {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string Email { get; set; }
+        public IFormFile Image { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
+    }
+
 
 
 
 
 10. Identity biz sıfırdan uyarladığımız için aşağıdakileri ekledik.
+
+
 
 10.a Areaların dışındaki genel alanda LoginController oluşturduk. 
 
