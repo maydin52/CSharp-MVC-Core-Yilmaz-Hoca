@@ -124,7 +124,7 @@ public class AppUser_CFG : IEntityTypeConfiguration<AppUser>
                 Email = "cevdet@deneme.com", NormalizedEmail = "CEVDET@DENEME.COM",
                 SecurityStamp = Guid.NewGuid().ToString(),
                 ConcurrencyStamp = Guid.NewGuid().ToString(),
-                EmailConfirmed = false,
+                EmailConfirmed = false,                          //DİKKAT!!! VEYA PROGRAM.CS TE YAZIYORUZ. BKZ AŞAĞIDAKİ PROGRAM.CS. HATA ALIRSAN BUNLARDAN BAŞKA DB DEN ELLE DE FALSE YAPILABİLİR
                 PhoneNumberConfirmed = false,
                 ProfileImagePath = "empty.jpg"
             };
@@ -215,6 +215,7 @@ builder.Services.AddDbContext<CustomerContext>(x=>x.UseSqlServer(builder.Configu
 
 builder.Services.AddIdentity<AppUser, AppRole>(x => { x.SignIn.RequireConfirmedEmail = false; }).AddEntityFrameworkStores<CustomerContext>()
     .AddRoles<AppRole>();
+//DİKKAT!!! SignIn.RequireConfirmedEmail = false; KISMINI APPUSER_CFG İÇİNDEKİ TANIMLANABİLİR. BKZ. CFG
 
 
 
@@ -714,8 +715,442 @@ Ayrıca logout yazıldı. yukarıda yorumdaki form tagi değiştirildi.
 
 
 
+13. _ViewImports.cshtml ve _ViewStart.cshtml dosyalarını kopyalayıp, AdminPanel ve UserPanel Views klasörleri içerisine yapıştır ve Rebuild yap.
 
-13. 
+
+
+
+14. Üye Customer ekleyecek. 
+
+14.a Areas - UserPanel - Controllers altında Scaffold ile (model class: Customer, context seç, controllername içinden s yi kaldır, hepsi klikli) aşağıdaki controller oluşturduk ve düzenledik.
+
+[Area("UserPanel")]
+    public class CustomerController : Controller
+    {
+        private readonly CustomerContext _context;
+        private readonly UserManager<AppUser> _userManager;
+
+        public CustomerController(CustomerContext context, UserManager<AppUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+
+
+        // GET: UserPanel/Customer
+        public async Task<IActionResult> Index()
+        {
+            //User ile Customer kaydettik ve Indexte geldi fakat diğer Userda da geldi. Hangi User kaydetmişse onun açtığı oturumda çıksın diğer userlarda görünmesin. where .... ekledik ve Indexte AppUser çıkardık.           
+            var customerContext = _context.Customers.Include(c => c.AppUser).Where(x=>x.AppUserID==GetUserID());
+            return View(await customerContext.ToListAsync());
+        }
+
+        // GET: UserPanel/Customer/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null || _context.Customers == null)
+            {
+                return NotFound();
+            }
+
+            var customer = await _context.Customers
+                .Include(c => c.AppUser)
+                .Include(c=>c.MoneyMovements)
+                .FirstOrDefaultAsync(m => m.CustomerID == id);
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            return View(customer);
+        }
+
+        // GET: UserPanel/Customer/Create
+        public IActionResult Create()
+        {
+            //ihtiyac yok...
+            //Otomatik olarak sistemden cekeceğiz...
+            //ViewData["AppUserID"] = new SelectList(_context.Users, "Id", "Name");
+            return View();
+        }
+
+        // POST: UserPanel/Customer/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("CustomerID,Name,Surname")] Customer customer)    //Bind içinden TotalBalance,AppUserID sildik. Burada kalırsa mutlaka bizden bekler.
+        {
+
+            //DİKKAT KONSOL KULLANDIK MVC ORTAMINDA
+            //Console.WriteLine(User.Identity.Name); //AMA SADECE İSMİNİ VERİYOR DOLAYISIYLA EN AŞAĞI METD YAZDIK.
+
+            if (ModelState.IsValid)
+            {
+                //otomatik olarak UserId' yi nasıl alacağız...
+                customer.AppUserID = GetUserID();    //METOD EN ALTTA
+                _context.Add(customer);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            //combobox ı doldurmaya çalışıyor. ihtiyacım yok.
+            //ViewData["AppUserID"] = new SelectList(_context.Users, "Id", "Name", customer.AppUserID);
+            return View(customer);
+        }
+
+        // GET: UserPanel/Customer/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null || _context.Customers == null)
+            {
+                return NotFound();
+            }
+
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
+            {
+                return NotFound();
+            }
+            ViewData["AppUserID"] = new SelectList(_context.Users, "Id", "Name", customer.AppUserID);
+            return View(customer);
+        }
+
+        // POST: UserPanel/Customer/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("CustomerID,Name,Surname,TotalBalance,AppUserID")] Customer customer)
+        {
+            if (id != customer.CustomerID)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(customer);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CustomerExists(customer.CustomerID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["AppUserID"] = new SelectList(_context.Users, "Id", "Name", customer.AppUserID);
+            return View(customer);
+        }
+
+        // GET: UserPanel/Customer/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null || _context.Customers == null)
+            {
+                return NotFound();
+            }
+
+            var customer = await _context.Customers
+                .Include(c => c.AppUser)
+                .FirstOrDefaultAsync(m => m.CustomerID == id);
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            return View(customer);
+        }
+
+        // POST: UserPanel/Customer/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            if (_context.Customers == null)
+            {
+                return Problem("Entity set 'CustomerContext.Customers'  is null.");
+            }
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer != null)
+            {
+                _context.Customers.Remove(customer);
+            }
+            
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+
+//SCAFFOLD DIŞINDA HAREKETLERİN OLDUĞU SONRADAN EKLENEN DETAİLSE GÖSTERECEĞİMİZ AKSİYON
+        //Add Cash flow
+        public IActionResult AddCashFlow(int id)      //SAYFA AÇILIRKEN CUSTOMER ID Yİ GÖNDERMEMİZ GEREKİYOR.
+        {
+            //id:customerID
+            MoneyMovement movement = new MoneyMovement();
+            movement.CustomerID= id;
+            return View(movement);
+        }
+
+       
+        [HttpPost]
+        public IActionResult AddCashFlow([Bind("CustomerID,Description,Amount")] MoneyMovement movement) //MoneyMovement İÇİNDEN SADECE Bind("CustomerID,Description,Amount") SADECE BUNLAR OLSUN İSTİYORUZ. YOKSA ŞU BU YOK DİYECEK. ONDAN KURTULMAK İÇİN
+        {
+            if (ModelState.IsValid)
+            {
+                //MoneyMovement =>INSERT
+                movement.CreateDate=DateTime.Now;
+                _context.MoneyMovements.Add(movement);
+
+                //Customer => UPDATE
+                var customer=_context.Customers.Find(movement.CustomerID);
+                if (customer != null)
+                    customer.TotalBalance += movement.Amount;
+                _context.Update(customer);
+                _context.SaveChanges();
+                
+
+                return RedirectToAction("Index", "Customer");
+            }
+            return View(movement);
+        }
+
+
+
+
+        private bool CustomerExists(int id)
+        {
+          return (_context.Customers?.Any(e => e.CustomerID == id)).GetValueOrDefault();
+        }
+
+        private int GetUserID()
+        {
+           return int.Parse( _userManager.GetUserId(User));
+        }
+    }
+
+
+
+
+14.b Areas - UserPanel - Views - Home - Index.cshtml içine yukarıdaki controllera bağlanntı ekledik.
+
+<h2>User Admin</h2>
+
+<br /><br />
+
+<a asp-controller="Customer" asp-action="Index" class="btn btn-primary">Customer Pages</a>
+
+
+
+14.c Customer Create inde AppUserID altında comboboxta kullanıcı adlarını getirdi ama bize bu lazım değil. Sistemde kim açmışsa otomatik onu kaydetmeli, seçtirmemeli.
+Arkaplanda oturum açan kişinin ID sini yakalamam lazım.
+
+@model WebApp_API.Models.Customer
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Customer</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Surname" class="control-label"></label>
+                <input asp-for="Surname" class="form-control" />
+                <span asp-validation-for="Surname" class="text-danger"></span>
+            </div>
+
+            @*Gerek yok.. Ekleyen ID otomatik olarak gelmeli...*@
+           @* <div class="form-group">
+                <label asp-for="AppUserID" class="control-label"></label>
+                <select asp-for="AppUserID" class ="form-control" asp-items="ViewBag.AppUserID"></select>
+            </div>*@
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+
+
+
+14.d Index sayfasında, Edit-Details-Delete ten sonra Cash Flow butonu ekledik ve AppUser kaldırdık.
+
+@model IEnumerable<WebApp_API.Models.Customer>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Surname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TotalBalance)
+            </th>
+
+          @*  <th>
+                @Html.DisplayNameFor(model => model.AppUser)
+            </th>*@
+
+            <th></th>
+
+            <th>Cash Flow</th>
+
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Surname)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TotalBalance)
+            </td>
+
+          @*  <td>
+                @Html.DisplayFor(modelItem => item.AppUser.Name)
+            </td>*@
+
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.CustomerID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.CustomerID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.CustomerID">Delete</a>
+            </td>
+
+            <td>
+                <a asp-controller="Customer" asp-action="AddCashFlow" class="btn btn-secondary" asp-route-id="@item.CustomerID">Add a Flow</a>
+            </td>
+
+        </tr>
+}
+    </tbody>
+</table>
+
+
+
+14.e Para hareketinin girileceği ekranı ekledik. Controller içinden aksiyon üzerinde sağ tıkla - Scaffold ile (ViewName: AddCashFlow, template create, class:MoneyMovement, context seç, create... kliksiz, altındaki diğer ikisi klikli) 
+
+@model WebApp_API.Models.MoneyMovement
+
+@{
+    ViewData["Title"] = "AddCashFlow";
+}
+
+<h1>AddCashFlow</h1>
+
+<h4>MoneyMovement</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AddCashFlow">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="CustomerID" />      
+
+            @*<div class="form-group">                                                GEREK YOK, LİNKTEN GİDECEK.
+                <label asp-for="CustomerID" class="control-label"></label>
+                <select asp-for="CustomerID" class ="form-control" asp-items="ViewBag.CustomerID"></select>
+            </div>*@
+
+          @*  <div class="form-group">                                                GEREK YOK, DATETIME.NOW DAN GİDECEK.
+                <label asp-for="CreateDate" class="control-label"></label>
+                <input asp-for="CreateDate" class="form-control" />
+                <span asp-validation-for="CreateDate" class="text-danger"></span>
+            </div>*@
+
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Amount" class="control-label"></label>
+                <input asp-for="Amount" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Add Cash Movement" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+
+
+14.f Add a flow butonundan para hareketi girdik ve listede bakiyenin doğru hesaplayıp hesaplamadığını kontrol ettik.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
