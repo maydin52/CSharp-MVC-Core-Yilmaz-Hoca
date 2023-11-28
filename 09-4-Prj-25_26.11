@@ -284,6 +284,7 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
 
 
+
 7. appsettings.json dosyasına aşağıdaki eklemeleri yaptık.
 
 {
@@ -327,6 +328,7 @@ Hata verdi. CustomerCFG içindeki TotalBalance da true ya çektik ve sonuna HasD
 
 update-database
 Tabloları, ilişkileri, içindeki değerleri ve tiplerini kontrol ettik.
+
 
 
 
@@ -376,6 +378,49 @@ Her areanın kendine ait MVC oluyor.
 <a asp-controller="Customer" asp-action="Index" class="btn btn-primary">Customer Pages</a>
 
 
+
+
+
+
+
+10. Identity biz sıfırdan uyarladığımız için
+
+
+10.a Areaların dışındaki genel alanda;
+
+Kendi oluşan HomeController;
+
+public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+
+
+
+
+Models klasörü içine ViewModels klasörü içine;
+
 public class User_VM
     {
         public string Name { get; set; }
@@ -388,13 +433,21 @@ public class User_VM
 
 
 
+Models klasörü içine DTO klasörü içine;
+
+public class LoginDTO
+    {
+        
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
 
 
-10. Identity biz sıfırdan uyarladığımız için aşağıdakileri ekledik.
 
 
 
-10.a Areaların dışındaki genel alanda LoginController oluşturduk. 
+
+Areaların dışındaki genel alanda LoginController oluşturduk. 
 
 public class LoginController : Controller
     {
@@ -422,10 +475,14 @@ public class LoginController : Controller
         [HttpPost]
         public async Task<IActionResult> Login(LoginDTO login)
         {
+            //Veritabanında bu kişinin bulunup bulunmadığını bulduk.
             var user =await _userManager.FindByEmailAsync(login.Email);
-            var result =await _userManager.CheckPasswordAsync(user, login.Password);
 
-            if (result) //kullanıcı varsa
+            //Bulduğu kişinin şifresini kontrol et.
+            var result =await _userManager.CheckPasswordAsync(user, login.Password);    //true / false dönecek.
+
+            //kullanıcı varsa
+            if (result) 
                 await _signinManager.SignInAsync(user, false);
             else
             {
@@ -442,6 +499,9 @@ public class LoginController : Controller
         {
             _signinManager.SignOutAsync();
             return RedirectToAction("Index","Home");
+
+            //EmptyResult(); özelliklerini araştır.
+
         }
 
         public IActionResult Register()
@@ -476,7 +536,7 @@ public class LoginController : Controller
             //Varsayılan olara uye yap...
             await _userManager.AddToRoleAsync(newUser, "User");
             
-            return Content(result.Succeeded.ToString());
+            return Content(result.Succeeded.ToString());      // sonucun true false dönüp dönmediğini gösterir
         }
     }
 
@@ -525,18 +585,137 @@ public class LoginController : Controller
 
 
 
+10.c Login.cshtml oluşturduk. Create seçerek Scaffold ile yapmayı denedik ama DTO içinde Key olmadığı için hata verdi yapmadı. 
+DTO da Email prop üstüne [Key] yazıp yeniden scaffold yaptık oldu. Daha sonra bunu sildik. Ayrıca Context içinde en alta kendisinin yazdığı DbSet prop unu da sildik.
+
+//Dikkat!!! method=post yazmadık ama posta dişeceği için yazmayabiliriz.
+
+@model WebApp_API.Models.DTO.LoginDTO
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+
+<h4>LoginDTO</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Login">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Login" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div asp-validation-summary="All">
+   
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
 
 
 
 
 
 
+11. solution en tepesinde sağ tık - Add - New Scaffolded Item - Identity - Identity - Add - AccountLogout tikle, context seç - Add
+Shared klasörü altına _Layout.cshtml altına _LoginPartial.cshtml dosyası geldi. 
+
+Dikkat!!! Program.cs e kendisi aşağıdakini yazıyor.
+builder.Services.AddDefaultIdentity<AppUser>.......... BUNU SİL.
+
+_layout.cshtml içinde </nav> üstüne 
+<div>
+      @Html.Partial("_LoginPartial")
+</div>
+
+Şimdi sağ üstteki register ve login yazıları geldi. Fakat üstlerine tıkladığımızda login ve regizter sayfaları gelmiyordu.
 
 
 
 
 
 
+12. _LoginPartial.cshtml içinde;
+asp-page kullanmadığımızdan else içindeki asp-page tagini aşağıdaki şekilde değiştirdik.
+
+
+@using Microsoft.AspNetCore.Identity
+@using WebApp_API.Models
+
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+        var user = await UserManager.GetUserAsync(User);
+        bool IsAdmin =await UserManager.IsInRoleAsync(user,"Admin");
+
+        if (IsAdmin)
+        {
+            <li class="nav-item">
+                <a id="manage" class="nav-link text-dark" asp-area="AdminPanel" asp-controller="Home" asp-action="Index"  title="Manage">Admin Paneli</a>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item">
+                <a id="manage" class="nav-link text-dark" asp-area="UserPanel" asp-controller="Home" asp-action="Index" title="Manage">Uye Paneli</a>
+            </li>
+        
+        }
+
+    <li class="nav-item">
+        <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
+    </li>
+    <li class="nav-item">
+             <form id="logoutForm" class="form-inline" asp-area="Identity" asp-controller="Login" asp-action="LogOut" >
+        <button id="logout" type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+        </form>
+       @* <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button id="logout" type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+        </form>*@
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" id="register" asp-controller="Login" asp-action="Register" >Register</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" id="login" asp-controller="Login" asp-action="Login">Login</a>
+    </li>
+}
+</ul>
+
+
+Artık login ve register üstlerine tıkladığımızda login ve regizter sayfaları geliyor.
+Ayrıca sağ üst tarafta adam adminse adminpanel sayfasına, üyeyse üye panel sayfa bağlantısı gelmesi sağlandı. 
+Ayrıca logout yazıldı. yukarıda yorumdaki form tagi değiştirildi.
+
+
+
+
+
+
+13. 
 
 
 
