@@ -1227,12 +1227,122 @@ Arkaplanda oturum açan kişinin ID sini yakalamam lazım.
 15. Chart gösterimi ayarlaması
 
 https://www.chartjs.org/
-
 https://www.chartjs.org/docs/latest/samples/bar/vertical.html
 
+https://www.chartjs.org/docs/latest/getting-started/installation.html
+https://github.com/chartjs/Chart.js/releases/tag/v4.4.0
 
 
 
+https://www.google.com/search?q=visual+studio+chart.js+usage+examples&rlz=1C5CHFA_enTR1036TR1036&oq=visual+studio+chart.js+usage+examples&aqs=chrome..69i57j33i160.13770j0j7&sourceid=chrome&ie=UTF-8#ip=1
+
+
+
+15.a Tools - nuget - nuget ... solution - browse arat 
+- chart.js (açıklamasında simple HTML5 charts the canvas element yazıyor) projeyi ve versiyonu seç - install
+- Newtonsoft.Json kütüphanesini kur.
+
+
+15.b Models klasörü altında ViewModels klasörü altından aşağıdaki VM i oluşturduk.
+
+public class Chart_VM
+    {
+        public string Labels { get; set; }
+        public string Data { get; set; }
+    }
+
+
+15.c Normal Controller içerisine TestController oluşturduk.
+https://www.chartjs.org/docs/latest/getting-started/usage.html
+
+https://ordinarycoders.com/blog/article/11-chart-js-examples
+fill False u false olarak düzenledik
+type bar yaptık.
+
+---FARKLI BİR GRAFİK TASARLAMAK İSTERSEN BASE KODLAR SİTELERDE.
+
+public class TestController : Controller
+    {
+        private readonly CustomerContext _context;
+
+        public TestController(CustomerContext context)
+        {
+            _context = context;
+        }
+
+        //ÖNYÜZ İÇİN LABEL VE DATALARA İHTİYACIMIZ VAR.
+        public IActionResult Index()
+        {
+
+            //VM DEN ÖNCE labelList RETURN CONTENT YAPIP SAYFAYA GÖNDERDİK VE TARİH SONUCUNU GÖRDÜK. TEK OLSAYDI VİEWBAG İLE, TUTAR VERİSİ İÇİNDE AYNI ŞEY GEREKTİĞİNDEN İKİ AYRI VERİ GÖNDERECEĞİMİZ İÇİN SONRA VM YAPTIK.            
+            //var labelList = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x=>x.CreateDate).ToList());
+            //return Content(labelList);
+
+            Chart_VM chart_VM = new Chart_VM();
+            //LABELLARI JSON A ÇEVİRDİK.
+            //chart_VM.Labels = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x => x.CreateDate.ToShortDateString().Replace('/', '_')));
+            //chart_VM.Labels = JsonConvert.SerializeObject(_context.MoneyMovements.Include(x=>x.Customer).Select(x => x.Customer.UserName).ToList());
+            //chart_VM.Labels = chart_VM.Labels.Replace("\"", "").Replace(" ","");  
+            chart_VM.Labels = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x => x.ID).ToList());
+            chart_VM.Data = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x => x.Amount).ToList());
+            return View(chart_VM);
+        }
+    }
+
+
+
+15.d TestController ın Index aksiyonunun view i
+Siteden kopyaladığımız kodu buraya yapıştırdık ve deneyerek dev tools içindeki konsoldan da faydalanarak düzenledik.
+
+Dev tools konsol da ;    Uncaught SyntaxError: Unexpected token '&'      hatasıyla uğraştık.
+
+@using WebApp_API.Models.ViewModels;
+@model Chart_VM
+
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Chart.js example</title>
+   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+
+   
+</head>
+<body>
+    <div>
+        <canvas id="myChart"></canvas>
+    </div>
+    @Model.Labels
+    @Model.Data
+
+    <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Model.Labels,
+                 
+                datasets: [{
+                    data: @Model.Data,
+                    label: "Total",
+                    borderColor: "#3e95cd",
+                    backgroundColor: "#7bb6dd",
+                    fill: false,
+                }
+                //, {
+                //    data: [70, 90, 44, 60, 83, 90, 100],
+                //    label: "Accepted",
+                //    borderColor: "#3cba9f",
+                //    backgroundColor: "#71d1bd",
+                //    fill: false,
+                //}
+                ]
+            },
+        });
+    </script>
+</body>
+</html>
 
 
 
