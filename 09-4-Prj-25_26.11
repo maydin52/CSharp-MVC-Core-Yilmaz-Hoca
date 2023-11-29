@@ -1261,6 +1261,8 @@ type bar yaptık.
 
 ---FARKLI BİR GRAFİK TASARLAMAK İSTERSEN BASE KODLAR SİTELERDE.
 
+--ARAŞTIR CANVAS.JS
+
 public class TestController : Controller
     {
         private readonly CustomerContext _context;
@@ -1279,10 +1281,12 @@ public class TestController : Controller
             //return Content(labelList);
 
             Chart_VM chart_VM = new Chart_VM();
-            //LABELLARI JSON A ÇEVİRDİK.
+            //LABELLARI JSON A ÇEVİRDİK. Dev tools konsol da ;    Uncaught SyntaxError: Unexpected token '&'      hatasıyla uğraştık.
             //chart_VM.Labels = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x => x.CreateDate.ToShortDateString().Replace('/', '_')));
             //chart_VM.Labels = JsonConvert.SerializeObject(_context.MoneyMovements.Include(x=>x.Customer).Select(x => x.Customer.UserName).ToList());
             //chart_VM.Labels = chart_VM.Labels.Replace("\"", "").Replace(" ","");  
+
+            //chart_VM.Labels = "[2023_11_26,2023_11_25]"; //BU ŞEKİLDE GRAFİKTE TARİH GELDİ. ARADAKİ _ LERİ KALDIRDI. DİĞER TÜRLÜ ÇOK UĞRAŞTI AMA GRAFİKTE GELMEDİ.
             chart_VM.Labels = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x => x.ID).ToList());
             chart_VM.Data = JsonConvert.SerializeObject(_context.MoneyMovements.Select(x => x.Amount).ToList());
             return View(chart_VM);
@@ -1313,6 +1317,7 @@ Dev tools konsol da ;    Uncaught SyntaxError: Unexpected token '&'      hatası
     <div>
         <canvas id="myChart"></canvas>
     </div>
+
     @Model.Labels
     @Model.Data
 
@@ -1347,13 +1352,153 @@ Dev tools konsol da ;    Uncaught SyntaxError: Unexpected token '&'      hatası
 
 
 
+16. Customer verisini çekmek için API ekliyoruz fakat önce API nin geriye ne döndüreceğine karar vermemiz gerekiyor. Biz CustomerID yi göndereceğiz, APı bize CreateDate, Description, Amount döndürecek.
+Genel controller üzerinde sağ tık - Add - Controller - API - API Controller with actions, using Entity Framework yapacaktık ama yukarıdakilere göre sonradan boş üzerinden özel yazdık.
+
+16.a Genel controller üzerinde sağ tık - Add - Controller - API - ....Empty - Add - CustomerAPIController - Add
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using WebApp_API.Data;
+
+namespace WebApp_API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class CustomerAPIController : ControllerBase
+    {
+        private readonly CustomerContext _customerContext;
+
+        public CustomerAPIController(CustomerContext customerContext)
+        {
+            _customerContext = customerContext;
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult CustomerMovements(int id)
+        {
+            //id => customerID
+
+            var result = _customerContext.MoneyMovements.Where(x=>x.CustomerID== id).ToList();
+
+            //View Model - chartta gösterebilmek için
+            return Ok(result);
+
+            //aksiyon üstündeki [HttpGet] iken browser ares çubuğuna ...../api/CustomerAPI?id=2   yazdığımızda JSON olarak tarayıcıda gördük. Şimdi bunların label ve data olarak ayrılıp charta yazdırılması gerekiyor.
+            //aksiyon üstündeki [HttpGet("{id}")] iken browser ares çubuğuna ...../api/CustomerAPI/2    yani soru işareti kullanmadan kullanım
+        }
+
+        [HttpGet("AllMoneyMovements")]
+        public IActionResult AllCustomerMovements()
+        {
+            //id => customerID
+
+            var result = _customerContext.MoneyMovements.ToList();
+
+            //View Model
+            return Ok(result);
+
+            //browser ares çubuğuna ...../api/CustomerAPI/AllCustomerMovements  yazdığımızda JSON olarak tarayıcıda gördük.
+
+        }
+    }
+}
 
 
 
 
+17. Bu isteği herkesin atamaması lazım yani bunu güvenli hale getirmemiz lazım.
+
+Günümüzde servisler aşağıdaki teknolojiyle güvenli hale getiriliyor. Günümüzde çok fazla kullaılıyor. 
+https://jwt.io/
+Encoded başlığı altındaki kodda baktığımızda;
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+Bu token yapısı üç parçadan oluşuyor. Yukarıdaki string sitede üç ayrı renk ile ifade ediliyor zaten.
+Birinci parça: kırmızı, header,
+İkinci parça: payload, json formatında datanın kendisi,
+Üçüncü parça: verify signature, kriptolama algoritması.
+
+Bir servis güvenli hale nasıl getirilir?
 
 
+Bir login ekranı düşün. client kullanıcı adı ve şifre giriyor ve login verisini sunucuya gönderiyor. 
+Sunucu gelen bu requesti karşılıyor, db ye bakıyor, varsa client a ya kullanıcı var ya da yok olarak ya true yada false olarak geri dönecek ama burada bu şekilde olmuyor. 
+Burada true gidecekse aslında biraz önce örneğini gördüğümüz token ın gitmesi gerekiyor. Bunu biz algoritmasına göre oluşturuyoruz. Sonra sunucu bu token bilgisini cliente gönderiyor. 
+Yoksa yani false ise boş bir string bilgisi gidiyor.
+Sonra client gelen token ı alıyor kendi üzerinde saklıyor, sonra ikinci bir response? yaptığında veya buradaki başka bir API ye ulaşmak istediğinde  arkada token bilgisiyle gitmesi gerekiyor. 
+Eğer bu token bilgisiyle gitmezse sunucu gelen isteği kabul etmez. Yani token yoksa erişim de yok. 
+Bizde bu sistemi kuracağız.
 
+Bizim kurguda kullanıcının önce login olması gerekiyor, login yoksa token da yok. 
+
+Bunun için; servis için bir login daha yazmamız gerekiyor ki token ı verecek bana. MVC de durum güvenli kendi içinde.
+
+
+Genel controller üzerinde sağ tık - Add - Controller - API - ....Empty - Add - LoginAPIController - Add
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using WebApp_API.Models;
+using WebApp_API.Models.DTO;
+
+namespace WebApp_API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class LoginAPIController : ControllerBase
+    {
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IConfiguration _config;
+
+        public LoginAPIController(UserManager<AppUser> userManager, IConfiguration config)
+        {
+            _userManager = userManager;
+            _config = config;
+        }
+
+        //Bana veri post olarak gelecek fakat ben ona get olarak döneceğim.
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginDTO login)
+        {
+            var user = await _userManager.FindByEmailAsync(login.Email);
+            if (user == null)
+                return Unauthorized();
+            var result =await _userManager.CheckPasswordAsync(user, login.Password);
+
+            if (result == false)
+                return Unauthorized();
+
+            //Birazdan token...
+            return Ok(GetToken(login.Email)); 
+        }
+
+        private string GetToken(string email)
+        {
+            var authClaims = new List<Claim> {
+                    new Claim(ClaimTypes.Email, email)
+                };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:secretKey"]));
+            var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+
+                authClaims.ToString(),
+                expires: DateTime.UtcNow.AddMinutes(10),
+                signingCredentials: signIn);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    }
+}
 
 
 
